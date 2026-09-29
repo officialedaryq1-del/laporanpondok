@@ -1824,10 +1824,10 @@ function MainAppContent() {
               {(isSidebarExpanded || isMobileMenuOpen) && (
                 <div className="min-w-0">
                   <div className="font-black text-white text-sm tracking-tight truncate">
-                    SMP QTYQ 1 LILBANAT
+                    PTYQ 1 PUTRA
                   </div>
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    LEDGER AKADEMIK
+                    UNIT SMP
                   </div>
                 </div>
               )}
@@ -2031,7 +2031,7 @@ function MainAppContent() {
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
             <div className="min-w-0">
-              <div className="font-bold text-xs truncate">SMP QTYQ 1 LILBANAT</div>
+              <div className="font-bold text-xs truncate">PTYQ 1 PUTRA SMP</div>
               <div className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold truncate">
                 {navTab === 'dashboard' ? 'Dashboard Pantauan' : navTab === 'laporan' ? 'Laporan IKU' : navTab === 'rekap_nilai' ? 'Rekap Nilai' : navTab === 'rekap_absensi' ? 'Presensi' : activeDivision.name}
               </div>
