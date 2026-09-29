@@ -1,0 +1,3229 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laporan Capaian IKU, Ledger, Tahfidh & Tabungan - Yanbu'ul Qur'an Boarding School 1 Pati</title>
+  
+  <!-- Tailwind CSS untuk Tampilan Browser -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Custom Landscape & Print Styling -->
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 8mm 10mm 8mm 10mm;
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'Times New Roman', Times, serif;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .page-sheet {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        min-height: 100vh !important;
+        page-break-inside: avoid !important;
+      }
+      .page-break,
+      .page-break-separator {
+        page-break-before: always !important;
+        break-before: page !important;
+        display: block !important;
+        clear: both !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      table {
+        page-break-inside: auto;
+      }
+      tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+      }
+    }
+
+    .page-break,
+    .page-break-separator {
+      page-break-before: always !important;
+      break-before: page !important;
+      clear: both;
+    }
+
+    .kop-border {
+      border-bottom: 3px double #1e293b;
+    }
+
+    .a4-landscape-page {
+      width: 297mm;
+      min-height: 200mm;
+      box-sizing: border-box;
+      margin-left: auto;
+      margin-right: auto;
+      background: white;
+    }
+
+    /* Tabel Gaya Excel Grid */
+    .excel-table {
+      border: 1.5px solid #000000;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .excel-table th {
+      border: 1px solid #000000;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 800;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 5px 4px;
+    }
+    .excel-table td {
+      border: 1px solid #000000;
+      padding: 4px 5px;
+      font-size: 10.5px;
+    }
+    .excel-table tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    /* Gaya khusus tabel matrix tahfidh */
+    .tahfidh-table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 10px;
+      border: 1.5px solid #000000;
+    }
+    .tahfidh-table th, .tahfidh-table td {
+      border: 1px solid #000000;
+      padding: 3px 4px;
+      vertical-align: middle;
+    }
+    .th-tahfidh-orange {
+      background-color: #f8cbad !important;
+      font-weight: bold;
+      text-align: center;
+      color: #000;
+    }
+    .th-tahfidh-green {
+      background-color: #e2efda !important;
+      font-weight: bold;
+      text-align: center;
+      color: #000;
+    }
+    .th-tahfidh-yellow {
+      background-color: #fff2cc !important;
+      font-weight: bold;
+      text-align: center;
+      color: #000;
+    }
+    .th-tahfidh-blue {
+      background-color: #bdd7ee !important;
+      font-weight: bold;
+      text-align: center;
+      color: #000;
+    }
+
+    @media screen and (max-width: 1200px) {
+      .a4-landscape-page {
+        width: 100%;
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-200 text-slate-800 font-sans min-h-screen py-6 px-3 sm:px-6">
+
+  <!-- Action Bar (Hidden on Print) -->
+  <div class="no-print max-w-6xl mx-auto mb-6 bg-white p-4 sm:p-5 rounded-2xl shadow-md border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3 w-full md:w-auto">
+      <div class="w-10 h-10 rounded-xl bg-blue-700 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-500/30">
+        <i class="fas fa-file-invoice"></i>
+      </div>
+      <div>
+        <h2 class="font-bold text-slate-900 text-sm sm:text-base">Ekspor Laporan Bulanan Terpadu</h2>
+        <p class="text-xs text-slate-500">Format Landscape A4: Cover, Pengesahan, IKU, Presensi, Leger Nilai, Tahfidh &amp; Tabungan Santri</p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
+      <!-- Selector Divisi -->
+      <div class="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-700">
+        <label for="selectDivisi"><i class="fas fa-sitemap text-blue-600 mr-1"></i>Unit:</label>
+        <select id="selectDivisi" onchange="filterLaporanByDivisi()" class="bg-transparent outline-none cursor-pointer">
+          <option value="all">Semua Divisi Unit</option>
+        </select>
+      </div>
+
+      <!-- Pemilih Bulan Ekspor -->
+      <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-700">
+        <label for="selectBulan"><i class="fas fa-calendar-alt text-purple-600 mr-1"></i>Bulan:</label>
+        <input type="month" id="selectBulan" value="2026-09" onchange="onBulanChange()" class="bg-transparent outline-none font-bold cursor-pointer" />
+      </div>
+
+      <!-- Tombol Unduh DOCX Landscape -->
+      <button onclick="downloadDOCX()" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-700/20 transition flex items-center gap-1.5 cursor-pointer">
+        <i class="fas fa-file-word"></i>
+        <span>Unduh DOCX (Landscape A4)</span>
+      </button>
+
+      <!-- Tombol Cetak / Print -->
+      <button onclick="window.print()" class="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5 cursor-pointer">
+        <i class="fas fa-print"></i>
+        <span>Print</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Notification Modal (Alternative to alert) -->
+  <div id="toastNotification" class="fixed top-5 right-5 z-50 transform transition-all duration-300 translate-y-[-120%] opacity-0 pointer-events-none bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-700 text-xs">
+    <i id="toastIcon" class="fas fa-info-circle text-blue-400 text-base"></i>
+    <span id="toastMessage" class="font-medium">Pesan notifikasi</span>
+  </div>
+
+  <!-- CONTAINER UTAMA SEMUA HALAMAN DOKUMEN PREVIEW -->
+  <div id="printableDocument" class="space-y-8">
+
+    <!-- HALAMAN 1: COVER / SAMPUL RESMI (LANDSCAPE A4) -->
+    <div class="a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between text-center relative">
+      <div class="pt-2 space-y-2">
+        <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-wider uppercase font-serif">
+          LAPORAN BULANAN<br>
+          YANBU'UL QUR'AN BOARDING SCHOOL 1 PATI PUTRI
+        </h1>
+        <div class="inline-block border-b-2 border-slate-900 pb-1">
+          <h2 class="text-base sm:text-lg font-black uppercase text-blue-900 tracking-widest font-serif" id="coverLabelPeriode">
+            PERIODE SEPTEMBER 2026
+          </h2>
+        </div>
+        <p class="text-xs sm:text-sm font-semibold text-slate-700">
+          Disampaikan dalam Rapat Bulanan<br>Yayasan Asem Bungkuk Pati
+        </p>
+        <p class="text-xs text-slate-500 italic font-serif" id="coverLabelTanggalRapat">
+          Kudus, 15 September 2026
+        </p>
+      </div>
+
+      <div class="my-2 flex flex-col items-center justify-center">
+        <img 
+          src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
+          alt="Logo Yanbu'ul Qur'an" 
+          class="w-28 h-28 sm:w-32 sm:h-32 object-contain drop-shadow-md mx-auto"
+        />
+        <h3 class="text-base sm:text-lg font-black text-slate-900 mt-2 tracking-wide font-serif" id="coverLabelTahun">
+          Tahun 2026
+        </h3>
+      </div>
+
+      <div class="pb-1 space-y-1.5">
+        <div class="flex justify-center">
+          <img 
+            src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/tulisanarabyanbu.png" 
+            alt="Tulisan Arab Yanbu'" 
+            class="h-8 sm:h-9 w-auto max-w-[280px] object-contain mx-auto"
+          />
+        </div>
+        <div>
+          <h4 class="text-sm font-black tracking-wider text-slate-900 uppercase font-serif">
+            YANBU'UL QUR'AN BOARDING SCHOOL 1 PATI
+          </h4>
+          <p class="text-[11px] font-semibold text-slate-600">
+            (Pondok Tahfidh - SMPQT - SMAQT)
+          </p>
+          <p class="text-[10px] text-slate-500 max-w-xl mx-auto leading-relaxed mt-0.5 font-serif">
+            Jalan Raya Pati Tayu Km. 06 Dukuh Ngulaan, Desa Sukoharjo, Kec. Wedarijaksa, Kabupaten Pati 59152
+          </p>
+        </div>
+        <div class="text-[10px] text-slate-400 font-serif pt-1">1</div>
+      </div>
+    </div>
+
+    <!-- HALAMAN 2: LEMBAR PENGESAHAN (LANDSCAPE A4) -->
+    <div class="page-break a4-landscape-page page-sheet p-10 sm:p-14 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative font-serif">
+      <div>
+        <h2 class="text-center font-black text-base sm:text-lg uppercase tracking-widest text-slate-900 mb-6 underline">
+          HALAMAN PENGESAHAN
+        </h2>
+        
+        <p class="text-xs sm:text-sm text-slate-800 text-justify leading-relaxed indent-8 max-w-4xl mx-auto">
+          Laporan Kegiatan Bulanan Yanbu'ul Qur'an Boarding School 1 Pati Putri, periode <span id="pengesahanBulanTeks" class="font-bold">September 2026</span> Semester Gasal Tahun Ajaran 2026/2027 sebagai bahan evaluasi pelaksanaan Kegiatan Belajar Mengajar (KBM), Capaian Tahfidh Al-Qur'an, dan Akuntabilitas Keuangan Tabungan Santri di Yanbu'ul Qur'an Boarding School 1 Pati Putri Margorejo Kecamatan Wedarijaksa Kabupaten Pati telah disetujui oleh Tim untuk diajukan ke Ketua Yayasan Asem Bungkuk Sukoharjo Wedarijaksa Pati.
+        </p>
+
+        <p class="text-right text-xs sm:text-sm text-slate-700 mt-6 max-w-4xl mx-auto" id="pengesahanTanggalLokasi">
+          Pati, 15 September 2026
+        </p>
+
+        <div class="grid grid-cols-2 gap-12 text-xs sm:text-sm mt-8 max-w-4xl mx-auto">
+          <div class="text-center space-y-12">
+            <p class="font-bold text-slate-800">Kepala Sekolah,</p>
+            <div>
+              <p class="font-black text-slate-900 underline">M. Ahsanul Umam, S.Pd.I.</p>
+              <p class="text-slate-600 text-xs">NIY. 19931029.2017.0022</p>
+            </div>
+          </div>
+
+          <div class="text-center space-y-12">
+            <p class="font-bold text-slate-800">Kepala Pondok,</p>
+            <div>
+              <p class="font-black text-slate-900 underline">Usth. Minnatul Ulya Febriyani</p>
+              <p class="text-slate-600 text-xs">NIY. 20001029.2025.001</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center space-y-12 mt-8 max-w-4xl mx-auto">
+          <p class="font-bold text-slate-800">
+            Mengetahui,<br>Ketua Yayasan Asem Bungkuk
+          </p>
+          <div>
+            <p class="font-black text-slate-900 underline">H. Ibrahim Wagiman</p>
+            <p class="text-slate-600 text-xs">NIY. 19720722.2016.0001</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center text-[10px] text-slate-400 font-serif pt-4">2</div>
+    </div>
+
+    <!-- HALAMAN 3+: WADAH TABEL LAPORAN CAPAIAN IKU, PRESENSI, LEGER NILAI, TAHFIDH & TABUNGAN -->
+    <div id="divisiTablesContainer" class="space-y-8">
+      <!-- Loading State Placeholder -->
+      <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative">
+        <div class="p-8 text-center text-slate-400 italic">
+          <i class="fas fa-spinner fa-spin mr-2"></i>Memuat seluruh data nilai, presensi, tahfidh, dan tabungan santri dari server Supabase...
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://vpdlfjbkfcuukyykrhua.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwZGxmamJrZmN1dWt5eWtyaHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNzkxNjUsImV4cCI6MjA5Nzc1NTE2NX0.QSHbi71ajuU_AggJJ5xVDeb6jffDRyyuF4C7aYeHW3Y';
+
+    const reqHeaders = {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    };
+
+    let divisionsData = [];
+    let ikusData = [];
+    let templatesData = [];
+    let submissionsData = [];
+    let daftarNilaiData = [];
+    let daftarMapelData = [];
+    let santriData = [];
+    let presensiData = [];
+    let catatanMap = {};
+    let selectedBulan = '2026-09';
+    let logoBase64 = '';
+    let tulisanArabBase64 = '';
+
+    // Data Penunjang Tahfidh Putri
+    let ustadzahTahfidhData = [];
+    let logsTahfidhData = [];
+    let customTargetsLembaga = {};
+    let customTargetsPojokan = {};
+    let customTargetsDeresan = {};
+
+    // Data Penunjang Tabungan Santri
+    let transaksiTabunganData = [];
+
+    const POJOK_PER_JUZ = 20;
+    const KELAS_KEYS_TAHFIDH = ['7', '8', '9', '10', '11', '12'];
+    const TAHUN_AJARAN_ORDER = ["07", "08", "09", "10", "11", "12", "01", "02", "03", "04", "05", "06"];
+
+    // Urutan tampilan juz dari 29 turun ke 1, lalu juz 30
+    const DISPLAY_JUZ_ORDER = (() => {
+      const arr = [];
+      for (let j = 29; j >= 1; j--) arr.push(j);
+      arr.push(30);
+      return arr;
+    })();
+
+    const DefaultTargetLembaga = {
+      "07": { "7": {j: 30, p: 6}, "8": {j: 5, p: 6}, "9": {j: 10, p: 6}, "10": {j: 15, p: 6}, "11": {j: 20, p: 6}, "12": {j: 25, p: 6} },
+      "08": { "7": {j: 30, p: 15},"8": {j: 5, p: 15},"9": {j: 10, p: 15},"10": {j: 15, p: 15},"11": {j: 20, p: 15},"12": {j: 25, p: 15} },
+      "09": { "7": {j: 1, p: 5},  "8": {j: 6, p: 5},  "9": {j: 11, p: 5}, "10": {j: 16, p: 5}, "11": {j: 21, p: 5}, "12": {j: 26, p: 5} },
+      "10": { "7": {j: 1, p: 16}, "8": {j: 6, p: 16}, "9": {j: 11, p: 16},"10": {j: 16, p: 16},"11": {j: 21, p: 16},"12": {j: 26, p: 16} },
+      "11": { "7": {j: 2, p: 7},  "8": {j: 7, p: 7},  "9": {j: 12, p: 7}, "10": {j: 17, p: 7}, "11": {j: 22, p: 7}, "12": {j: 27, p: 7} },
+      "12": { "7": {j: 2, p: 18}, "8": {j: 7, p: 18}, "9": {j: 12, p: 18},"10": {j: 17, p: 18},"11": {j: 22, p: 18},"12": {j: 27, p: 18} },
+      "01": { "7": {j: 3, p: 4},  "8": {j: 8, p: 4},  "9": {j: 13, p: 4}, "10": {j: 18, p: 4}, "11": {j: 23, p: 4}, "12": {j: 28, p: 4} },
+      "02": { "7": {j: 3, p: 12}, "8": {j: 8, p: 12}, "9": {j: 13, p: 12},"10": {j: 18, p: 12},"11": {j: 23, p: 12},"12": {j: 28, p: 12} },
+      "03": { "7": {j: 3, p: 18}, "8": {j: 8, p: 18}, "9": {j: 13, p: 18},"10": {j: 18, p: 18},"11": {j: 23, p: 18},"12": {j: 28, p: 18} },
+      "04": { "7": {j: 4, p: 5},  "8": {j: 9, p: 5},  "9": {j: 14, p: 5}, "10": {j: 19, p: 5}, "11": {j: 24, p: 5}, "12": {j: 29, p: 5} },
+      "05": { "7": {j: 4, p: 14}, "8": {j: 9, p: 14}, "9": {j: 14, p: 14},"10": {j: 19, p: 14},"11": {j: 24, p: 14},"12": {j: 29, p: 14} },
+      "06": { "7": {j: 4, p: 20}, "8": {j: 9, p: 20}, "9": {j: 14, p: 20},"10": {j: 19, p: 20},"11": {j: 24, p: 20},"12": {j: 29, p: 20} },
+      "all":{ "7": {j: 4, p: 20}, "8": {j: 9, p: 20}, "9": {j: 14, p: 20},"10": {j: 19, p: 20},"11": {j: 24, p: 20},"12": {j: 29, p: 20} }
+    };
+
+    const DefaultTargetPojokan = {
+      "07": { "7": 15, "8": 20, "9": 20, "10": 20, "11": 20, "12": 20 },
+      "08": { "7": 20, "8": 20, "9": 20, "10": 20, "11": 20, "12": 20 },
+      "09": { "7": 20, "8": 20, "9": 20, "10": 20, "11": 20, "12": 20 },
+      "10": { "7": 20, "8": 20, "9": 20, "10": 20, "11": 20, "12": 20 },
+      "11": { "7": 20, "8": 20, "9": 20, "10": 20, "11": 20, "12": 20 },
+      "12": { "7": 20, "8": 20, "9": 20, "10": 20, "11": 20, "12": 20 },
+      "01": { "7": 20, "8": 20, "9": 20, "10": 20, "11": 20, "12": 20 },
+      "02": { "7": 20, "8": 20, "9": 20, "10": 20, "11": 20, "12": 20 },
+      "03": { "7": 20, "8": 20, "9": 20, "10": 20, "11": 20, "12": 20 },
+      "04": { "7": 20, "8": 20, "9": 20, "10": 20, "11": 20, "12": 20 },
+      "05": { "7": 20, "8": 20, "9": 20, "10": 20, "11": 20, "12": 20 },
+      "06": { "7": 20, "8": 20, "9": 20, "10": 20, "11": 20, "12": 20 },
+      "all":{ "7": 240, "8": 240, "9": 240, "10": 240, "11": 240, "12": 240 }
+    };
+
+    const DefaultTargetDeresan = {
+      "07": { "7": 20, "8": 30, "9": 30, "10": 40, "11": 40, "12": 40 },
+      "08": { "7": 20, "8": 30, "9": 30, "10": 40, "11": 40, "12": 40 },
+      "09": { "7": 20, "8": 30, "9": 30, "10": 40, "11": 40, "12": 40 },
+      "10": { "7": 20, "8": 30, "9": 30, "10": 40, "11": 40, "12": 40 },
+      "11": { "7": 20, "8": 30, "9": 30, "10": 40, "11": 40, "12": 40 },
+      "12": { "7": 20, "8": 30, "9": 30, "10": 40, "11": 40, "12": 40 },
+      "01": { "7": 20, "8": 30, "9": 30, "10": 40, "11": 40, "12": 40 },
+      "02": { "7": 20, "8": 30, "9": 30, "10": 40, "11": 40, "12": 40 },
+      "03": { "7": 20, "8": 30, "9": 30, "10": 40, "11": 40, "12": 40 },
+      "04": { "7": 20, "8": 30, "9": 30, "10": 40, "11": 40, "12": 40 },
+      "05": { "7": 20, "8": 30, "9": 30, "10": 40, "11": 40, "12": 40 },
+      "06": { "7": 20, "8": 30, "9": 30, "10": 40, "11": 40, "12": 40 },
+      "all":{ "7": 240, "8": 360, "9": 360, "10": 480, "11": 480, "12": 480 }
+    };
+
+    const today = new Date();
+    const optionsDate = { year: 'numeric', month: 'long', day: 'numeric' };
+    const dateFormatted = today.toLocaleDateString('id-ID', optionsDate);
+
+    function showNotification(msg, isError = false) {
+      const toast = document.getElementById('toastNotification');
+      const msgEl = document.getElementById('toastMessage');
+      const icon = document.getElementById('toastIcon');
+      if (!toast || !msgEl || !icon) return;
+
+      msgEl.innerText = msg;
+      if (isError) {
+        icon.className = 'fas fa-exclamation-circle text-rose-400 text-base';
+        toast.classList.replace('bg-slate-900', 'bg-rose-900');
+      } else {
+        icon.className = 'fas fa-check-circle text-emerald-400 text-base';
+        toast.classList.replace('bg-rose-900', 'bg-slate-900');
+      }
+
+      toast.classList.remove('translate-y-[-120%]', 'opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('translate-y-[-120%]', 'opacity-0', 'pointer-events-none');
+      }, 3500);
+    }
+
+    function formatRupiah(num) {
+      return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
+    }
+
+    async function preloadImagesAsBase64() {
+      const convert = async (url) => {
+        try {
+          const res = await fetch(url);
+          const blob = await res.blob();
+          return new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          });
+        } catch (e) {
+          return url;
+        }
+      };
+      logoBase64 = await convert('https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png');
+      tulisanArabBase64 = await convert('https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/tulisanarabyanbu.png');
+
+      document.querySelectorAll('img[alt="Logo Yanbu\'ul Qur\'an"], img[alt="Logo"]').forEach(img => {
+        if (logoBase64) img.src = logoBase64;
+      });
+      document.querySelectorAll('img[alt="Tulisan Arab Yanbu\'"]').forEach(img => {
+        if (tulisanArabBase64) img.src = tulisanArabBase64;
+      });
+    }
+
+    if (document.getElementById('coverLabelTanggalRapat')) {
+      document.getElementById('coverLabelTanggalRapat').innerText = `Kudus, ${dateFormatted}`;
+    }
+    if (document.getElementById('pengesahanTanggalLokasi')) {
+      document.getElementById('pengesahanTanggalLokasi').innerText = `Pati, ${dateFormatted}`;
+    }
+
+    // Helper Fungsi Nilai & Tahfidh
+    function safeExtractNum(val) {
+      if (!val) return 0;
+      const m = String(val).match(/\d+/);
+      return m ? parseInt(m[0], 10) : 0;
+    }
+
+    function getAbsolutePojok(juz, pojok) {
+      const j = parseInt(juz) || 0;
+      const p = parseInt(pojok) || 0;
+      if (j >= 1 && j <= 30) {
+        const validPojok = Math.max(0, Math.min(p, POJOK_PER_JUZ));
+        const orderIndex = j === 30 ? 0 : j;
+        return orderIndex * POJOK_PER_JUZ + validPojok;
+      }
+      return 0;
+    }
+
+    function mapKelasTarget(kelasString) {
+      if (!kelasString) return null;
+      const s = String(kelasString).toUpperCase().trim();
+      if (s.startsWith('12') || s.includes('XII')) return '12';
+      if (s.startsWith('11') || s.includes('XI')) return '11';
+      if (s.startsWith('10') || s.includes('X-') || s.includes('X ')) return '10';
+      if (s.startsWith('9') || s.includes('IX')) return '9';
+      if (s.startsWith('8') || s.includes('VIII')) return '8';
+      if (s.startsWith('7') || s.includes('VII')) return '7';
+      const m = s.match(/\b(7|8|9|10|11|12)\b/);
+      return m ? m[1] : null;
+    }
+
+    function isMonthUpTo(logBln, targetBln) {
+      if (targetBln === 'all' || !logBln) return true;
+      const idxLog = TAHUN_AJARAN_ORDER.indexOf(String(logBln).padStart(2, '0'));
+      const idxTarget = TAHUN_AJARAN_ORDER.indexOf(String(targetBln).padStart(2, '0'));
+      if (idxLog === -1 || idxTarget === -1) return true;
+      return idxLog <= idxTarget;
+    }
+
+    function isSantriMatch(log, s) {
+      if (!log || !s) return false;
+      const logSantriId = log.santri_id != null ? String(log.santri_id).trim() : '';
+      const sId = s.id != null ? String(s.id).trim() : '';
+      const sNis = s.nis != null ? String(s.nis).trim() : '';
+
+      if (logSantriId && logSantriId !== 'null' && logSantriId !== 'undefined') {
+        if (sId && sId !== 'null' && logSantriId === sId) return true;
+        if (sNis && sNis !== 'null' && logSantriId === sNis) return true;
+        if (sNis && sNis.length >= 4 && logSantriId.toLowerCase().includes(sNis.toLowerCase())) return true;
+        if (sId && sId.length >= 4 && logSantriId.toLowerCase().includes(sId.toLowerCase())) return true;
+      }
+
+      const logNama = (log.nama_santri || log.nama || '').toLowerCase().trim();
+      const sNama = (s.nama || s.nama_siswa || '').toLowerCase().trim();
+      if (logNama && sNama && logNama === sNama) return true;
+      if (logSantriId && sNama && logSantriId.toLowerCase() === sNama) return true;
+
+      return false;
+    }
+
+    async function fetchAllDaftarNilai() {
+      let all = [];
+      let offset = 0;
+      const batchSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/daftar_nilai?select=*&limit=${batchSize}&offset=${offset}`, { headers: reqHeaders });
+          if (!res.ok) break;
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            all = all.concat(data);
+            if (data.length < batchSize) hasMore = false;
+            else offset += batchSize;
+          } else {
+            hasMore = false;
+          }
+        } catch (e) {
+          console.warn('Selesai mengambil daftar nilai:', e);
+          break;
+        }
+      }
+      return all;
+    }
+
+    async function fetchAllTahfidhLogs() {
+      let all = [];
+      let offset = 0;
+      const batchSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/log_setoran?select=*&limit=${batchSize}&offset=${offset}`, { headers: reqHeaders });
+          if (!res.ok) break;
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            all = all.concat(data);
+            if (data.length < batchSize) hasMore = false;
+            else offset += batchSize;
+          } else {
+            hasMore = false;
+          }
+        } catch (e) {
+          console.warn('Selesai mengambil log setoran:', e);
+          break;
+        }
+      }
+      return all;
+    }
+
+    async function fetchAllSantri() {
+      try {
+        let res = await fetch(`${SUPABASE_URL}/rest/v1/santri?select=*&limit=1500`, { headers: reqHeaders });
+        if (!res.ok) {
+          res = await fetch(`${SUPABASE_URL}/rest/v1/data_santri?select=*&limit=1500`, { headers: reqHeaders });
+        }
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) return data;
+        }
+      } catch (e) {
+        console.warn('Gagal memuat tabel santri:', e);
+      }
+      return [];
+    }
+
+    async function fetchTahfidhTargets() {
+      try {
+        const [tlRes, tpRes, tdRes, uRes] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/target_lembaga_putri?select=*`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/target_pojokan_putri?select=*`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/target_deresan_putri?select=*`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/ustadzah?select=*`, { headers: reqHeaders })
+        ]);
+
+        if (tlRes.ok) {
+          const data = await tlRes.json();
+          if (Array.isArray(data)) {
+            data.forEach(r => {
+              const bStr = String(r.bulan).padStart(2, '0');
+              const bInt = String(parseInt(r.bulan, 10));
+              const cls = String(r.kelas).trim();
+              const val = { juz: Number(r.juz) || 0, pojokan: Number(r.pojokan) || 0 };
+              customTargetsLembaga[`${bStr}_${cls}`] = val;
+              customTargetsLembaga[`${bInt}_${cls}`] = val;
+            });
+          }
+        }
+
+        if (tpRes.ok) {
+          const data = await tpRes.json();
+          if (Array.isArray(data)) {
+            data.forEach(r => {
+              const bStr = String(r.bulan).padStart(2, '0');
+              const bInt = String(parseInt(r.bulan, 10));
+              const cls = String(r.kelas).trim();
+              const val = Number(r.jumlah_pojokan) || 0;
+              customTargetsPojokan[`${bStr}_${cls}`] = val;
+              customTargetsPojokan[`${bInt}_${cls}`] = val;
+            });
+          }
+        }
+
+        if (tdRes.ok) {
+          const data = await tdRes.json();
+          if (Array.isArray(data)) {
+            data.forEach(r => {
+              const bStr = String(r.bulan).padStart(2, '0');
+              const bInt = String(parseInt(r.bulan, 10));
+              const cls = String(r.kelas).trim();
+              const val = Number(r.jumlah_pojokan) || 0;
+              customTargetsDeresan[`${bStr}_${cls}`] = val;
+              customTargetsDeresan[`${bInt}_${cls}`] = val;
+            });
+          }
+        }
+
+        if (uRes.ok) {
+          ustadzahTahfidhData = await uRes.json();
+        }
+      } catch (e) {
+        console.warn('Kendala memuat target tahfidh:', e);
+      }
+    }
+
+    async function fetchTabunganData() {
+      try {
+        const candidates = ['transaksi_tabungan', 'riwayat_tabungan', 'tabungan', 'setoran_tabungan'];
+        for (const tbl of candidates) {
+          try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/${tbl}?select=*&order=created_at.desc&limit=2000`, { headers: reqHeaders });
+            if (res.ok) {
+              const data = await res.json();
+              if (Array.isArray(data) && data.length > 0) {
+                transaksiTabunganData = data;
+                break;
+              }
+            }
+          } catch {}
+        }
+      } catch (e) {
+        console.warn('Info: Memuat data transaksi tabungan fallback:', e);
+      }
+    }
+
+    async function initData() {
+      try {
+        const [divRes, ikuRes, tplRes, subRes, presensiRes, mapelRes, santriList, nilaiList, logsList] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/divisions?select=*&order=id.asc`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/indikator_kinerja_utama?select=*&order=id.asc`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/checklist_templates?select=*&order=id.asc`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/submissions?select=*&order=id.desc&limit=500`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/presensi_siswa?select=*&order=tanggal.desc&limit=5000`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/daftar_mapel?select=*&order=nama_mapel.asc`, { headers: reqHeaders }),
+          fetchAllSantri(),
+          fetchAllDaftarNilai(),
+          fetchAllTahfidhLogs()
+        ]);
+
+        if (divRes.ok) divisionsData = await divRes.json();
+        if (ikuRes.ok) ikusData = await ikuRes.json();
+        if (tplRes.ok) templatesData = await tplRes.json();
+        if (subRes.ok) submissionsData = await subRes.json();
+        if (presensiRes && presensiRes.ok) presensiData = await presensiRes.json();
+        if (mapelRes && mapelRes.ok) daftarMapelData = await mapelRes.json();
+
+        santriData = santriList;
+        daftarNilaiData = nilaiList;
+        logsTahfidhData = logsList;
+
+        await preloadImagesAsBase64();
+        await fetchTahfidhTargets();
+        await fetchTabunganData();
+        await loadCatatanBulan(selectedBulan);
+        populateDivisiDropdown();
+        renderTableData('all');
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        const container = document.getElementById('divisiTablesContainer');
+        if (container) {
+          container.innerHTML = `
+            <div class="a4-landscape-page page-sheet p-8 text-center text-rose-600 font-bold rounded-3xl shadow-xl border border-slate-300">
+              <i class="fas fa-exclamation-triangle mr-2"></i>Gagal memuat data dari server. Silakan muat ulang halaman atau periksa koneksi internet Anda.
+            </div>
+          `;
+        }
+      }
+    }
+
+    async function loadCatatanBulan(bln) {
+      catatanMap = {};
+      try {
+        const catRes = await fetch(`${SUPABASE_URL}/rest/v1/laporan_iku_catatan?bulan=eq.${bln}`, { headers: reqHeaders });
+        if (catRes.ok) {
+          const list = await catRes.json();
+          if (Array.isArray(list)) {
+            list.forEach(item => {
+              catatanMap[item.template_id] = item.catatan || '';
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('Kendala memuat catatan:', e);
+      }
+    }
+
+    function getNamaBulanTahun(blnStr) {
+      const [thn, bln] = blnStr.split('-');
+      const d = new Date(thn, parseInt(bln) - 1, 1);
+      return {
+        lengkap: d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }),
+        bulan: d.toLocaleDateString('id-ID', { month: 'long' }),
+        bulanDigit: bln,
+        tahun: thn
+      };
+    }
+
+    async function onBulanChange() {
+      selectedBulan = document.getElementById('selectBulan').value;
+      const bInfo = getNamaBulanTahun(selectedBulan);
+
+      const coverPeriode = document.getElementById('coverLabelPeriode');
+      if (coverPeriode) coverPeriode.innerText = `PERIODE ${bInfo.bulan.toUpperCase()} ${bInfo.tahun}`;
+
+      const coverTahun = document.getElementById('coverLabelTahun');
+      if (coverTahun) coverTahun.innerText = `Tahun ${bInfo.tahun}`;
+
+      const pengesahanBulan = document.getElementById('pengesahanBulanTeks');
+      if (pengesahanBulan) pengesahanBulan.innerText = bInfo.lengkap;
+
+      await loadCatatanBulan(selectedBulan);
+      const divFilter = document.getElementById('selectDivisi').value;
+      renderTableData(divFilter);
+    }
+
+    function populateDivisiDropdown() {
+      const select = document.getElementById('selectDivisi');
+      divisionsData.forEach(div => {
+        const opt = document.createElement('option');
+        opt.value = div.id;
+        opt.innerText = `Divisi ${div.name} (${div.code})`;
+        select.appendChild(opt);
+      });
+    }
+
+    function getSubmissionScore(sub) {
+      if (sub.rate !== undefined && sub.rate !== null && Number(sub.rate) > 0) return Number(sub.rate);
+      if (sub.rata_rata !== undefined && sub.rata_rata !== null && Number(sub.rata_rata) > 0) return Math.round((Number(sub.rata_rata) / 3) * 100);
+      return 100;
+    }
+
+    function getKetuntasanUjian(keywords) {
+      if (!daftarNilaiData || daftarNilaiData.length === 0) return { persen: 0, total: 0 };
+      const filtered = daftarNilaiData.filter(n => {
+        const u = String(n.nama_ujian || '').toLowerCase();
+        return keywords.some(k => u.includes(k.toLowerCase()));
+      });
+      if (filtered.length === 0) return { persen: 0, total: 0 };
+      const tuntas = filtered.filter(n => Number(n.nilai) >= 75).length;
+      return { persen: Math.round((tuntas / filtered.length) * 100), total: filtered.length };
+    }
+
+    function normalizeClassCode(c) {
+      return String(c || '')
+        .trim()
+        .replace(/^VII[\s_-]*/i, '7-')
+        .replace(/^VIII[\s_-]*/i, '8-')
+        .replace(/^IX[\s_-]*/i, '9-')
+        .replace(/^7[\s_]+/i, '7-')
+        .replace(/^8[\s_]+/i, '8-')
+        .replace(/^9[\s_]+/i, '9-')
+        .toUpperCase();
+    }
+
+    function getMonthlyAttendanceStats(bln) {
+      const listClasses = ['7-A', '7-B', '7-C', '7-D', '7-E', '8-A', '8-B', '8-C', '8-D', '9-A', '9-B'];
+      const monthly = presensiData.filter(p => String(p.tanggal || '').startsWith(bln));
+      let totalHadir = 0, totalSakit = 0, totalIzin = 0, totalAlpha = 0;
+
+      const perClass = listClasses.map(cls => {
+        const norm = normalizeClassCode(cls);
+        const rows = monthly.filter(p => normalizeClassCode(p.kelas) === norm);
+        let hadir = 0, sakit = 0, izin = 0, alpha = 0;
+        rows.forEach(p => {
+          const st = String(p.status || '').toLowerCase();
+          if (st === 'hadir') hadir++;
+          else if (st === 'sakit') sakit++;
+          else if (st === 'izin') izin++;
+          else if (st === 'alpha') alpha++;
+        });
+        totalHadir += hadir;
+        totalSakit += sakit;
+        totalIzin += izin;
+        totalAlpha += alpha;
+        const total = hadir + sakit + izin + alpha;
+        const pct = total > 0 ? ((hadir / total) * 100).toFixed(1) : '100.0';
+        return { kelas: cls, hadir, sakit, izin, alpha, total, pct };
+      });
+
+      const totalAll = totalHadir + totalSakit + totalIzin + totalAlpha;
+      const globalPct = totalAll > 0 ? ((totalHadir / totalAll) * 100).toFixed(1) : '100.0';
+
+      return { perClass, totalHadir, totalSakit, totalIzin, totalAlpha, totalAll, globalPct };
+    }
+
+    function calculateProgramRealisasi(tpl) {
+      const title = String(tpl.title || '').toLowerCase();
+      if (title.includes('ulangan harian') || title.includes('kontrol nilai')) {
+        const stats = getKetuntasanUjian(['Ulangan Harian', 'UH']);
+        return stats.total > 0 ? `${stats.persen}%` : '-';
+      }
+      if (title.includes('sumatif tengah') || title.includes('asts')) {
+        const stats = getKetuntasanUjian(['ASTS', 'Tengah Semester']);
+        return stats.total > 0 ? `${stats.persen}%` : '-';
+      }
+      if (title.includes('sumatif akhir') || title.includes('sas')) {
+        const stats = getKetuntasanUjian(['SAS', 'Akhir Semester']);
+        return stats.total > 0 ? `${stats.persen}%` : '-';
+      }
+
+      const matchedSubs = submissionsData.filter(s => s.template_id === tpl.id);
+      if (matchedSubs.length === 0) return '-';
+      const totalScore = matchedSubs.reduce((acc, curr) => acc + getSubmissionScore(curr), 0);
+      return `${Math.round(totalScore / matchedSubs.length)}%`;
+    }
+
+    function getRekapNilaiPerRombel() {
+      if (!daftarNilaiData || daftarNilaiData.length === 0) return [];
+
+      const santriNisKelasMap = new Map();
+      const santriNamaKelasMap = new Map();
+
+      if (Array.isArray(santriData)) {
+        santriData.forEach(s => {
+          const rawKelas = String(s.kelas || '').trim();
+          if (rawKelas) {
+            if (s.nis) santriNisKelasMap.set(String(s.nis).trim(), rawKelas);
+            if (s.nama) santriNamaKelasMap.set(String(s.nama).trim().toLowerCase(), rawKelas);
+            if (s.nama_siswa) santriNamaKelasMap.set(String(s.nama_siswa).trim().toLowerCase(), rawKelas);
+          }
+        });
+      }
+
+      const map = new Map();
+      daftarNilaiData.forEach(n => {
+        const guru = String(n.nama_guru || 'Ustadzah Pengampu').trim();
+        const mapel = String(n.nama_mapel || 'Mata Pelajaran').trim();
+        
+        let kelas = n.kelas || 
+                    santriNisKelasMap.get(String(n.nis || '').trim()) || 
+                    santriNamaKelasMap.get(String(n.nama_siswa || '').trim().toLowerCase()) || 
+                    '-';
+        kelas = String(kelas).trim();
+
+        const key = `${guru}___${mapel}___${kelas}`;
+        if (!map.has(key)) {
+          map.set(key, { nama_guru: guru, nama_mapel: mapel, kelas, scores: [] });
+        }
+        map.get(key).scores.push(n);
+      });
+
+      const result = [];
+      map.forEach((item, key) => {
+        const matchedMapel = (daftarMapelData || []).find(m => 
+          String(m.nama_mapel || '').trim().toLowerCase() === item.nama_mapel.toLowerCase()
+        );
+
+        const k = item.kelas.toUpperCase();
+        let kkm = 75;
+        if (k.includes('VII') || k.includes('7')) {
+          kkm = (matchedMapel && matchedMapel.kkm_7) ? Number(matchedMapel.kkm_7) : 70;
+        } else if (k.includes('VIII') || k.includes('8')) {
+          kkm = (matchedMapel && matchedMapel.kkm_8) ? Number(matchedMapel.kkm_8) : 73;
+        } else if (k.includes('IX') || k.includes('9')) {
+          kkm = (matchedMapel && matchedMapel.kkm_9) ? Number(matchedMapel.kkm_9) : 75;
+        }
+
+        const totalSiswa = item.scores.length;
+        if (totalSiswa === 0) return;
+
+        const totalNilai = item.scores.reduce((sum, s) => sum + Number(s.nilai || 0), 0);
+        const rataRata = (totalNilai / totalSiswa).toFixed(2);
+        const countAboveKkm = item.scores.filter(s => Number(s.nilai || 0) >= kkm).length;
+        const countBelowKkm = totalSiswa - countAboveKkm;
+        const pctAboveKkm = ((countAboveKkm / totalSiswa) * 100).toFixed(1);
+        const pctBelowKkm = ((countBelowKkm / totalSiswa) * 100).toFixed(1);
+        const isTuntas = Number(pctAboveKkm) >= 80;
+
+        result.push({
+          id: key,
+          nama_guru: item.nama_guru,
+          nama_mapel: item.nama_mapel,
+          kelas: item.kelas,
+          kkm,
+          jml_siswa: totalSiswa,
+          rata_rata: rataRata,
+          count_below_kkm: countBelowKkm,
+          pct_below_kkm: pctBelowKkm,
+          count_above_kkm: countAboveKkm,
+          pct_above_kkm: pctAboveKkm,
+          is_tuntas: isTuntas
+        });
+      });
+
+      result.sort((a, b) => a.nama_guru.localeCompare(b.nama_guru));
+      return result;
+    }
+
+    function getTahfidhReportData(bulanDigit) {
+      const bKey = String(bulanDigit).padStart(2, '0');
+      const bInt = String(parseInt(bKey, 10));
+
+      const santriMap = {};
+      const santriById = {};
+
+      KELAS_KEYS_TAHFIDH.forEach(k => { santriMap[k] = []; });
+
+      santriData.forEach(s => {
+        const cls = mapKelasTarget(s.kelas) || '7';
+        if (!santriMap[cls]) santriMap[cls] = [];
+
+        const obj = {
+          ...s,
+          cls,
+          maxZiyadahAbs: 0,
+          maxZiyadahJuz: 0,
+          maxZiyadahPojok: 0,
+          totalZiyadahBulan: 0,
+          totalMurojaahBulan: 0,
+          hasLogsRecorded: false,
+          hasKhatamLog: false
+        };
+
+        santriMap[cls].push(obj);
+        if (s.id) santriById[String(s.id).trim()] = obj;
+        if (s.nis) santriById[String(s.nis).trim()] = obj;
+      });
+
+      logsTahfidhData.forEach(log => {
+        let logBulan = '';
+        if (log.tanggal) {
+          const parts = String(log.tanggal).split(' ')[0].split('T')[0].split('-');
+          if (parts.length >= 2) logBulan = parts[1];
+        }
+
+        const keg = String(log.kegiatan || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const logKet = String(log.keterangan || '').toLowerCase();
+        const isMurojaah = keg.includes('muroja') || keg.includes('muraja') || keg.includes('ulang');
+        const isZiyadah = keg.includes('ziyadah') || keg === '' || keg.includes('tambah');
+        
+        const jAkhirLog = safeExtractNum(log.juz_akhir);
+        const isLogKhatam = 
+          logKet.includes('30 juz') || logKet.includes('30juz') || 
+          logKet.includes('khatam al-quran') || logKet.includes('khatam alquran') || 
+          logKet.includes('khatam qur\'an') ||
+          ((keg === 'khatam' || keg === 'khotim') && (jAkhirLog === 29 || jAkhirLog === 30));
+
+        let hal = parseFloat(String(log.jumlah_halaman || '0').replace(',', '.'));
+        if (isNaN(hal) || hal === 0) {
+          if (log.juz_awal && log.pojok_awal && log.juz_akhir && log.pojok_akhir) {
+            const st = getAbsolutePojok(log.juz_awal, log.pojok_awal);
+            const en = getAbsolutePojok(log.juz_akhir, log.pojok_akhir);
+            hal = Math.max(0, Math.abs(en - st) + 1);
+          } else {
+            hal = safeExtractNum(log.jumlah_halaman) || 0;
+          }
+        }
+
+        const isCurMonth = (logBulan === bKey || logBulan === bInt);
+
+        const matchedSantri = santriById[String(log.santri_id || '').trim()] || 
+                              santriData.find(s => isSantriMatch(log, s));
+
+        if (matchedSantri) {
+          const targetSantri = santriById[String(matchedSantri.id || matchedSantri.nis).trim()];
+          if (targetSantri) {
+            if (isCurMonth) {
+              targetSantri.hasLogsRecorded = true;
+              if (isMurojaah) targetSantri.totalMurojaahBulan += hal;
+              if (isZiyadah) targetSantri.totalZiyadahBulan += hal;
+            }
+            if (isLogKhatam) targetSantri.hasKhatamLog = true;
+
+            if (isZiyadah && isMonthUpTo(logBulan, bKey)) {
+              const j = safeExtractNum(log.juz_akhir);
+              const p = safeExtractNum(log.pojok_akhir);
+              if (j >= 1 && j <= 30) {
+                const abs = getAbsolutePojok(j, p);
+                if (abs > targetSantri.maxZiyadahAbs) {
+                  targetSantri.maxZiyadahAbs = abs;
+                  targetSantri.maxZiyadahJuz = j;
+                  targetSantri.maxZiyadahPojok = p;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // 1. STATISTIK EVALUASI TARGET KELAS
+      const targetStats = {
+        pojokan: { target: {}, belum: {}, total: {}, min: {} },
+        lembaga: { target: {}, belum: {}, khatam: {}, khotimin: {}, total: {}, label: {} },
+        deresan: { target: {}, belum: {}, total: {}, min: {} }
+      };
+
+      KELAS_KEYS_TAHFIDH.forEach(k => {
+        const sList = santriMap[k] || [];
+        const tot = sList.length;
+
+        // Target Pojokan
+        const minPojok = customTargetsPojokan[`${bKey}_${k}`] ?? customTargetsPojokan[`${bInt}_${k}`] ?? DefaultTargetPojokan[bKey]?.[k] ?? 20;
+        targetStats.pojokan.min[k] = minPojok;
+        const passPojok = sList.filter(s => s.totalZiyadahBulan >= minPojok).length;
+        targetStats.pojokan.target[k] = passPojok;
+        targetStats.pojokan.belum[k] = tot - passPojok;
+        targetStats.pojokan.total[k] = tot;
+
+        // Target Lembaga
+        const cTL = customTargetsLembaga[`${bKey}_${k}`] || customTargetsLembaga[`${bInt}_${k}`];
+        let defTL = DefaultTargetLembaga[bKey]?.[k] || { j: 30, p: 15 };
+        let absTL = getAbsolutePojok(cTL ? cTL.juz : defTL.j, cTL ? cTL.pojokan : defTL.p);
+        targetStats.lembaga.label[k] = cTL ? `Juz ${cTL.juz} P.${cTL.pojokan}` : `Juz ${defTL.j} P.${defTL.p}`;
+
+        let passLembaga = 0, countKhatam = 0, countKhotimin = 0;
+        sList.forEach(s => {
+          const isKhatam = s.hasKhatamLog || s.maxZiyadahAbs >= (29 * POJOK_PER_JUZ);
+          if (isKhatam) {
+            countKhatam++;
+            if (k === '12') countKhotimin++;
+          }
+          if (isKhatam || (absTL > 0 && s.maxZiyadahAbs >= absTL)) passLembaga++;
+        });
+        targetStats.lembaga.target[k] = passLembaga;
+        targetStats.lembaga.belum[k] = tot - passLembaga;
+        targetStats.lembaga.khatam[k] = countKhatam;
+        targetStats.lembaga.khotimin[k] = countKhotimin;
+        targetStats.lembaga.total[k] = tot;
+
+        // Target Deresan
+        const minDeresan = customTargetsDeresan[`${bKey}_${k}`] ?? customTargetsDeresan[`${bInt}_${k}`] ?? DefaultTargetDeresan[bKey]?.[k] ?? 30;
+        targetStats.deresan.min[k] = minDeresan;
+        const passDeresan = sList.filter(s => s.totalMurojaahBulan >= minDeresan).length;
+        targetStats.deresan.target[k] = passDeresan;
+        targetStats.deresan.belum[k] = tot - passDeresan;
+        targetStats.deresan.total[k] = tot;
+      });
+
+      // 2. MATRIKS DISTRIBUSI PEROLEHAN JUZ PER KELAS
+      const juzMatrix = {
+        khotimin: {},
+        khatam: {},
+        juz: {},
+        belumSetor: {},
+        total: {}
+      };
+
+      KELAS_KEYS_TAHFIDH.forEach(k => {
+        juzMatrix.khotimin[k] = targetStats.lembaga.khotimin[k];
+        juzMatrix.khatam[k] = targetStats.lembaga.khatam[k];
+        juzMatrix.total[k] = (santriMap[k] || []).length;
+        juzMatrix.belumSetor[k] = 0;
+      });
+
+      for (let j = 1; j <= 30; j++) {
+        juzMatrix.juz[j] = {};
+        KELAS_KEYS_TAHFIDH.forEach(k => { juzMatrix.juz[j][k] = 0; });
+      }
+
+      KELAS_KEYS_TAHFIDH.forEach(k => {
+        const sList = santriMap[k] || [];
+        sList.forEach(s => {
+          const isKhatam = s.hasKhatamLog || s.maxZiyadahAbs >= (29 * POJOK_PER_JUZ);
+          if (!isKhatam) {
+            if (s.maxZiyadahAbs === 0) {
+              juzMatrix.belumSetor[k]++;
+            } else {
+              const j = s.maxZiyadahJuz || 30;
+              if (juzMatrix.juz[j]) juzMatrix.juz[j][k]++;
+              else juzMatrix.belumSetor[k]++;
+            }
+          }
+        });
+      });
+
+      // 3. REKAP PER HALAQOH USTADZAH
+      const uMap = {};
+      ustadzahTahfidhData.forEach(u => {
+        if (u.nama) {
+          const c = u.nama.toLowerCase().replace(/[^a-z0-9]/g, '');
+          uMap[c] = { nama: u.nama, kamar: u.kamar || '-' };
+        }
+      });
+
+      const halaqohMap = new Map();
+      santriData.forEach(s => {
+        const hName = String(s.halaqoh || 'Tanpa Halaqoh').trim();
+        const c = hName.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const uInfo = uMap[c] || { nama: hName, kamar: s.kamar || '-' };
+
+        if (!halaqohMap.has(hName)) {
+          halaqohMap.set(hName, {
+            nama: hName,
+            kamar: uInfo.kamar,
+            kelasSet: new Set(),
+            santriList: []
+          });
+        }
+        const cls = mapKelasTarget(s.kelas) || '7';
+        halaqohMap.get(hName).kelasSet.add(cls);
+
+        const fullSantri = santriById[String(s.id || s.nis).trim()] || s;
+        halaqohMap.get(hName).santriList.push(fullSantri);
+      });
+
+      const halaqohRows = [];
+      halaqohMap.forEach(g => {
+        const jml = g.santriList.length;
+        if (jml === 0) return;
+
+        let masihZiadah = 0, santriBoyong = 0, santriKhatam = 0, santriKhotimin = 0;
+        let passPojok = 0, passLembaga = 0, passDeresan = 0;
+
+        g.santriList.forEach(s => {
+          const cls = s.cls || mapKelasTarget(s.kelas) || '7';
+          const stStr = String(s.status || '').toLowerCase();
+          const isBoyong = stStr.includes('boyong');
+          const isKhatam = s.hasKhatamLog || s.maxZiyadahAbs >= (29 * POJOK_PER_JUZ);
+          const isKhotimin = cls === '12' && isKhatam;
+
+          if (isBoyong) santriBoyong++;
+          else if (isKhotimin) { santriKhotimin++; santriKhatam++; }
+          else if (isKhatam) santriKhatam++;
+          else masihZiadah++;
+
+          const minP = targetStats.pojokan.min[cls] || 20;
+          if (s.totalZiyadahBulan >= minP) passPojok++;
+
+          const cTL = customTargetsLembaga[`${bKey}_${cls}`] || customTargetsLembaga[`${bInt}_${cls}`];
+          let defTL = DefaultTargetLembaga[bKey]?.[cls] || { j: 30, p: 15 };
+          let absTL = getAbsolutePojok(cTL ? cTL.juz : defTL.j, cTL ? cTL.pojokan : defTL.p);
+          if (isKhatam || (absTL > 0 && s.maxZiyadahAbs >= absTL)) passLembaga++;
+
+          const minD = targetStats.deresan.min[cls] || 30;
+          if (s.totalMurojaahBulan >= minD) passDeresan++;
+        });
+
+        halaqohRows.push({
+          nama: g.nama,
+          kamar: g.kamar,
+          kls: Array.from(g.kelasSet).sort().join(', '),
+          jml,
+          masihZiadah,
+          santriBoyong,
+          santriKhatam,
+          santriKhotimin,
+          passPojok,
+          pctPojok: Math.round((passPojok / jml) * 100),
+          passLembaga,
+          pctLembaga: Math.round((passLembaga / jml) * 100),
+          passDeresan,
+          pctDeresan: Math.round((passDeresan / jml) * 100)
+        });
+      });
+
+      halaqohRows.sort((a, b) => a.nama.localeCompare(b.nama));
+
+      return { targetStats, juzMatrix, halaqohRows };
+    }
+
+    function getTabunganReportData() {
+      const defaultPerKelas = {
+        '7-A': 2218000,
+        '7-B': 2680000,
+        '7-C': 3133500,
+        '7-D': 1881500,
+        '7-E': 2378500,
+        '8-A': 1757000,
+        '8-B': 2383500,
+        '8-C': 1623000,
+        '8-D': 2080000,
+        '9-A': 0,
+        '9-B': 0
+      };
+
+      const listClasses = ['7-A', '7-B', '7-C', '7-D', '7-E', '8-A', '8-B', '8-C', '8-D', '9-A', '9-B'];
+      let totalSaldoAll = 20135000;
+      let totalKls7 = 12291500;
+      let totalKls8 = 7843500;
+      let totalKls9 = 0;
+
+      let hasLiveSaldo = false;
+      const livePerKelas = {};
+      listClasses.forEach(c => { livePerKelas[c] = { total: 0, count: 0 }; });
+
+      if (Array.isArray(santriData) && santriData.length > 0) {
+        santriData.forEach(s => {
+          const norm = normalizeClassCode(s.kelas);
+          const rawSaldo = s.total_tabungan ?? s.saldo ?? s.tabungan ?? null;
+          if (rawSaldo !== null && !isNaN(Number(rawSaldo)) && Number(rawSaldo) > 0) {
+            hasLiveSaldo = true;
+            if (livePerKelas[norm]) {
+              livePerKelas[norm].total += Number(rawSaldo);
+              livePerKelas[norm].count++;
+            }
+          }
+        });
+      }
+
+      const rowsPerKelas = listClasses.map((cls, idx) => {
+        const norm = normalizeClassCode(cls);
+        const countSiswaInClass = (santriData || []).filter(s => normalizeClassCode(s.kelas) === norm).length || 30;
+        const saldoKelas = hasLiveSaldo && livePerKelas[norm]?.total > 0 ? livePerKelas[norm].total : (defaultPerKelas[cls] || 0);
+
+        return {
+          no: idx + 1,
+          kelas: cls,
+          jmlSiswa: countSiswaInClass,
+          totalTabungan: saldoKelas
+        };
+      });
+
+      if (hasLiveSaldo) {
+        totalSaldoAll = rowsPerKelas.reduce((sum, r) => sum + r.totalTabungan, 0);
+        totalKls7 = rowsPerKelas.filter(r => r.kelas.startsWith('7-')).reduce((sum, r) => sum + r.totalTabungan, 0);
+        totalKls8 = rowsPerKelas.filter(r => r.kelas.startsWith('8-')).reduce((sum, r) => sum + r.totalTabungan, 0);
+        totalKls9 = rowsPerKelas.filter(r => r.kelas.startsWith('9-')).reduce((sum, r) => sum + r.totalTabungan, 0);
+      }
+
+      const totalSiswaMenabung = rowsPerKelas.reduce((sum, r) => sum + r.jmlSiswa, 0);
+
+      return {
+        totalSaldoAll,
+        totalKls7,
+        totalKls8,
+        totalKls9,
+        totalSiswaMenabung,
+        rowsPerKelas
+      };
+    }
+
+    function renderTableData(divisiFilter) {
+      const container = document.getElementById('divisiTablesContainer');
+      if (!container) return;
+
+      const bInfo = getNamaBulanTahun(selectedBulan);
+
+      let targetDivisions = [];
+      if (divisiFilter === 'all') {
+        targetDivisions = divisionsData.filter(d => templatesData.some(t => Number(t.division_id) === Number(d.id)));
+      } else {
+        targetDivisions = divisionsData.filter(d => Number(d.id) === Number(divisiFilter));
+      }
+
+      if (targetDivisions.length === 0) {
+        container.innerHTML = `
+          <div class="a4-landscape-page page-sheet p-12 text-center text-slate-400 italic rounded-3xl shadow-xl border border-slate-300">
+            Tidak ada data program kegiatan untuk unit kerja ini.
+          </div>
+        `;
+        return;
+      }
+
+      let pagesHTML = '';
+      let pageNumberCounter = 3;
+
+      targetDivisions.forEach((div) => {
+        const divTemplates = templatesData.filter(t => Number(t.division_id) === Number(div.id));
+        if (divTemplates.length === 0) return;
+
+        const groups = [];
+        const map = new Map();
+
+        divTemplates.forEach(tpl => {
+          const key = tpl.iku_id ? Number(tpl.iku_id) : `umum_${tpl.division_id}`;
+          if (!map.has(key)) {
+            const ikuObj = ikusData.find(i => Number(i.id) === Number(tpl.iku_id));
+            const newGroup = { iku: ikuObj, division_id: tpl.division_id, items: [] };
+            map.set(key, newGroup);
+            groups.push(newGroup);
+          }
+          map.get(key).items.push(tpl);
+        });
+
+        let tableRowsHTML = '';
+        groups.forEach((grp, grpIdx) => {
+          const rowSpanCount = grp.items.length;
+          const iku = grp.iku;
+
+          grp.items.forEach((item, itemIdx) => {
+            const isFirst = itemIdx === 0;
+            const realisasi = calculateProgramRealisasi(item);
+            const targetTeks = item.target_teks || (item.target ? `${item.target}%` : '100%');
+            const catatan = catatanMap[item.id] || '-';
+
+            tableRowsHTML += `<tr class="hover:bg-slate-50 transition border-b border-slate-200">`;
+
+            if (isFirst) {
+              tableRowsHTML += `
+                <td rowspan="${rowSpanCount}" class="border border-slate-300 p-2 text-center font-bold font-mono text-slate-500 align-top bg-slate-50/50 w-8">
+                  ${grpIdx + 1}
+                </td>
+                <td rowspan="${rowSpanCount}" class="border border-slate-300 p-2 align-top font-semibold text-slate-900 w-[130px] max-w-[140px]">
+                  ${iku ? `
+                    <div>
+                      <span class="text-[10px] font-mono font-bold text-blue-700 block">${iku.kode_iku}</span>
+                      <span class="leading-snug text-[11px] block">${iku.title}</span>
+                    </div>
+                  ` : `<span class="text-slate-400 italic">Program Rutin Unit</span>`}
+                </td>
+              `;
+            }
+
+            tableRowsHTML += `
+              <td class="border border-slate-300 p-1.5 text-center font-mono font-bold text-slate-800 text-[11px] w-14">
+                ${targetTeks}
+              </td>
+              <td class="border border-slate-300 p-1.5 text-center font-mono font-black text-blue-700 bg-blue-50/30 text-[11px] w-14">
+                ${realisasi}
+              </td>
+              <td class="border border-slate-300 p-1.5 text-center font-mono font-black text-emerald-700 bg-emerald-50/30 text-[11px] w-14">
+                <!-- Kolom Yayasan Dikosongkan Manual -->
+              </td>
+              <td class="border border-slate-300 p-2 font-medium text-slate-800 w-[130px] max-w-[140px] leading-snug text-[11px]">
+                ${item.title}
+              </td>
+              <td class="border border-slate-300 p-1.5 text-center text-slate-600 font-semibold text-[10px] w-16">
+                ${item.timeframe || 'Bulanan'}
+              </td>
+              <td class="border border-slate-300 p-2.5 text-slate-700 text-[11px] leading-relaxed whitespace-pre-line min-w-[280px]">
+                ${catatan}
+              </td>
+            </tr>`;
+          });
+        });
+
+        pagesHTML += `
+          <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+
+          <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+            <div>
+              <div class="kop-border pb-3 mb-4 flex items-center gap-5">
+                <img 
+                  src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" 
+                  alt="Logo" 
+                  class="w-16 h-16 object-contain shrink-0"
+                />
+                <div class="flex-1 text-center pr-6">
+                  <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
+                  <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
+                    SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                  </h1>
+                  <p class="text-[10px] text-slate-600 mt-0.5">
+                    Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                  </p>
+                </div>
+              </div>
+
+              <div class="text-center mb-4">
+                <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
+                  LAPORAN CAPAIAN INDIKATOR KINERJA UTAMA (IKU)
+                </h2>
+                <p class="text-xs font-semibold text-slate-600 mt-0.5">
+                  Unit Kerja: <span class="text-blue-700 font-bold">Divisi ${div.name} (${div.code})</span> &bull; Periode: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
+                </p>
+                <p class="text-[10px] text-slate-400 font-mono mt-0.5">
+                  Tanggal Unduh: ${dateFormatted}
+                </p>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse border border-slate-300">
+                  <thead>
+                    <tr class="bg-slate-100 text-slate-700 font-black uppercase tracking-wider text-[10px] border-b border-slate-300">
+                      <th class="border border-slate-300 p-2 w-8 text-center">NO</th>
+                      <th class="border border-slate-300 p-2 w-[130px] max-w-[140px]">INDIKATOR (IKU)</th>
+                      <th class="border border-slate-300 p-1.5 text-center w-14">TARGET</th>
+                      <th class="border border-slate-300 p-1.5 text-center w-14 bg-blue-50/70 text-blue-900">REALISASI</th>
+                      <th class="border border-slate-300 p-1.5 text-center w-14 bg-emerald-50/70 text-emerald-900">YAYASAN</th>
+                      <th class="border border-slate-300 p-2 w-[130px] max-w-[140px]">KEGIATAN</th>
+                      <th class="border border-slate-300 p-1.5 text-center w-16">WAKTU</th>
+                      <th class="border border-slate-300 p-2.5 min-w-[280px]">CATATAN EVALUASI &amp; TINDAK LANJUT</th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-slate-800 divide-y divide-slate-200">
+                    ${tableRowsHTML}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
+          </div>
+        `;
+      });
+
+      if (divisiFilter === 'all') {
+        const attStats = getMonthlyAttendanceStats(selectedBulan);
+
+        let absensiRowsHTML = '';
+        attStats.perClass.forEach((clsData, cIdx) => {
+          absensiRowsHTML += `
+            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+              <td class="border border-slate-300 p-2 text-center font-bold font-mono text-slate-500 w-10">
+                ${cIdx + 1}
+              </td>
+              <td class="border border-slate-300 p-2 font-bold text-slate-900">
+                Kelas ${clsData.kelas}
+              </td>
+              <td class="border border-slate-300 p-2 text-center font-mono font-bold text-emerald-700 bg-emerald-50/30">
+                ${clsData.hadir}
+              </td>
+              <td class="border border-slate-300 p-2 text-center font-mono font-bold text-amber-700 bg-amber-50/30">
+                ${clsData.sakit}
+              </td>
+              <td class="border border-slate-300 p-2 text-center font-mono font-bold text-blue-700 bg-blue-50/30">
+                ${clsData.izin}
+              </td>
+              <td class="border border-slate-300 p-2 text-center font-mono font-bold text-rose-700 bg-rose-50/30">
+                ${clsData.alpha}
+              </td>
+              <td class="border border-slate-300 p-2 text-center font-mono font-bold text-slate-800">
+                ${clsData.total}
+              </td>
+              <td class="border border-slate-300 p-2 text-center font-mono font-black ${
+                Number(clsData.pct) >= 90 ? 'text-emerald-700 bg-emerald-50/40' : Number(clsData.pct) >= 80 ? 'text-amber-700 bg-amber-50/40' : 'text-rose-700 bg-rose-50/40'
+              }">
+                ${clsData.pct}%
+              </td>
+            </tr>
+          `;
+        });
+
+        pagesHTML += `
+          <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+
+          <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+            <div>
+              <div class="kop-border pb-3 mb-4 flex items-center gap-5">
+                <img 
+                  src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" 
+                  alt="Logo" 
+                  class="w-16 h-16 object-contain shrink-0"
+                />
+                <div class="flex-1 text-center pr-6">
+                  <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
+                  <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
+                    SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                  </h1>
+                  <p class="text-[10px] text-slate-600 mt-0.5">
+                    Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                  </p>
+                </div>
+              </div>
+
+              <div class="text-center mb-3">
+                <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
+                  LAPORAN REKAPITULASI PRESENSI &amp; ABSENSI SANTRI
+                </h2>
+                <p class="text-xs font-semibold text-slate-600 mt-0.5">
+                  Unit Pengelola: <span class="text-blue-700 font-bold">Kesiswaan &amp; Kedisiplinan Santri</span> &bull; Periode: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
+                </p>
+                <p class="text-[10px] text-slate-400 font-mono mt-0.5">
+                  Tanggal Unduh: ${dateFormatted}
+                </p>
+              </div>
+
+              <!-- TABEL RINGKASAN METRIK PRESENSI -->
+              <table class="excel-table mb-4" style="text-align: center;">
+                <thead>
+                  <tr style="background-color: #f1f5f9;">
+                    <th style="width: 20%; background-color: #ecfdf5; color: #047857;">TOTAL HADIR</th>
+                    <th style="width: 20%; background-color: #fffbeb; color: #b45309;">TOTAL SAKIT</th>
+                    <th style="width: 20%; background-color: #eff6ff; color: #1d4ed8;">TOTAL IZIN</th>
+                    <th style="width: 20%; background-color: #fef2f2; color: #b91c1c;">TOTAL ALPHA</th>
+                    <th style="width: 20%; background-color: #f5f3ff; color: #6d28d9;">% KEHADIRAN SANTRI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="font-weight: bold; font-family: monospace; font-size: 13px;">
+                    <td style="background-color: #f0fdf4; color: #047857; padding: 6px;">${attStats.totalHadir}</td>
+                    <td style="background-color: #fefce8; color: #b45309; padding: 6px;">${attStats.totalSakit}</td>
+                    <td style="background-color: #eff6ff; color: #1d4ed8; padding: 6px;">${attStats.totalIzin}</td>
+                    <td style="background-color: #fff1f2; color: #b91c1c; padding: 6px;">${attStats.totalAlpha}</td>
+                    <td style="background-color: #faf5ff; color: #6d28d9; padding: 6px; font-weight: 900;">${attStats.globalPct}%</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse border border-slate-300">
+                  <thead>
+                    <tr class="bg-slate-100 text-slate-700 font-black uppercase tracking-wider text-[10px] border-b border-slate-300 text-center">
+                      <th class="border border-slate-300 p-2 w-10">NO</th>
+                      <th class="border border-slate-300 p-2 text-left w-36">KELAS</th>
+                      <th class="border border-slate-300 p-2 bg-emerald-50 text-emerald-900 w-24">HADIR</th>
+                      <th class="border border-slate-300 p-2 bg-amber-50 text-amber-900 w-24">SAKIT</th>
+                      <th class="border border-slate-300 p-2 bg-blue-50 text-blue-900 w-24">IZIN</th>
+                      <th class="border border-slate-300 p-2 bg-rose-50 text-rose-900 w-24">ALPHA</th>
+                      <th class="border border-slate-300 p-2 w-28">TOTAL SESI</th>
+                      <th class="border border-slate-300 p-2 bg-slate-200 text-slate-900 w-32">PERSENTASE</th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-slate-800 divide-y divide-slate-200">
+                    ${absensiRowsHTML}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
+          </div>
+        `;
+
+        const rekapNilaiList = getRekapNilaiPerRombel();
+
+        if (rekapNilaiList.length > 0) {
+          const totalRombel = rekapNilaiList.length;
+          const rombelTuntasCount = rekapNilaiList.filter(r => r.is_tuntas).length;
+          const pctRombelTuntas = ((rombelTuntasCount / totalRombel) * 100).toFixed(1);
+          const rataRataSemua = (
+            rekapNilaiList.reduce((acc, curr) => acc + Number(curr.rata_rata || 0), 0) / totalRombel
+          ).toFixed(2);
+
+          let nilaiRowsHTML = '';
+          rekapNilaiList.forEach((rn, nIdx) => {
+            nilaiRowsHTML += `
+              <tr class="hover:bg-slate-100/70 transition">
+                <td class="text-center font-mono font-bold text-slate-500">${nIdx + 1}</td>
+                <td class="font-bold text-slate-900 leading-tight">${rn.nama_guru}</td>
+                <td class="font-semibold text-blue-800 leading-tight">${rn.nama_mapel}</td>
+                <td class="text-center font-bold text-slate-800 bg-slate-50">${rn.kelas}</td>
+                <td class="text-center font-mono font-bold text-slate-700">${rn.kkm}</td>
+                <td class="text-center font-mono font-bold text-slate-800">${rn.jml_siswa}</td>
+                <td class="text-center font-mono font-black text-slate-900 bg-slate-50">${rn.rata_rata}</td>
+                <td class="text-center font-mono text-rose-700 font-bold">
+                  ${rn.pct_below_kkm}% <span class="text-[9px] text-slate-400 font-normal">(${rn.count_below_kkm})</span>
+                </td>
+                <td class="text-center font-mono text-emerald-700 font-bold">
+                  ${rn.pct_above_kkm}% <span class="text-[9px] text-slate-400 font-normal">(${rn.count_above_kkm})</span>
+                </td>
+                <td class="text-center">
+                  ${
+                    rn.is_tuntas
+                      ? `<span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300">✓ Tuntas Baik</span>`
+                      : `<span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold text-rose-800 bg-rose-100 border border-rose-300">✕ &lt; 80% Tuntas</span>`
+                  }
+                </td>
+              </tr>
+            `;
+          });
+
+          pagesHTML += `
+            <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+
+            <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+              <div>
+                <div class="kop-border pb-3 mb-4 flex items-center gap-5">
+                  <img 
+                    src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" 
+                    alt="Logo" 
+                    class="w-16 h-16 object-contain shrink-0"
+                  />
+                  <div class="flex-1 text-center pr-6">
+                    <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
+                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
+                      SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                    </h1>
+                    <p class="text-[10px] text-slate-600 mt-0.5">
+                    Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                    </p>
+                  </div>
+                </div>
+
+                <div class="text-center mb-3">
+                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
+                    LAPORAN REKAPITULASI KETUNTASAN BELAJAR SISWA (LEGER NILAI)
+                  </h2>
+                  <p class="text-xs font-semibold text-slate-600 mt-0.5">
+                    Unit Kerja: <span class="text-blue-700 font-bold">Kurikulum &amp; Akademik</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
+                  </p>
+                  <p class="text-[10px] text-slate-400 font-mono mt-0.5">
+                    Standar Kelulusan: Kriteria Ketuntasan Minimal (KKM) &bull; Kriteria Tuntas Rombel ≥ 80% Siswa Mencapai KKM
+                  </p>
+                </div>
+
+                <!-- TABEL RINGKASAN METRIK LEGER NILAI -->
+                <table class="excel-table mb-4" style="text-align: center;">
+                  <thead>
+                    <tr style="background-color: #f1f5f9;">
+                      <th style="width: 33.3%; background-color: #eff6ff; color: #1e3a8a;">TOTAL ROMBEL DIEVALUASI</th>
+                      <th style="width: 33.3%; background-color: #f8fafc; color: #0f172a;">RATA-RATA KELAS GABUNGAN</th>
+                      <th style="width: 33.4%; background-color: #ecfdf5; color: #065f46;">% KETUNTASAN ROMBEL TERCAPAI</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="font-weight: bold; font-family: monospace; font-size: 13px;">
+                      <td style="background-color: #eff6ff; color: #1d4ed8; padding: 6px;">${totalRombel} Rombel</td>
+                      <td style="background-color: #f8fafc; color: #0f172a; padding: 6px;">${rataRataSemua}</td>
+                      <td style="background-color: #ecfdf5; color: #047857; padding: 6px; font-weight: 900;">${pctRombelTuntas}% (${rombelTuntasCount}/${totalRombel})</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div class="overflow-x-auto">
+                  <table class="excel-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 30px; text-align: center;">NO</th>
+                        <th style="width: 170px; text-align: left;">NAMA GURU / USTADZAH</th>
+                        <th style="width: 150px; text-align: left;">MATA PELAJARAN</th>
+                        <th style="width: 60px; text-align: center;">KELAS</th>
+                        <th style="width: 48px; text-align: center;">KKM</th>
+                        <th style="width: 60px; text-align: center;">JML SISWA</th>
+                        <th style="width: 65px; text-align: center;">RATA-RATA</th>
+                        <th style="width: 105px; text-align: center;">&lt; KKM (%)</th>
+                        <th style="width: 105px; text-align: center;">≥ KKM (%)</th>
+                        <th style="width: 110px; text-align: center;">STATUS KETUNTASAN</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${nilaiRowsHTML}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
+            </div>
+          `;
+        }
+
+        const tahfidhData = getTahfidhReportData(bInfo.bulanDigit);
+
+        if (tahfidhData) {
+          const { targetStats, juzMatrix, halaqohRows } = tahfidhData;
+
+          let sumPojokTarget = 0, sumPojokBelum = 0, sumPojokTotal = 0;
+          let sumLembagaTarget = 0, sumLembagaBelum = 0, sumLembagaKhatam = 0, sumLembagaKhotimin = 0, sumLembagaTotal = 0;
+          let sumDeresanTarget = 0, sumDeresanBelum = 0, sumDeresanTotal = 0;
+
+          KELAS_KEYS_TAHFIDH.forEach(k => {
+            sumPojokTarget += targetStats.pojokan.target[k] || 0;
+            sumPojokBelum += targetStats.pojokan.belum[k] || 0;
+            sumPojokTotal += targetStats.pojokan.total[k] || 0;
+
+            sumLembagaTarget += targetStats.lembaga.target[k] || 0;
+            sumLembagaBelum += targetStats.lembaga.belum[k] || 0;
+            sumLembagaKhatam += targetStats.lembaga.khatam[k] || 0;
+            sumLembagaKhotimin += targetStats.lembaga.khotimin[k] || 0;
+            sumLembagaTotal += targetStats.lembaga.total[k] || 0;
+
+            sumDeresanTarget += targetStats.deresan.target[k] || 0;
+            sumDeresanBelum += targetStats.deresan.belum[k] || 0;
+            sumDeresanTotal += targetStats.deresan.total[k] || 0;
+          });
+
+          const pctPojokTarget = sumPojokTotal > 0 ? Math.round((sumPojokTarget / sumPojokTotal) * 100) : 0;
+          const pctLembagaTarget = sumLembagaTotal > 0 ? Math.round((sumLembagaTarget / sumLembagaTotal) * 100) : 0;
+          const pctDeresanTarget = sumDeresanTotal > 0 ? Math.round((sumDeresanTarget / sumDeresanTotal) * 100) : 0;
+
+          let juzRowsHTML = '';
+          DISPLAY_JUZ_ORDER.forEach(j => {
+            const rowTot = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (juzMatrix.juz[j][k] || 0), 0);
+            juzRowsHTML += `
+              <tr class="${j === 30 ? 'bg-amber-50/70 font-semibold' : ''}">
+                <td class="text-center font-bold font-mono text-[10.5px] p-1 border border-slate-300">Juz ${j}</td>
+                ${KELAS_KEYS_TAHFIDH.map(k => {
+                  const val = juzMatrix.juz[j][k] || 0;
+                  return `<td class="text-center font-mono text-[10.5px] p-1 border border-slate-300 ${val > 0 ? 'font-bold bg-emerald-50 text-emerald-800' : 'text-slate-400'}">${val}</td>`;
+                }).join('')}
+                <td class="text-center font-bold font-mono text-[10.5px] p-1 border border-slate-300 bg-slate-100">${rowTot}</td>
+              </tr>
+            `;
+          });
+
+          const totBelumSetor = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (juzMatrix.belumSetor[k] || 0), 0);
+          const totSantriAktif = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (juzMatrix.total[k] || 0), 0);
+
+          // Halaman Tahfidh 1: Evaluasi 3 Target
+          pagesHTML += `
+            <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+
+            <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+              <div>
+                <div class="kop-border pb-3 mb-4 flex items-center gap-5">
+                  <img 
+                    src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" 
+                    alt="Logo" 
+                    class="w-16 h-16 object-contain shrink-0"
+                  />
+                  <div class="flex-1 text-center pr-6">
+                    <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
+                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
+                      SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                    </h1>
+                    <p class="text-[10px] text-slate-600 mt-0.5">
+                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                    </p>
+                  </div>
+                </div>
+
+                <div class="text-center mb-4">
+                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
+                    LAPORAN EVALUASI 3 TARGET KETAHFIDHAN SANTRI PUTRI
+                  </h2>
+                  <p class="text-xs font-semibold text-slate-600 mt-0.5">
+                    Unit Pengelola: <span class="text-blue-700 font-bold">Pondok Tahfidh Lilbanat</span> &bull; Periode: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
+                  </p>
+                </div>
+
+                <!-- TABEL RINGKASAN METRIK TAHFIDH -->
+                <table class="excel-table mb-5" style="text-align: center;">
+                  <thead>
+                    <tr style="background-color: #f1f5f9;">
+                      <th style="width: 33.3%; background-color: #fce4d6; color: #9a3412;">TARGET POJOKAN (ZIYADAH)</th>
+                      <th style="width: 33.3%; background-color: #fff2cc; color: #854d0e;">TARGET LEMBAGA</th>
+                      <th style="width: 33.4%; background-color: #bdd7ee; color: #1e3a8a;">TARGET DERESAN (MUROJAAH)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="font-weight: bold; font-family: monospace; font-size: 13px;">
+                      <td style="background-color: #fff7ed; color: #c2410c; padding: 6px;">${pctPojokTarget}% Tuntas (${sumPojokTarget}/${sumPojokTotal})</td>
+                      <td style="background-color: #fefce8; color: #a16207; padding: 6px;">${pctLembagaTarget}% Tuntas (${sumLembagaTarget}/${sumLembagaTotal})</td>
+                      <td style="background-color: #eff6ff; color: #1d4ed8; padding: 6px;">${pctDeresanTarget}% Tuntas (${sumDeresanTarget}/${sumDeresanTotal})</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div class="space-y-4">
+                  <div>
+                    <h3 class="text-xs font-black uppercase text-slate-800 tracking-wide mb-1.5 flex items-center gap-1.5">
+                      <i class="fas fa-bullseye text-orange-600"></i>
+                      <span>1. EVALUASI TARGET POJOKAN / ZIYADAH BULANAN (KELAS VII - XII)</span>
+                    </h3>
+                    <table class="tahfidh-table">
+                      <thead>
+                        <tr>
+                          <th class="th-tahfidh-orange" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-orange">Kls ${k}</th>`).join('')}
+                          <th class="th-tahfidh-orange" style="width: 80px;">JUMLAH</th>
+                          <th class="th-tahfidh-orange" style="width: 80px;">PERSENTASE</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="font-semibold p-1.5 border border-slate-300">Tercapai</td>
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-700 bg-emerald-50/50">${targetStats.pojokan.target[k]}</td>`).join('')}
+                          <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-emerald-100 text-emerald-800">${sumPojokTarget}</td>
+                          <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-emerald-100 text-emerald-800">${pctPojokTarget}%</td>
+                        </tr>
+                        <tr>
+                          <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${targetStats.pojokan.belum[k]}</td>`).join('')}
+                          <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumPojokBelum}</td>
+                          <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctPojokTarget}%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div>
+                    <h3 class="text-xs font-black uppercase text-slate-800 tracking-wide mb-1.5 flex items-center gap-1.5">
+                      <i class="fas fa-landmark text-amber-600"></i>
+                      <span>2. EVALUASI TARGET CAPAIAN LEMBAGA PUTRI (KELAS VII - XII)</span>
+                    </h3>
+                    <table class="tahfidh-table">
+                      <thead>
+                        <tr>
+                          <th class="th-tahfidh-yellow" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-yellow">Kls ${k}</th>`).join('')}
+                          <th class="th-tahfidh-yellow" style="width: 80px;">JUMLAH</th>
+                          <th class="th-tahfidh-yellow" style="width: 80px;">PERSENTASE</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="font-semibold p-1.5 border border-slate-300">Tercapai</td>
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-blue-700 bg-blue-50/50">${targetStats.lembaga.target[k]}</td>`).join('')}
+                          <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-blue-100 text-blue-800">${sumLembagaTarget}</td>
+                          <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-blue-100 text-blue-800">${pctLembagaTarget}%</td>
+                        </tr>
+                        <tr>
+                          <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${targetStats.lembaga.belum[k]}</td>`).join('')}
+                          <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumLembagaBelum}</td>
+                          <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctLembagaTarget}%</td>
+                        </tr>
+                        <tr class="bg-emerald-50/70 font-semibold">
+                          <td class="p-1.5 border border-slate-300 text-emerald-800">Khatam 30 Juz</td>
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-800">${targetStats.lembaga.khatam[k]}</td>`).join('')}
+                          <td class="text-center font-mono font-black p-1.5 border border-slate-300" colspan="2">${sumLembagaKhatam} Santri</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div>
+                    <h3 class="text-xs font-black uppercase text-slate-800 tracking-wide mb-1.5 flex items-center gap-1.5">
+                      <i class="fas fa-book-open-reader text-blue-600"></i>
+                      <span>3. EVALUASI TARGET DERESAN / MUROJAAH BULANAN (KELAS VII - XII)</span>
+                    </h3>
+                    <table class="tahfidh-table">
+                      <thead>
+                        <tr>
+                          <th class="th-tahfidh-blue" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-blue">Kls ${k}</th>`).join('')}
+                          <th class="th-tahfidh-blue" style="width: 80px;">JUMLAH</th>
+                          <th class="th-tahfidh-blue" style="width: 80px;">PERSENTASE</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="font-semibold p-1.5 border border-slate-300">Tercapai</td>
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-teal-700 bg-teal-50/50">${targetStats.deresan.target[k]}</td>`).join('')}
+                          <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-teal-100 text-teal-800">${sumDeresanTarget}</td>
+                          <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-teal-100 text-teal-800">${pctDeresanTarget}%</td>
+                        </tr>
+                        <tr>
+                          <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${targetStats.deresan.belum[k]}</td>`).join('')}
+                          <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumDeresanBelum}</td>
+                          <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctDeresanTarget}%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
+            </div>
+
+            <!-- Halaman Tahfidh 2: Pendapatan Juz Hafalan -->
+            <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+
+            <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+              <div>
+                <div class="kop-border pb-3 mb-3 flex items-center gap-5">
+                  <img 
+                    src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" 
+                    alt="Logo" 
+                    class="w-16 h-16 object-contain shrink-0"
+                  />
+                  <div class="flex-1 text-center pr-6">
+                    <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
+                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
+                      SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                    </h1>
+                    <p class="text-[10px] text-slate-600 mt-0.5">
+                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                    </p>
+                  </div>
+                </div>
+
+                <div class="text-center mb-2">
+                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
+                    REKAPITULASI PENDAPATAN HAFALAN SANTRI PUTRI PER KELAS
+                  </h2>
+                  <p class="text-xs font-semibold text-slate-600 mt-0.5">
+                    Unit Kerja: <span class="text-blue-700 font-bold">Pondok Tahfidh Lilbanat</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
+                  </p>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table class="tahfidh-table">
+                    <thead>
+                      <tr>
+                        <th class="th-tahfidh-orange" style="width: 120px; text-align: center;">KETERANGAN / JUZ</th>
+                        ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-orange">Kelas ${k}</th>`).join('')}
+                        <th class="th-tahfidh-orange" style="width: 100px; text-align: center;">JUMLAH SANTRI</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="bg-yellow-100 font-bold">
+                        <td class="text-center p-1 border border-slate-300 text-[10px]">Khotimin</td>
+                        ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${juzMatrix.khotimin[k] || 0}</td>`).join('')}
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${sumLembagaKhotimin}</td>
+                      </tr>
+                      <tr class="bg-blue-100 font-bold">
+                        <td class="text-center p-1 border border-slate-300 text-[10px]">Khatam</td>
+                        ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${juzMatrix.khatam[k] || 0}</td>`).join('')}
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${sumLembagaKhatam}</td>
+                      </tr>
+                      ${juzRowsHTML}
+                      <tr class="bg-rose-50 font-bold text-rose-800">
+                        <td class="text-center p-1 border border-slate-300 text-[10px]">Belum Setor</td>
+                        ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${juzMatrix.belumSetor[k] || 0}</td>`).join('')}
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${totBelumSetor}</td>
+                      </tr>
+                    </tbody>
+                    <tfoot>
+                      <tr class="bg-slate-200 font-black text-slate-900">
+                        <td class="text-center p-1.5 border border-slate-300 text-[10.5px]">JUMLAH SANTRI PUTRI AKTIF</td>
+                        ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${juzMatrix.total[k] || 0}</td>`).join('')}
+                        <td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${totSantriAktif}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+
+              <div class="text-center text-[10px] text-slate-400 font-serif pt-3">${pageNumberCounter++}</div>
+            </div>
+
+            <!-- Halaman Tahfidh 3: Per Halaqoh Ustadzah -->
+            <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+
+            <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+              <div>
+                <div class="kop-border pb-3 mb-3 flex items-center gap-5">
+                  <img 
+                    src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" 
+                    alt="Logo" 
+                    class="w-16 h-16 object-contain shrink-0"
+                  />
+                  <div class="flex-1 text-center pr-6">
+                    <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
+                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
+                      SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                    </h1>
+                    <p class="text-[10px] text-slate-600 mt-0.5">
+                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                    </p>
+                  </div>
+                </div>
+
+                <div class="text-center mb-3">
+                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
+                    REKAPITULASI CAPAIAN PER HALAQOH USTADZAH PUTRI
+                  </h2>
+                  <p class="text-xs font-semibold text-slate-600 mt-0.5">
+                    Unit Kerja: <span class="text-blue-700 font-bold">Pondok Tahfidh Lilbanat</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
+                  </p>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table class="tahfidh-table">
+                    <thead>
+                      <tr>
+                        <th rowspan="2" class="th-tahfidh-orange" style="width: 25px;">NO</th>
+                        <th rowspan="2" class="th-tahfidh-orange" style="width: 170px;">HALAQOH USTADZAH</th>
+                        <th rowspan="2" class="th-tahfidh-orange" style="width: 45px;">KAMAR</th>
+                        <th rowspan="2" class="th-tahfidh-orange" style="width: 45px;">KELAS</th>
+                        <th rowspan="2" class="th-tahfidh-orange" style="width: 45px;">JML</th>
+                        <th rowspan="2" class="th-tahfidh-orange" style="width: 45px;">ZIADAH</th>
+                        <th rowspan="2" class="th-tahfidh-orange" style="width: 45px;">BOYONG</th>
+                        <th rowspan="2" class="th-tahfidh-orange" style="width: 45px;">KHATAM</th>
+                        <th colspan="2" class="th-tahfidh-green">TARGET POJOKAN</th>
+                        <th colspan="2" class="th-tahfidh-yellow">TARGET LEMBAGA</th>
+                        <th colspan="2" class="th-tahfidh-blue">TARGET DERESAN</th>
+                      </tr>
+                      <tr>
+                        <th class="th-tahfidh-green" style="width: 45px;">SUDAH</th>
+                        <th class="th-tahfidh-green" style="width: 45px;">%</th>
+                        <th class="th-tahfidh-yellow" style="width: 45px;">SUDAH</th>
+                        <th class="th-tahfidh-yellow" style="width: 45px;">%</th>
+                        <th class="th-tahfidh-blue" style="width: 45px;">SUDAH</th>
+                        <th class="th-tahfidh-blue" style="width: 45px;">%</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${halaqohRows.map((h, hIdx) => `
+                        <tr class="hover:bg-slate-50">
+                          <td class="text-center font-mono font-bold text-slate-500">${hIdx + 1}</td>
+                          <td class="font-bold text-slate-900">${h.nama}</td>
+                          <td class="text-center font-bold font-mono text-slate-700">${h.kamar}</td>
+                          <td class="text-center text-[9px] text-slate-600 font-semibold">${h.kls}</td>
+                          <td class="text-center font-mono font-bold text-slate-800">${h.jml}</td>
+                          <td class="text-center font-mono text-emerald-700 font-bold">${h.masihZiadah}</td>
+                          <td class="text-center font-mono text-slate-500">${h.santriBoyong}</td>
+                          <td class="text-center font-mono font-bold text-blue-700 bg-blue-50/40">${h.santriKhatam}</td>
+                          <td class="text-center font-mono font-bold text-emerald-700">${h.passPojok}</td>
+                          <td class="text-center font-mono font-bold ${h.pctPojok >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-50 text-rose-700'}">${h.pctPojok}%</td>
+                          <td class="text-center font-mono font-bold text-amber-700">${h.passLembaga}</td>
+                          <td class="text-center font-mono font-bold ${h.pctLembaga >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-50 text-rose-700'}">${h.pctLembaga}%</td>
+                          <td class="text-center font-mono font-bold text-blue-700">${h.passDeresan}</td>
+                          <td class="text-center font-mono font-bold ${h.pctDeresan >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-50 text-rose-700'}">${h.pctDeresan}%</td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
+            </div>
+          `;
+        }
+
+        const tabunganData = getTabunganReportData();
+
+        let tabunganRowsHTML = '';
+        tabunganData.rowsPerKelas.forEach((rk) => {
+          const pctSaldo = tabunganData.totalSaldoAll > 0 
+            ? ((rk.totalTabungan / tabunganData.totalSaldoAll) * 100).toFixed(1) 
+            : '0.0';
+          const rataRata = rk.jmlSiswa > 0 
+            ? Math.round(rk.totalTabungan / rk.jmlSiswa) 
+            : 0;
+
+          tabunganRowsHTML += `
+            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+              <td class="border border-slate-300 p-2 text-center font-mono font-bold text-slate-500 w-10">
+                ${rk.no}
+              </td>
+              <td class="border border-slate-300 p-2 font-bold text-slate-900">
+                Kelas ${rk.kelas}
+              </td>
+              <td class="border border-slate-300 p-2 text-center font-mono font-bold text-slate-700">
+                ${rk.jmlSiswa} Santri
+              </td>
+              <td class="border border-slate-300 p-2 text-right font-mono font-bold text-emerald-700 bg-emerald-50/30">
+                ${formatRupiah(rk.totalTabungan)}
+              </td>
+              <td class="border border-slate-300 p-2 text-right font-mono font-semibold text-slate-800">
+                ${formatRupiah(rataRata)}
+              </td>
+              <td class="border border-slate-300 p-2 text-center font-mono font-bold text-blue-700 bg-blue-50/30">
+                ${pctSaldo}%
+              </td>
+            </tr>
+          `;
+        });
+
+        pagesHTML += `
+          <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+
+          <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+            <div>
+              <div class="kop-border pb-3 mb-4 flex items-center gap-5">
+                <img 
+                  src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" 
+                  alt="Logo" 
+                  class="w-16 h-16 object-contain shrink-0"
+                />
+                <div class="flex-1 text-center pr-6">
+                  <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
+                  <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
+                    SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                  </h1>
+                  <p class="text-[10px] text-slate-600 mt-0.5">
+                    Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                  </p>
+                </div>
+              </div>
+
+              <div class="text-center mb-3">
+                <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
+                  LAPORAN STATISTIK &amp; REKAPITULASI TABUNGAN SANTRI
+                </h2>
+                <p class="text-xs font-semibold text-slate-600 mt-0.5">
+                  Unit Pengelola: <span class="text-blue-700 font-bold">Sarpras &amp; Bendahara (Pengelola Tabungan Santri)</span> &bull; Periode: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
+                </p>
+                <p class="text-[10px] text-slate-400 font-mono mt-0.5">
+                  Tanggal Unduh: ${dateFormatted}
+                </p>
+              </div>
+
+              <!-- TABEL RINGKASAN METRIK TABUNGAN -->
+              <table class="excel-table mb-4" style="text-align: center;">
+                <thead>
+                  <tr style="background-color: #f1f5f9;">
+                    <th style="width: 28%; background-color: #ecfdf5; color: #047857;">TOTAL SALDO SELURUH SANTRI</th>
+                    <th style="width: 24%; background-color: #fffbeb; color: #b45309;">TABUNGAN KELAS VII</th>
+                    <th style="width: 24%; background-color: #eff6ff; color: #1d4ed8;">TABUNGAN KELAS VIII</th>
+                    <th style="width: 24%; background-color: #fef2f2; color: #b91c1c;">TABUNGAN KELAS IX</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="font-weight: bold; font-family: monospace; font-size: 13px;">
+                    <td style="background-color: #f0fdf4; color: #047857; padding: 6px; font-weight: 900;">${formatRupiah(tabunganData.totalSaldoAll)}</td>
+                    <td style="background-color: #fefce8; color: #b45309; padding: 6px;">${formatRupiah(tabunganData.totalKls7)}</td>
+                    <td style="background-color: #eff6ff; color: #1d4ed8; padding: 6px;">${formatRupiah(tabunganData.totalKls8)}</td>
+                    <td style="background-color: #fff1f2; color: #b91c1c; padding: 6px;">${formatRupiah(tabunganData.totalKls9)}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse border border-slate-300">
+                  <thead>
+                    <tr class="bg-slate-100 text-slate-700 font-black uppercase tracking-wider text-[10px] border-b border-slate-300 text-center">
+                      <th class="border border-slate-300 p-2 w-10">NO</th>
+                      <th class="border border-slate-300 p-2 text-left w-36">KELAS</th>
+                      <th class="border border-slate-300 p-2 w-32">JUMLAH SANTRI</th>
+                      <th class="border border-slate-300 p-2 bg-emerald-50 text-emerald-900 w-44 text-right">TOTAL TABUNGAN KELAS</th>
+                      <th class="border border-slate-300 p-2 text-right w-40">RATA-RATA PER SANTRI</th>
+                      <th class="border border-slate-300 p-2 bg-blue-50 text-blue-900 w-28">KONTRIBUSI (%)</th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-slate-800 divide-y divide-slate-200">
+                    ${tabunganRowsHTML}
+                  </tbody>
+                  <tfoot>
+                    <tr class="bg-slate-200 font-black text-slate-900 text-xs">
+                      <td colspan="2" class="border border-slate-300 p-2 text-center uppercase tracking-wider">TOTAL KESELURUHAN</td>
+                      <td class="border border-slate-300 p-2 text-center font-mono">${tabunganData.totalSiswaMenabung} Santri</td>
+                      <td class="border border-slate-300 p-2 text-right font-mono text-emerald-800">${formatRupiah(tabunganData.totalSaldoAll)}</td>
+                      <td class="border border-slate-300 p-2 text-right font-mono">${formatRupiah(Math.round(tabunganData.totalSaldoAll / (tabunganData.totalSiswaMenabung || 1)))}</td>
+                      <td class="border border-slate-300 p-2 text-center font-mono">100.0%</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = pagesHTML;
+    }
+
+    function filterLaporanByDivisi() {
+      const val = document.getElementById('selectDivisi').value;
+      renderTableData(val);
+    }
+
+    function downloadDOCX() {
+      try {
+        const bInfo = getNamaBulanTahun(selectedBulan);
+        const valDiv = document.getElementById('selectDivisi').value;
+
+        let targetDivisions = [];
+        let unitFileTag = 'Semua_Divisi';
+        if (valDiv === 'all') {
+          targetDivisions = divisionsData.filter(d => templatesData.some(t => Number(t.division_id) === Number(d.id)));
+        } else {
+          targetDivisions = divisionsData.filter(d => Number(d.id) === Number(valDiv));
+          if (targetDivisions[0]) unitFileTag = targetDivisions[0].name.replace(/\s+/g, '_');
+        }
+
+        const filename = `Laporan_Bulanan_Lengkap_${unitFileTag}_${selectedBulan}.doc`;
+
+        let wordDivisionsContent = '';
+        let pageCounterWord = 3;
+
+        targetDivisions.forEach((div) => {
+          const divTemplates = templatesData.filter(t => Number(t.division_id) === Number(div.id));
+          if (divTemplates.length === 0) return;
+
+          const groups = [];
+          const map = new Map();
+
+          divTemplates.forEach(tpl => {
+            const key = tpl.iku_id ? Number(tpl.iku_id) : `umum_${tpl.division_id}`;
+            if (!map.has(key)) {
+              const ikuObj = ikusData.find(i => Number(i.id) === Number(tpl.iku_id));
+              const newGroup = { iku: ikuObj, items: [] };
+              map.set(key, newGroup);
+              groups.push(newGroup);
+            }
+            map.get(key).items.push(tpl);
+          });
+
+          let tableRowsWord = '';
+          groups.forEach((grp, grpIdx) => {
+            const rowSpanCount = grp.items.length;
+            const iku = grp.iku;
+
+            grp.items.forEach((item, itemIdx) => {
+              const isFirst = itemIdx === 0;
+              const realisasi = calculateProgramRealisasi(item);
+              const targetTeks = item.target_teks || (item.target ? `${item.target}%` : '100%');
+              const catatan = (catatanMap[item.id] || '-').replace(/\n/g, '<br>');
+
+              tableRowsWord += '<tr>';
+              if (isFirst) {
+                tableRowsWord += `
+                  <td rowspan="${rowSpanCount}" style="border: 1px solid #000000; padding: 5px; text-align: center; vertical-align: top; background-color: #f8fafc; font-weight: bold; width: 4%;">
+                    ${grpIdx + 1}
+                  </td>
+                  <td rowspan="${rowSpanCount}" style="border: 1px solid #000000; padding: 5px; vertical-align: top; width: 18%; font-size: 8.5pt;">
+                    ${iku ? `<b style="color: #1e3a8a;">${iku.kode_iku}</b><br><span style="color: #000000;">${iku.title}</span>` : '<i>Program Rutin Unit</i>'}
+                  </td>
+                `;
+              }
+
+              tableRowsWord += `
+                <td style="border: 1px solid #000000; padding: 5px; text-align: center; width: 7%; font-weight: bold; font-size: 8.5pt;">
+                  ${targetTeks}
+                </td>
+                <td style="border: 1px solid #000000; padding: 5px; text-align: center; width: 8%; color: #1d4ed8; font-weight: bold; background-color: #eff6ff; font-size: 8.5pt;">
+                  ${realisasi}
+                </td>
+                <td style="border: 1px solid #000000; padding: 5px; text-align: center; width: 8%; background-color: #f0fdf4; font-size: 8.5pt;">
+                  <!-- Kolom Yayasan Kosong -->
+                </td>
+                <td style="border: 1px solid #000000; padding: 5px; width: 20%; font-size: 8.5pt;">
+                  ${item.title}
+                </td>
+                <td style="border: 1px solid #000000; padding: 5px; text-align: center; width: 8%; font-size: 8pt;">
+                  ${item.timeframe || 'Bulanan'}
+                </td>
+                <td style="border: 1px solid #000000; padding: 5px; width: 27%; font-size: 8.5pt; line-height: 1.3;">
+                  ${catatan}
+                </td>
+              </tr>`;
+            });
+          });
+
+          wordDivisionsContent += `
+            <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
+              <span style="mso-special-character: page-break;">&nbsp;</span>
+            </p>
+            <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
+            <div style="page-break-before: always; mso-break-type: section-break;"></div>
+
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
+              <tr>
+                <td width="55" valign="middle" align="left" style="width: 55px;">
+                  <img 
+                    src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
+                    alt="Logo" 
+                    width="44" 
+                    height="44" 
+                    style="width: 44px; height: 44px; border: 0;"
+                  />
+                </td>
+                <td align="center" valign="middle">
+                  <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
+                    YAYASAN ASEM BUNGKUK PATI
+                  </p>
+                  <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
+                    SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                  </p>
+                  <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
+                    Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+            <div style="text-align: center; margin-bottom: 6pt;">
+              <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
+                LAPORAN CAPAIAN INDIKATOR KINERJA UTAMA (IKU)
+              </p>
+              <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
+                Unit Kerja: Divisi ${div.name} (${div.code}) &bull; Periode: ${bInfo.lengkap}
+              </p>
+              <p style="font-size: 7pt; color: #666666; margin: 1px 0 0 0;">
+                Tanggal Unduh: ${dateFormatted}
+              </p>
+            </div>
+
+            <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt;">
+              <thead>
+                <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold; font-size: 7.5pt;">
+                  <th style="border: 1px solid #000000; padding: 4px; width: 4%;">NO</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 18%;">INDIKATOR (IKU)</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 7%;">TARGET</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 8%; background-color: #e0e7ff; color: #1e3a8a;">REALISASI</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 8%; background-color: #ecfdf5; color: #065f46;">YAYASAN</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 20%;">KEGIATAN</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 8%;">WAKTU</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 27%;">CATATAN EVALUASI &amp; TINDAK LANJUT</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRowsWord}
+              </tbody>
+            </table>
+
+            <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
+          `;
+        });
+
+        // Lembar Rekap Absensi Santri di Word (.doc)
+        if (valDiv === 'all') {
+          const attStatsWord = getMonthlyAttendanceStats(selectedBulan);
+
+          let rowsWordAbsensi = '';
+          attStatsWord.perClass.forEach((clsW, idxW) => {
+            rowsWordAbsensi += `
+              <tr>
+                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 6%; font-weight: bold;">
+                  ${idxW + 1}
+                </td>
+                <td style="border: 1px solid #000000; padding: 4px; width: 26%; font-weight: bold;">
+                  Kelas ${clsW.kelas}
+                </td>
+                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 11%; color: #047857; background-color: #ecfdf5; font-weight: bold;">
+                  ${clsW.hadir}
+                </td>
+                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 11%; color: #b45309; background-color: #fffbeb; font-weight: bold;">
+                  ${clsW.sakit}
+                </td>
+                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 11%; color: #1d4ed8; background-color: #eff6ff; font-weight: bold;">
+                  ${clsW.izin}
+                </td>
+                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 11%; color: #b91c1c; background-color: #fef2f2; font-weight: bold;">
+                  ${clsW.alpha}
+                </td>
+                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 12%; font-weight: bold;">
+                  ${clsW.total}
+                </td>
+                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 12%; font-weight: bold; background-color: #f1f5f9;">
+                  ${clsW.pct}%
+                </td>
+              </tr>
+            `;
+          });
+
+          wordDivisionsContent += `
+            <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
+              <span style="mso-special-character: page-break;">&nbsp;</span>
+            </p>
+            <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
+            <div style="page-break-before: always; mso-break-type: section-break;"></div>
+
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
+              <tr>
+                <td width="55" valign="middle" align="left" style="width: 55px;">
+                  <img 
+                    src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
+                    alt="Logo" 
+                    width="44" 
+                    height="44" 
+                    style="width: 44px; height: 44px; border: 0;"
+                  />
+                </td>
+                <td align="center" valign="middle">
+                  <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
+                    YAYASAN ASEM BUNGKUK PATI
+                  </p>
+                  <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
+                    SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                  </p>
+                  <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
+                    Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+            <div style="text-align: center; margin-bottom: 8pt;">
+              <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
+                LAPORAN REKAPITULASI PRESENSI &amp; ABSENSI SANTRI
+              </p>
+              <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
+                Unit Pengelola: Kesiswaan &amp; Kedisiplinan Santri &bull; Periode: ${bInfo.lengkap}
+              </p>
+            </div>
+
+            <!-- TABEL RINGKASAN METRIK PRESENSI DI WORD -->
+            <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8.5pt; text-align: center; margin-bottom: 8pt;">
+              <thead>
+                <tr style="font-weight: bold;">
+                  <th style="border: 1px solid #000000; width: 20%; background-color: #ecfdf5; color: #047857;">TOTAL HADIR</th>
+                  <th style="border: 1px solid #000000; width: 20%; background-color: #fffbeb; color: #b45309;">TOTAL SAKIT</th>
+                  <th style="border: 1px solid #000000; width: 20%; background-color: #eff6ff; color: #1d4ed8;">TOTAL IZIN</th>
+                  <th style="border: 1px solid #000000; width: 20%; background-color: #fef2f2; color: #b91c1c;">TOTAL ALPHA</th>
+                  <th style="border: 1px solid #000000; width: 20%; background-color: #f5f3ff; color: #6d28d9;">% KEHADIRAN SANTRI</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="font-weight: bold;">
+                  <td style="border: 1px solid #000000; padding: 5px; color: #047857;">${attStatsWord.totalHadir}</td>
+                  <td style="border: 1px solid #000000; padding: 5px; color: #b45309;">${attStatsWord.totalSakit}</td>
+                  <td style="border: 1px solid #000000; padding: 5px; color: #1d4ed8;">${attStatsWord.totalIzin}</td>
+                  <td style="border: 1px solid #000000; padding: 5px; color: #b91c1c;">${attStatsWord.totalAlpha}</td>
+                  <td style="border: 1px solid #000000; padding: 5px; color: #6d28d9;">${attStatsWord.globalPct}%</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt;">
+              <thead>
+                <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold; font-size: 7.5pt;">
+                  <th style="border: 1px solid #000000; padding: 4px; width: 6%;">NO</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 26%;">KELAS</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 11%; background-color: #ecfdf5; color: #047857;">HADIR</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 11%; background-color: #fffbeb; color: #b45309;">SAKIT</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 11%; background-color: #eff6ff; color: #1d4ed8;">IZIN</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 11%; background-color: #fef2f2; color: #b91c1c;">ALPHA</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 12%;">TOTAL SESI</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 12%; background-color: #e2e8f0;">PERSENTASE</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsWordAbsensi}
+              </tbody>
+            </table>
+
+            <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
+          `;
+
+          // Lembar Rekapitulasi Nilai 88 Rombel di Word
+          const rekapNilaiWord = getRekapNilaiPerRombel();
+          if (rekapNilaiWord.length > 0) {
+            const totalRombelW = rekapNilaiWord.length;
+            const rombelTuntasW = rekapNilaiWord.filter(r => r.is_tuntas).length;
+            const pctRombelTuntasW = ((rombelTuntasW / totalRombelW) * 100).toFixed(1);
+            const rataRataSemuaW = (
+              rekapNilaiWord.reduce((acc, curr) => acc + Number(curr.rata_rata || 0), 0) / totalRombelW
+            ).toFixed(2);
+
+            let rowsNilaiWord = '';
+            rekapNilaiWord.forEach((rnW, idxN) => {
+              rowsNilaiWord += `
+                <tr>
+                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 4%; font-weight: bold;">
+                    ${idxN + 1}
+                  </td>
+                  <td style="border: 1px solid #000000; padding: 4px; width: 22%; font-weight: bold;">
+                    ${rnW.nama_guru}
+                  </td>
+                  <td style="border: 1px solid #000000; padding: 4px; width: 20%; color: #1e3a8a;">
+                    ${rnW.nama_mapel}
+                  </td>
+                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 7%; font-weight: bold; background-color: #f8fafc;">
+                    ${rnW.kelas}
+                  </td>
+                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 6%; font-weight: bold;">
+                    ${rnW.kkm}
+                  </td>
+                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 7%; font-weight: bold;">
+                    ${rnW.jml_siswa}
+                  </td>
+                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 8%; background-color: #f8fafc; font-weight: bold;">
+                    ${rnW.rata_rata}
+                  </td>
+                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 8%; color: #b91c1c; font-weight: bold;">
+                    ${rnW.pct_below_kkm}%
+                  </td>
+                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 8%; color: #047857; font-weight: bold;">
+                    ${rnW.pct_above_kkm}%
+                  </td>
+                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 10%; font-weight: bold; background-color: ${rnW.is_tuntas ? '#ecfdf5' : '#fef2f2'}; color: ${rnW.is_tuntas ? '#065f46' : '#991b1b'};">
+                    ${rnW.is_tuntas ? 'Tuntas Baik' : '< 80% Tuntas'}
+                  </td>
+                </tr>
+              `;
+            });
+
+            wordDivisionsContent += `
+              <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
+                <span style="mso-special-character: page-break;">&nbsp;</span>
+              </p>
+              <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
+              <div style="page-break-before: always; mso-break-type: section-break;"></div>
+
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
+                <tr>
+                  <td width="55" valign="middle" align="left" style="width: 55px;">
+                    <img 
+                      src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
+                      alt="Logo" 
+                      width="44" 
+                      height="44" 
+                      style="width: 44px; height: 44px; border: 0;"
+                    />
+                  </td>
+                  <td align="center" valign="middle">
+                    <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
+                      YAYASAN ASEM BUNGKUK PATI
+                    </p>
+                    <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
+                    SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                    </p>
+                    <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
+                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="text-align: center; margin-bottom: 8pt;">
+                <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
+                  LAPORAN REKAPITULASI KETUNTASAN BELAJAR SISWA (LEGER NILAI)
+                </p>
+                <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
+                  Unit Pengelola: Kurikulum &amp; Akademik &bull; Periode: ${bInfo.lengkap}
+                </p>
+              </div>
+
+              <!-- TABEL RINGKASAN METRIK LEGER NILAI DI WORD -->
+              <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8.5pt; text-align: center; margin-bottom: 8pt;">
+                <thead>
+                  <tr style="font-weight: bold;">
+                    <th style="border: 1px solid #000000; width: 33.3%; background-color: #eff6ff; color: #1e3a8a;">TOTAL ROMBEL DIEVALUASI</th>
+                    <th style="border: 1px solid #000000; width: 33.3%; background-color: #f8fafc; color: #0f172a;">RATA-RATA KELAS GABUNGAN</th>
+                    <th style="border: 1px solid #000000; width: 33.4%; background-color: #ecfdf5; color: #065f46;">% KETUNTASAN ROMBEL TERCAPAI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="font-weight: bold;">
+                    <td style="border: 1px solid #000000; padding: 5px; color: #1d4ed8;">${totalRombelW} Rombel</td>
+                    <td style="border: 1px solid #000000; padding: 5px; color: #0f172a;">${rataRataSemuaW}</td>
+                    <td style="border: 1px solid #000000; padding: 5px; color: #047857;">${pctRombelTuntasW}% (${rombelTuntasW}/${totalRombelW})</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 7.5pt;">
+                <thead>
+                  <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold; font-size: 7pt;">
+                    <th style="border: 1px solid #000000; padding: 4px; width: 4%;">NO</th>
+                    <th style="border: 1px solid #000000; padding: 4px; width: 22%; text-align: left;">NAMA GURU</th>
+                    <th style="border: 1px solid #000000; padding: 4px; width: 20%; text-align: left;">MATA PELAJARAN</th>
+                    <th style="border: 1px solid #000000; padding: 4px; width: 7%;">KELAS</th>
+                    <th style="border: 1px solid #000000; padding: 4px; width: 6%;">KKM</th>
+                    <th style="border: 1px solid #000000; padding: 4px; width: 7%;">JML SISWA</th>
+                    <th style="border: 1px solid #000000; padding: 4px; width: 8%;">RATA-RATA</th>
+                    <th style="border: 1px solid #000000; padding: 4px; width: 8%;">&lt; KKM (%)</th>
+                    <th style="border: 1px solid #000000; padding: 4px; width: 8%;">≥ KKM (%)</th>
+                    <th style="border: 1px solid #000000; padding: 4px; width: 10%;">STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsNilaiWord}
+                </tbody>
+              </table>
+
+              <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
+            `;
+          }
+
+          // Lembar Ketahfidhan di Word
+          const tahfidhW = getTahfidhReportData(bInfo.bulanDigit);
+          if (tahfidhW && tahfidhW.targetStats && tahfidhW.juzMatrix) {
+            const { targetStats: tsW, juzMatrix: jmW, halaqohRows: hRowsW } = tahfidhW;
+
+            let sumPojokTargetW = 0, sumPojokBelumW = 0, sumPojokTotalW = 0;
+            let sumLembagaTargetW = 0, sumLembagaBelumW = 0, sumLembagaKhatamW = 0, sumLembagaKhotiminW = 0, sumLembagaTotalW = 0;
+            let sumDeresanTargetW = 0, sumDeresanBelumW = 0, sumDeresanTotalW = 0;
+
+            KELAS_KEYS_TAHFIDH.forEach(k => {
+              sumPojokTargetW += tsW.pojokan.target[k] || 0;
+              sumPojokBelumW += tsW.pojokan.belum[k] || 0;
+              sumPojokTotalW += tsW.pojokan.total[k] || 0;
+
+              sumLembagaTargetW += tsW.lembaga.target[k] || 0;
+              sumLembagaBelumW += tsW.lembaga.belum[k] || 0;
+              sumLembagaKhatamW += tsW.lembaga.khatam[k] || 0;
+              sumLembagaKhotiminW += tsW.lembaga.khotimin[k] || 0;
+              sumLembagaTotalW += tsW.lembaga.total[k] || 0;
+
+              sumDeresanTargetW += tsW.deresan.target[k] || 0;
+              sumDeresanBelumW += tsW.deresan.belum[k] || 0;
+              sumDeresanTotalW += tsW.deresan.total[k] || 0;
+            });
+
+            const pctPojokTargetW = sumPojokTotalW > 0 ? Math.round((sumPojokTargetW / sumPojokTotalW) * 100) : 0;
+            const pctLembagaTargetW = sumLembagaTotalW > 0 ? Math.round((sumLembagaTargetW / sumLembagaTotalW) * 100) : 0;
+            const pctDeresanTargetW = sumDeresanTotalW > 0 ? Math.round((sumDeresanTargetW / sumDeresanTotalW) * 100) : 0;
+
+            // Lembar 1 Tahfidh di Word
+            wordDivisionsContent += `
+              <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
+                <span style="mso-special-character: page-break;">&nbsp;</span>
+              </p>
+              <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
+              <div style="page-break-before: always; mso-break-type: section-break;"></div>
+
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
+                <tr>
+                  <td width="55" valign="middle" align="left" style="width: 55px;">
+                    <img 
+                      src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
+                      alt="Logo" 
+                      width="44" 
+                      height="44" 
+                      style="width: 44px; height: 44px; border: 0;"
+                    />
+                  </td>
+                  <td align="center" valign="middle">
+                    <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
+                      YAYASAN ASEM BUNGKUK PATI
+                    </p>
+                    <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
+                      SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                    </p>
+                    <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
+                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="text-align: center; margin-bottom: 8pt;">
+                <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
+                  LAPORAN EVALUASI 3 TARGET KETAHFIDHAN SANTRI PUTRI
+                </p>
+                <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
+                  Unit Pengelola: Pondok Tahfidh Lilbanat &bull; Periode: ${bInfo.lengkap}
+                </p>
+              </div>
+
+              <!-- TABEL RINGKASAN METRIK TAHFIDH DI WORD -->
+              <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8.5pt; text-align: center; margin-bottom: 8pt;">
+                <thead>
+                  <tr style="font-weight: bold;">
+                    <th style="border: 1px solid #000000; width: 33.3%; background-color: #fce4d6; color: #9a3412;">TARGET POJOKAN (ZIYADAH)</th>
+                    <th style="border: 1px solid #000000; width: 33.3%; background-color: #fff2cc; color: #854d0e;">TARGET LEMBAGA</th>
+                    <th style="border: 1px solid #000000; width: 33.4%; background-color: #bdd7ee; color: #1e3a8a;">TARGET DERESAN (MUROJAAH)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="font-weight: bold;">
+                    <td style="border: 1px solid #000000; padding: 5px; color: #c2410c;">${pctPojokTargetW}% Tuntas (${sumPojokTargetW}/${sumPojokTotalW})</td>
+                    <td style="border: 1px solid #000000; padding: 5px; color: #a16207;">${pctLembagaTargetW}% Tuntas (${sumLembagaTargetW}/${sumLembagaTotalW})</td>
+                    <td style="border: 1px solid #000000; padding: 5px; color: #1d4ed8;">${pctDeresanTargetW}% Tuntas (${sumDeresanTargetW}/${sumDeresanTotalW})</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <p style="font-weight: bold; font-size: 8.5pt; margin: 6pt 0 2pt 0;">1. EVALUASI TARGET POJOKAN / ZIYADAH</p>
+              <table width="100%" border="1" cellpadding="3" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt; margin-bottom: 6pt;">
+                <tr style="background-color: #f8cbad; font-weight: bold; text-align: center;">
+                  <th style="border: 1px solid #000000; width: 22%;">KETERANGAN</th>
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 11%;">Kls ${k}</th>`).join('')}
+                  <th style="border: 1px solid #000000; width: 12%;">TOTAL</th>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000000; font-weight: bold; padding: 3px;">Tercapai</td>
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; color: #047857; font-weight: bold;">${tsW.pojokan.target[k]}</td>`).join('')}
+                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #ecfdf5;">${sumPojokTargetW} (${pctPojokTargetW}%)</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000000; font-weight: bold; color: #b91c1c; padding: 3px;">Belum Target</td>
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${tsW.pojokan.belum[k]}</td>`).join('')}
+                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #fef2f2;">${sumPojokBelumW} (${100 - pctPojokTargetW}%)</td>
+                </tr>
+              </table>
+
+              <p style="font-weight: bold; font-size: 8.5pt; margin: 6pt 0 2pt 0;">2. EVALUASI TARGET LEMBAGA</p>
+              <table width="100%" border="1" cellpadding="3" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt; margin-bottom: 6pt;">
+                <tr style="background-color: #fff2cc; font-weight: bold; text-align: center;">
+                  <th style="border: 1px solid #000000; width: 22%;">KETERANGAN</th>
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 11%;">Kls ${k}</th>`).join('')}
+                  <th style="border: 1px solid #000000; width: 12%;">TOTAL</th>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000000; font-weight: bold; padding: 3px;">Tercapai</td>
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; color: #1d4ed8; font-weight: bold;">${tsW.lembaga.target[k]}</td>`).join('')}
+                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #eff6ff;">${sumLembagaTargetW} (${pctLembagaTargetW}%)</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000000; font-weight: bold; color: #b91c1c; padding: 3px;">Belum Target</td>
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${tsW.lembaga.belum[k]}</td>`).join('')}
+                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #fef2f2;">${sumLembagaBelumW} (${100 - pctLembagaTargetW}%)</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000000; font-weight: bold; color: #047857; padding: 3px;">Khatam 30 Juz</td>
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; font-weight: bold; color: #047857;">${tsW.lembaga.khatam[k]}</td>`).join('')}
+                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold;">${sumLembagaKhatamW} Santri</td>
+                </tr>
+              </table>
+
+              <p style="font-weight: bold; font-size: 8.5pt; margin: 6pt 0 2pt 0;">3. EVALUASI TARGET DERESAN / MUROJAAH</p>
+              <table width="100%" border="1" cellpadding="3" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt; margin-bottom: 6pt;">
+                <tr style="background-color: #bdd7ee; font-weight: bold; text-align: center;">
+                  <th style="border: 1px solid #000000; width: 22%;">KETERANGAN</th>
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 11%;">Kls ${k}</th>`).join('')}
+                  <th style="border: 1px solid #000000; width: 12%;">TOTAL</th>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000000; font-weight: bold; padding: 3px;">Tercapai</td>
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; color: #0f766e; font-weight: bold;">${tsW.deresan.target[k]}</td>`).join('')}
+                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #f0fdfa;">${sumDeresanTargetW} (${pctDeresanTargetW}%)</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #000000; font-weight: bold; color: #b91c1c; padding: 3px;">Belum Target</td>
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${tsW.deresan.belum[k]}</td>`).join('')}
+                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #fef2f2;">${sumDeresanBelumW} (${100 - pctDeresanTargetW}%)</td>
+                </tr>
+              </table>
+
+              <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
+            `;
+
+            // Lembar 2 Tahfidh di Word
+            let rowsJuzWord = '';
+            DISPLAY_JUZ_ORDER.forEach(j => {
+              const rTot = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.juz[j][k] || 0), 0);
+              rowsJuzWord += `
+                <tr ${j === 30 ? 'style="background-color: #fffbeb;"' : ''}>
+                  <td style="border: 1px solid #000000; padding: 2px; text-align: center; font-weight: bold;">Juz ${j}</td>
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; padding: 2px; text-align: center;">${jmW.juz[j][k] || 0}</td>`).join('')}
+                  <td style="border: 1px solid #000000; padding: 2px; text-align: center; font-weight: bold; background-color: #f8fafc;">${rTot}</td>
+                </tr>
+              `;
+            });
+
+            const totBelumSetorW = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.belumSetor[k] || 0), 0);
+            const totSantriAktifW = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.total[k] || 0), 0);
+
+            wordDivisionsContent += `
+              <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
+                <span style="mso-special-character: page-break;">&nbsp;</span>
+              </p>
+              <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
+              <div style="page-break-before: always; mso-break-type: section-break;"></div>
+
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
+                <tr>
+                  <td width="55" valign="middle" align="left" style="width: 55px;">
+                    <img 
+                      src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
+                      alt="Logo" 
+                      width="44" 
+                      height="44" 
+                      style="width: 44px; height: 44px; border: 0;"
+                    />
+                  </td>
+                  <td align="center" valign="middle">
+                    <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
+                      YAYASAN ASEM BUNGKUK PATI
+                    </p>
+                    <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
+                      SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                    </p>
+                    <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
+                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="text-align: center; margin-bottom: 8pt;">
+                <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
+                  REKAPITULASI PENDAPATAN HAFALAN SANTRI PUTRI PER KELAS
+                </p>
+                <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
+                  Unit Pengelola: Pondok Tahfidh Lilbanat &bull; Periode: ${bInfo.lengkap}
+                </p>
+              </div>
+
+              <table width="100%" border="1" cellpadding="2" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 7.5pt;">
+                <thead>
+                  <tr style="background-color: #f8cbad; text-align: center; font-weight: bold;">
+                    <th style="border: 1px solid #000000; width: 16%;">KETERANGAN / JUZ</th>
+                    ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 12%;">Kelas ${k}</th>`).join('')}
+                    <th style="border: 1px solid #000000; width: 12%;">TOTAL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="background-color: #fef08a; font-weight: bold;">
+                    <td style="border: 1px solid #000000; padding: 2px; text-align: center;">Khotimin</td>
+                    ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; padding: 2px; text-align: center;">${jmW.khotimin[k] || 0}</td>`).join('')}
+                    <td style="border: 1px solid #000000; padding: 2px; text-align: center;">${tsW.lembaga.khotimin['12'] || 0}</td>
+                  </tr>
+                  <tr style="background-color: #dbeafe; font-weight: bold;">
+                    <td style="border: 1px solid #000000; padding: 2px; text-align: center;">Khatam</td>
+                    ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; padding: 2px; text-align: center;">${jmW.khatam[k] || 0}</td>`).join('')}
+                    <td style="border: 1px solid #000000; padding: 2px; text-align: center;">${sumLembagaKhatamW}</td>
+                  </tr>
+                  ${rowsJuzWord}
+                  <tr style="background-color: #fef2f2; font-weight: bold; color: #991b1b;">
+                    <td style="border: 1px solid #000000; padding: 2px; text-align: center;">Belum Setor</td>
+                    ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; padding: 2px; text-align: center;">${jmW.belumSetor[k] || 0}</td>`).join('')}
+                    <td style="border: 1px solid #000000; padding: 2px; text-align: center;">${totBelumSetorW}</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr style="background-color: #e2e8f0; font-weight: bold;">
+                    <td style="border: 1px solid #000000; padding: 3px; text-align: center;">TOTAL SANTRI PUTRI</td>
+                    ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; padding: 3px; text-align: center;">${jmW.total[k] || 0}</td>`).join('')}
+                    <td style="border: 1px solid #000000; padding: 3px; text-align: center;">${totSantriAktifW}</td>
+                  </tr>
+                </tfoot>
+              </table>
+
+              <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 10pt;">${pageCounterWord++}</p>
+            `;
+
+            // Lembar 3 Tahfidh di Word
+            let rowsTahfidhWord = '';
+            hRowsW.forEach((hw, hIdxW) => {
+              rowsTahfidhWord += `
+                <tr>
+                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 4%;">${hIdxW + 1}</td>
+                  <td style="border: 1px solid #000000; padding: 3px; width: 24%; font-weight: bold;">${hw.nama}</td>
+                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%;">${hw.kamar}</td>
+                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 7%; font-size: 6.5pt;">${hw.kls}</td>
+                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%; font-weight: bold;">${hw.jml}</td>
+                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%; color: #047857;">${hw.masihZiadah}</td>
+                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%;">${hw.santriBoyong}</td>
+                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%; font-weight: bold; color: #1e3a8a;">${hw.santriKhatam}</td>
+                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 7%;">${hw.passPojok}</td>
+                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%; font-weight: bold;">${hw.pctPojok}%</td>
+                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 7%;">${hw.passLembaga}</td>
+                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%; font-weight: bold;">${hw.pctLembaga}%</td>
+                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 7%;">${hw.passDeresan}</td>
+                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%; font-weight: bold;">${hw.pctDeresan}%</td>
+                </tr>
+              `;
+            });
+
+            wordDivisionsContent += `
+              <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
+                <span style="mso-special-character: page-break;">&nbsp;</span>
+              </p>
+              <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
+              <div style="page-break-before: always; mso-break-type: section-break;"></div>
+
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
+                <tr>
+                  <td width="55" valign="middle" align="left" style="width: 55px;">
+                    <img 
+                      src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
+                      alt="Logo" 
+                      width="44" 
+                      height="44" 
+                      style="width: 44px; height: 44px; border: 0;"
+                    />
+                  </td>
+                  <td align="center" valign="middle">
+                    <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
+                      YAYASAN ASEM BUNGKUK PATI
+                    </p>
+                    <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
+                      SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                    </p>
+                    <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
+                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="text-align: center; margin-bottom: 8pt;">
+                <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
+                  LAPORAN REKAPITULASI KETAHFIDHAN SANTRI PUTRI PER HALAQOH
+                </p>
+                <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
+                  Unit Pengelola: Pondok Tahfidh Lilbanat &bull; Periode: ${bInfo.lengkap}
+                </p>
+              </div>
+
+              <table width="100%" border="1" cellpadding="3" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 7pt;">
+                <thead>
+                  <tr style="background-color: #f8cbad; text-align: center; font-weight: bold;">
+                    <th rowspan="2" style="border: 1px solid #000000; width: 4%;">NO</th>
+                    <th rowspan="2" style="border: 1px solid #000000; width: 24%;">HALAQOH USTADZAH</th>
+                    <th rowspan="2" style="border: 1px solid #000000; width: 6%;">KMR</th>
+                    <th rowspan="2" style="border: 1px solid #000000; width: 7%;">KLS</th>
+                    <th rowspan="2" style="border: 1px solid #000000; width: 6%;">JML</th>
+                    <th rowspan="2" style="border: 1px solid #000000; width: 6%;">ZIADAH</th>
+                    <th rowspan="2" style="border: 1px solid #000000; width: 6%;">BOYONG</th>
+                    <th rowspan="2" style="border: 1px solid #000000; width: 6%;">KHATAM</th>
+                    <th colspan="2" style="border: 1px solid #000000; background-color: #e2efda; width: 13%;">POJOKAN</th>
+                    <th colspan="2" style="border: 1px solid #000000; background-color: #fff2cc; width: 13%;">LEMBAGA</th>
+                    <th colspan="2" style="border: 1px solid #000000; background-color: #bdd7ee; width: 13%;">DERESAN</th>
+                  </tr>
+                  <tr style="text-align: center; font-weight: bold;">
+                    <th style="border: 1px solid #000000; background-color: #e2efda; width: 7%;">YA</th>
+                    <th style="border: 1px solid #000000; background-color: #e2efda; width: 6%;">%</th>
+                    <th style="border: 1px solid #000000; background-color: #fff2cc; width: 7%;">YA</th>
+                    <th style="border: 1px solid #000000; background-color: #fff2cc; width: 6%;">%</th>
+                    <th style="border: 1px solid #000000; background-color: #bdd7ee; width: 7%;">YA</th>
+                    <th style="border: 1px solid #000000; background-color: #bdd7ee; width: 6%;">%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsTahfidhWord}
+                </tbody>
+              </table>
+
+              <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
+            `;
+          }
+
+          // Lembar Statistik Tabungan Santri di Word (.doc)
+          const tabunganW = getTabunganReportData();
+          let rowsTabunganWord = '';
+          tabunganW.rowsPerKelas.forEach(rkW => {
+            const pctSaldoW = tabunganW.totalSaldoAll > 0 
+              ? ((rkW.totalTabungan / tabunganW.totalSaldoAll) * 100).toFixed(1) 
+              : '0.0';
+            const rataRataW = rkW.jmlSiswa > 0 
+              ? Math.round(rkW.totalTabungan / rkW.jmlSiswa) 
+              : 0;
+
+            rowsTabunganWord += `
+              <tr>
+                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 6%; font-weight: bold;">
+                  ${rkW.no}
+                </td>
+                <td style="border: 1px solid #000000; padding: 4px; width: 22%; font-weight: bold;">
+                  Kelas ${rkW.kelas}
+                </td>
+                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 16%;">
+                  ${rkW.jmlSiswa} Santri
+                </td>
+                <td style="border: 1px solid #000000; padding: 4px; text-align: right; width: 24%; color: #047857; background-color: #ecfdf5; font-weight: bold;">
+                  ${formatRupiah(rkW.totalTabungan)}
+                </td>
+                <td style="border: 1px solid #000000; padding: 4px; text-align: right; width: 20%;">
+                  ${formatRupiah(rataRataW)}
+                </td>
+                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 12%; font-weight: bold; background-color: #eff6ff; color: #1d4ed8;">
+                  ${pctSaldoW}%
+                </td>
+              </tr>
+            `;
+          });
+
+          wordDivisionsContent += `
+            <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
+              <span style="mso-special-character: page-break;">&nbsp;</span>
+            </p>
+            <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
+            <div style="page-break-before: always; mso-break-type: section-break;"></div>
+
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
+              <tr>
+                <td width="55" valign="middle" align="left" style="width: 55px;">
+                  <img 
+                    src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
+                    alt="Logo" 
+                    width="44" 
+                    height="44" 
+                    style="width: 44px; height: 44px; border: 0;"
+                  />
+                </td>
+                <td align="center" valign="middle">
+                  <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
+                    YAYASAN ASEM BUNGKUK PATI
+                  </p>
+                  <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
+                    SMP QUR'AN TERPADU YANBU'UL QUR'AN 1 PATI LILBANAT
+                  </p>
+                  <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
+                    Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+            <div style="text-align: center; margin-bottom: 8pt;">
+              <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
+                LAPORAN STATISTIK &amp; REKAPITULASI TABUNGAN SANTRI
+              </p>
+              <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
+                Unit Pengelola: Sarpras &amp; Bendahara (Pengelola Tabungan Santri) &bull; Periode: ${bInfo.lengkap}
+              </p>
+            </div>
+
+            <!-- TABEL RINGKASAN METRIK TABUNGAN DI WORD -->
+            <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8.5pt; text-align: center; margin-bottom: 8pt;">
+              <thead>
+                <tr style="font-weight: bold;">
+                  <th style="border: 1px solid #000000; width: 28%; background-color: #ecfdf5; color: #047857;">TOTAL SALDO SELURUH SANTRI</th>
+                  <th style="border: 1px solid #000000; width: 24%; background-color: #fffbeb; color: #b45309;">TABUNGAN KELAS VII</th>
+                  <th style="border: 1px solid #000000; width: 24%; background-color: #eff6ff; color: #1d4ed8;">TABUNGAN KELAS VIII</th>
+                  <th style="border: 1px solid #000000; width: 24%; background-color: #fef2f2; color: #b91c1c;">TABUNGAN KELAS IX</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="font-weight: bold;">
+                  <td style="border: 1px solid #000000; padding: 5px; color: #047857;">${formatRupiah(tabunganW.totalSaldoAll)}</td>
+                  <td style="border: 1px solid #000000; padding: 5px; color: #b45309;">${formatRupiah(tabunganW.totalKls7)}</td>
+                  <td style="border: 1px solid #000000; padding: 5px; color: #1d4ed8;">${formatRupiah(tabunganW.totalKls8)}</td>
+                  <td style="border: 1px solid #000000; padding: 5px; color: #b91c1c;">${formatRupiah(tabunganW.totalKls9)}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt;">
+              <thead>
+                <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold; font-size: 7.5pt;">
+                  <th style="border: 1px solid #000000; padding: 4px; width: 6%;">NO</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 22%;">KELAS</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 16%;">JUMLAH SANTRI</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 24%; background-color: #ecfdf5; color: #047857;">TOTAL TABUNGAN</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 20%;">RATA-RATA</th>
+                  <th style="border: 1px solid #000000; padding: 4px; width: 12%; background-color: #eff6ff;">KONTRIBUSI</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsTabunganWord}
+              </tbody>
+              <tfoot>
+                <tr style="background-color: #e2e8f0; font-weight: bold; font-size: 8pt;">
+                  <td colspan="2" style="border: 1px solid #000000; padding: 4px; text-align: center;">TOTAL SALDO</td>
+                  <td style="border: 1px solid #000000; padding: 4px; text-align: center;">${tabunganW.totalSiswaMenabung} Santri</td>
+                  <td style="border: 1px solid #000000; padding: 4px; text-align: right; color: #047857;">${formatRupiah(tabunganW.totalSaldoAll)}</td>
+                  <td style="border: 1px solid #000000; padding: 4px; text-align: right;">${formatRupiah(Math.round(tabunganW.totalSaldoAll / (tabunganW.totalSiswaMenabung || 1)))}</td>
+                  <td style="border: 1px solid #000000; padding: 4px; text-align: center;">100.0%</td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
+          `;
+        }
+
+        const wordDocumentHTML = `
+          <html xmlns:v='urn:schemas-microsoft-com:vml'
+                xmlns:o='urn:schemas-microsoft-com:office:office'
+                xmlns:w='urn:schemas-microsoft-com:office:word'
+                xmlns='http://www.w3.org/TR/REC-html40'>
+          <head>
+            <meta charset='utf-8'>
+            <title>Laporan Bulanan IKU, Ledger, Tahfidh & Tabungan</title>
+            <!--[if gte mso 9]>
+            <xml>
+              <w:WordDocument>
+                <w:View>Print</w:View>
+                <w:Zoom>100</w:Zoom>
+                <w:DoNotOptimizeForBrowser/>
+              </w:WordDocument>
+            </xml>
+            <![endif]-->
+            <style>
+              @page {
+                size: 841.95pt 595.35pt;
+                mso-page-orientation: landscape;
+                margin: 56.7pt 56.7pt 56.7pt 70.87pt;
+              }
+              @page WordSection1 {
+                size: 841.95pt 595.35pt;
+                mso-page-orientation: landscape;
+                margin: 56.7pt 56.7pt 56.7pt 70.87pt;
+                mso-header-margin: 28.35pt;
+                mso-footer-margin: 28.35pt;
+                mso-paper-source: 0;
+              }
+              div.WordSection1 {
+                page: WordSection1;
+              }
+              body {
+                font-family: 'Times New Roman', Times, serif;
+                font-size: 9.5pt;
+                line-height: 1.15;
+                color: #000000;
+              }
+              table {
+                border-collapse: collapse;
+                mso-table-lspace: 0pt;
+                mso-table-rspace: 0pt;
+              }
+              tr {
+                page-break-inside: avoid;
+              }
+            </style>
+          </head>
+          <body>
+          <div class="WordSection1">
+
+            <!-- HALAMAN 1: COVER RESMI -->
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border: none;">
+              <tr>
+                <td align="center" style="text-align: center; padding-top: 0pt;">
+                  <p style="font-size: 17pt; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 1.5px; line-height: 1.2;">
+                    LAPORAN BULANAN<br>
+                    YANBU'UL QUR'AN BOARDING SCHOOL 1 PATI PUTRI
+                  </p>
+                  <div style="border-bottom: 2pt solid #000000; display: inline-block; padding-bottom: 2px; margin-top: 6pt;">
+                    <p style="font-size: 13.5pt; font-weight: bold; margin: 0; color: #1e3a8a; text-transform: uppercase; letter-spacing: 2px;">
+                      PERIODE ${bInfo.bulan.toUpperCase()} ${bInfo.tahun}
+                    </p>
+                  </div>
+                  <p style="font-size: 10.5pt; font-weight: bold; margin: 6pt 0 0 0;">
+                    Disampaikan dalam Rapat Bulanan<br>Yayasan Asem Bungkuk Pati
+                  </p>
+                  <p style="font-size: 9pt; font-style: italic; margin: 3pt 0 0 0; color: #333333;">
+                    Kudus, ${dateFormatted}
+                  </p>
+                </td>
+              </tr>
+
+              <tr>
+                <td align="center" valign="middle" style="text-align: center; padding: 8pt 0;">
+                  <img 
+                    src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
+                    alt="Logo Yanbu'ul Qur'an" 
+                    width="170" 
+                    height="170" 
+                    style="width: 170px; height: 170px; border: 0;"
+                  /><br>
+                  
+                  <p style="margin: 0; font-size: 10pt; line-height: 14pt;">&nbsp;<br>&nbsp;</p>
+
+                  <p style="font-size: 12.5pt; font-weight: bold; margin: 0;">
+                    Tahun ${bInfo.tahun}
+                  </p>
+                </td>
+              </tr>
+
+              <tr>
+                <td align="center" valign="bottom" style="text-align: center; padding-bottom: 0pt;">
+                  <img 
+                    src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/tulisanarabyanbu.png" 
+                    alt="Tulisan Arab Yanbu'" 
+                    width="260" 
+                    height="36" 
+                    style="width: 260px; height: 36px; border: 0;"
+                  /><br>
+                  <p style="font-size: 11.5pt; font-weight: bold; margin: 4pt 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
+                    YANBU'UL QUR'AN BOARDING SCHOOL 1 PATI
+                  </p>
+                  <p style="font-size: 9.5pt; font-weight: bold; margin: 1px 0 0 0;">
+                    (Pondok Tahfidh - SMPQT - SMAQT)
+                  </p>
+                  <p style="font-size: 8pt; margin: 1px 0 0 0; color: #444444;">
+                    Jalan Raya Pati Tayu Km. 06 Dukuh Ngulaan, Desa Sukoharjo, Kec. Wedarijaksa, Kabupaten Pati 59152
+                  </p>
+                  <p style="font-size: 7.5pt; color: #777777; margin: 3pt 0 0 0;">1</p>
+                </td>
+              </tr>
+            </table>
+
+            <!-- HALAMAN 2: LEMBAR PENGESAHAN -->
+            <br clear="all" style="page-break-before: always; mso-break-type: page-break;" />
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border: none;">
+              <tr>
+                <td align="center" style="text-align: center; padding-top: 4pt; padding-bottom: 10pt;">
+                  <p style="font-size: 13pt; font-weight: bold; text-decoration: underline; text-transform: uppercase; letter-spacing: 2px; margin: 0;">
+                    HALAMAN PENGESAHAN
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="text-align: justify; font-size: 10pt; line-height: 1.4; padding: 0 40pt;">
+                  <p style="text-indent: 30pt; margin: 0;">
+                    Laporan Kegiatan Bulanan Yanbu'ul Qur'an Boarding School 1 Pati Putri, periode <b>${bInfo.lengkap}</b> Semester Gasal Tahun Ajaran 2026/2027 sebagai bahan evaluasi pelaksanaan Kegiatan Belajar Mengajar (KBM), Capaian Tahfidh Al-Qur'an, dan Akuntabilitas Keuangan Tabungan Santri di Yanbu'ul Qur'an Boarding School 1 Pati Putri Margorejo Kecamatan Wedarijaksa Kabupaten Pati telah disetujui oleh Tim untuk diajukan ke Ketua Yayasan Asem Bungkuk Sukoharjo Wedarijaksa Pati.
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td align="right" style="text-align: right; font-size: 9.5pt; padding: 10pt 40pt 4pt 0;">
+                  Pati, ${dateFormatted}
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 6pt 40pt 0 40pt;">
+                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border: none;">
+                    <tr>
+                      <td width="50%" align="center" valign="top" style="text-align: center; vertical-align: top; width: 50%;">
+                        <p style="font-weight: bold; margin: 0; font-size: 10pt;">Kepala Sekolah,</p>
+                        <p style="margin: 0; font-size: 9.5pt; line-height: 16pt;">&nbsp;<br>&nbsp;</p>
+                        <p style="font-weight: bold; text-decoration: underline; margin: 0; font-size: 10pt;">M. Ahsanul Umam, S.Pd.I.</p>
+                        <p style="font-size: 8pt; color: #444444; margin: 1px 0 0 0;">NIY. 19931029.2017.0022</p>
+                      </td>
+                      <td width="50%" align="center" valign="top" style="text-align: center; vertical-align: top; width: 50%;">
+                        <p style="font-weight: bold; margin: 0; font-size: 10pt;">Kepala Pondok,</p>
+                        <p style="margin: 0; font-size: 9.5pt; line-height: 16pt;">&nbsp;<br>&nbsp;</p>
+                        <p style="font-weight: bold; text-decoration: underline; margin: 0; font-size: 10pt;">Usth. Minnatul Ulya Febriyani</p>
+                        <p style="font-size: 8pt; color: #444444; margin: 1px 0 0 0;">NIY. 20001029.2025.001</p>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-none; margin-top: 10pt;">
+                    <tr>
+                      <td align="center" valign="top" style="text-align: center; vertical-align: top;">
+                        <p style="font-weight: bold; margin: 0; font-size: 10pt;">
+                          Mengetahui,<br>Ketua Yayasan Asem Bungkuk
+                        </p>
+                        <p style="margin: 0; font-size: 9.5pt; line-height: 16pt;">&nbsp;<br>&nbsp;</p>
+                        <p style="font-weight: bold; text-decoration: underline; margin: 0; font-size: 10pt;">H. Ibrahim Wagiman</p>
+                        <p style="font-size: 8pt; color: #444444; margin: 1px 0 0 0;">NIY. 19720722.2016.0001</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="text-align: center; padding-top: 10pt;">
+                  <p style="font-size: 7.5pt; color: #777777; margin: 0;">2</p>
+                </td>
+              </tr>
+            </table>
+
+            <!-- HALAMAN 3+: TABEL DIVISI, PRESENSI, NILAI, TAHFIDH & TABUNGAN -->
+            ${wordDivisionsContent}
+
+          </div>
+          </body>
+          </html>
+        `;
+
+        const blob = new Blob(['\ufeff', wordDocumentHTML], {
+          type: 'application/msword'
+        });
+
+        const url = URL.createObjectURL(blob);
+        const fileLink = document.createElement("a");
+        document.body.appendChild(fileLink);
+        fileLink.href = url;
+        fileLink.download = filename;
+        fileLink.click();
+        document.body.removeChild(fileLink);
+        showNotification('File Word (DOCX/DOC) berhasil disiapkan dan diunduh!');
+      } catch (err) {
+        console.error('Kendala saat mengekspor dokumen Word:', err);
+        showNotification('Terjadi kendala saat membuat file Word: ' + err.message, true);
+      }
+    }
+
+    window.onload = initData;
+  </script>
+</body>
+</html>

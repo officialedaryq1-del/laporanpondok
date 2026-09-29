@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Poin SMPQT YQ2</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Pustaka PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Pustaka Grafik (Chart.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .tab-button.active {
+            border-color: #3b82f6;
+            background-color: #3b82f6;
+            color: white;
+        }
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.5s;
+            z-index: 1000;
+        }
+        #toast.show { visibility: visible; opacity: 1; }
+        .view.hidden { display: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .pdf-content { padding: 20px; background: white; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-900">
+
+    <div id="loading-overlay" class="fixed inset-0 bg-white/90 flex flex-col items-center justify-center z-50">
+        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p id="loading-message" class="mt-4 text-slate-600 font-medium">Memuat data dashboard...</p>
+    </div>
+
+    <div id="app" class="max-w-4xl mx-auto p-4 md:p-6 opacity-0 transition-opacity duration-500">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-blue-700">Poin Pelajar YQ2</h1>
+            <p class="text-slate-500 mt-1">Reward (+) & Punishment (-)</p>
+            <!-- Banner Mode Demo -->
+            <div id="demo-banner" class="hidden mt-3 inline-block bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full border border-amber-200 font-bold">
+                ⚠️ Menjalankan Mode Demo (URL API Belum Diatur)
+            </div>
+        </header>
+
+        <!-- Navigasi -->
+        <div class="bg-white rounded-xl shadow-sm p-2 mb-6 flex overflow-x-auto gap-1 no-scrollbar border border-slate-200">
+            <button data-target="view-input" class="tab-button active flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all whitespace-nowrap">Input</button>
+            <button data-target="view-rekap-umum" class="tab-button flex-1 py-2 px-4 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-all whitespace-nowrap">Riwayat</button>
+            <button data-target="view-peringkat" class="tab-button flex-1 py-2 px-4 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-all whitespace-nowrap">Peringkat</button>
+            <button data-target="view-rekap-siswa" class="tab-button flex-1 py-2 px-4 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-all whitespace-nowrap">Cek Siswa</button>
+            <button data-target="view-grafik" class="tab-button flex-1 py-2 px-4 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-all whitespace-nowrap">Grafik</button>
+        </div>
+
+        <main>
+            <!-- View: Input -->
+            <div id="view-input" class="view">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <span class="w-2 h-6 bg-blue-500 rounded-full"></span> Form Input Data
+                    </h2>
+                    <form id="log-form" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal</label>
+                                <input type="date" id="input-tanggal" required class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-200 outline-none border-slate-200">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Kelas</label>
+                                <select id="input-kelas" required class="w-full border rounded-lg p-2.5 outline-none border-slate-200">
+                                    <option value="">Pilih Kelas...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Siswa</label>
+                            <select id="input-nama" required disabled class="w-full border rounded-lg p-2.5 outline-none border-slate-200 bg-slate-50">
+                                <option value="">Pilih Kelas Terlebih Dahulu...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Jenis Kriteria</label>
+                            <select id="input-pelanggaran" required class="w-full border rounded-lg p-2.5 outline-none border-slate-200">
+                                <option value="">Pilih Kriteria...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Keterangan Tambahan</label>
+                            <textarea id="input-keterangan" rows="2" placeholder="Contoh: Menang lomba Tahfidz atau Terlambat" class="w-full border rounded-lg p-2.5 outline-none border-slate-200"></textarea>
+                        </div>
+                        <button type="submit" id="submit-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 flex justify-center items-center gap-2">
+                            <span id="btn-text">Simpan Data</span>
+                            <div id="btn-spinner" class="hidden w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- View: Riwayat Umum -->
+            <div id="view-rekap-umum" class="view hidden">
+                <div id="pdf-riwayat">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Jml Pelanggaran</p>
+                            <p id="stat-count-pel" class="text-2xl font-black text-slate-800">0</p>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-xl border border-red-100 shadow-sm">
+                            <p class="text-[10px] font-bold text-red-400 uppercase">Total Poin (-) </p>
+                            <p id="stat-sum-pel" class="text-2xl font-black text-red-600">0</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Jml Penghargaan</p>
+                            <p id="stat-count-peng" class="text-2xl font-black text-slate-800">0</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-xl border border-green-100 shadow-sm">
+                            <p class="text-[10px] font-bold text-green-400 uppercase">Total Poin (+) </p>
+                            <p id="stat-sum-peng" class="text-2xl font-black text-green-600">0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex flex-col gap-4 mb-6">
+                             <div class="flex justify-between items-center no-print">
+                                <h2 class="text-lg font-bold italic">Filter Riwayat</h2>
+                                <div class="flex gap-3">
+                                    <button onclick="resetFilters()" class="text-[10px] font-bold text-blue-500 uppercase hover:underline">Reset</button>
+                                    <button onclick="generatePDF('pdf-riwayat', 'Riwayat_Poin_YQ2', 'Laporan Riwayat Poin Siswa')" class="bg-red-500 text-white text-[10px] px-3 py-1 rounded font-bold uppercase hover:bg-red-600 flex items-center gap-1">
+                                        PDF
+                                    </button>
+                                </div>
+                             </div>
+                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 no-print">
+                                <input type="text" id="filterNama" placeholder="Cari Nama..." class="border rounded-lg px-3 py-2 text-sm outline-none border-slate-200">
+                                <div class="flex items-center gap-2 md:col-span-2">
+                                    <input type="date" id="filterTanggalMulai" class="border rounded-lg px-3 py-2 text-sm w-full outline-none border-slate-200">
+                                    <span class="text-slate-400 text-xs font-bold">s/d</span>
+                                    <input type="date" id="filterTanggalSelesai" class="border rounded-lg px-3 py-2 text-sm w-full outline-none border-slate-200">
+                                </div>
+                             </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-slate-500 font-bold border-y uppercase text-[10px]">
+                                    <tr>
+                                        <th class="px-4 py-3">Tanggal</th>
+                                        <th class="px-4 py-3">Nama/Kelas</th>
+                                        <th class="px-4 py-3">Kriteria</th>
+                                        <th class="px-4 py-3 text-right">Poin</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rekap-body" class="divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: Peringkat -->
+            <div id="view-peringkat" class="view hidden">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200" id="pdf-peringkat-container">
+                    <div class="flex justify-between items-center mb-4 no-print flex-wrap gap-2">
+                        <h2 class="text-lg font-bold">Peringkat Saldo Poin</h2>
+                        <div class="flex gap-2 items-center">
+                            <select id="sort-peringkat" class="border rounded px-2 py-1 text-[10px] font-bold uppercase border-slate-200 outline-none text-blue-600">
+                                <option value="desc">Tertinggi (Reward)</option>
+                                <option value="asc">Terendah (Pelanggaran)</option>
+                            </select>
+                            <button onclick="generatePDF('pdf-peringkat-container', 'Peringkat_Siswa_YQ2', 'Laporan Peringkat Poin Siswa')" class="bg-red-500 text-white text-[10px] px-3 py-1.5 rounded font-bold uppercase hover:bg-red-600 flex items-center gap-1">
+                                Download PDF
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-3" id="peringkat-list"></div>
+                </div>
+            </div>
+
+            <!-- View: Grafik Analitik -->
+            <div id="view-grafik" class="view hidden">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-8" id="pdf-grafik-container">
+                    <div class="flex justify-between items-start md:items-center flex-col md:flex-row gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold">Analisis Tren Tahun Ajaran</h2>
+                            <p class="text-[10px] text-slate-400">Dimulai Juli - Juni tahun berikutnya</p>
+                        </div>
+                        <div class="flex gap-2 items-center no-print">
+                            <select id="grafik-filter-tahun" class="border rounded-lg px-3 py-1 text-sm outline-none border-slate-200 font-bold text-blue-600">
+                                <!-- Tahun Ajaran akan diisi JS -->
+                            </select>
+                            <button onclick="generatePDF('pdf-grafik-container', 'Analisis_Tren_YQ2', 'Laporan Analisis Tren Tahun Ajaran')" class="bg-red-500 text-white text-[10px] px-3 py-1.5 rounded font-bold uppercase hover:bg-red-600 flex items-center gap-1">
+                                Download PDF
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase mb-4">1. Grafik Frekuensi Kejadian (Per Bulan)</p>
+                        <div class="h-[250px] w-full">
+                            <canvas id="chart-frekuensi"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-6">
+                        <p class="text-xs font-bold text-slate-400 uppercase mb-4">2. Grafik Akumulasi Poin (Per Bulan)</p>
+                        <div class="h-[250px] w-full">
+                            <canvas id="chart-poin"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: Detail Siswa -->
+            <div id="view-rekap-siswa" class="view hidden">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-4">Cari Riwayat Siswa</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 no-print">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">1. Pilih Kelas</label>
+                            <select id="pilih-kelas-detail" class="w-full border rounded-lg p-3 outline-none border-slate-200">
+                                <option value="">Pilih Kelas...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">2. Pilih Nama Siswa</label>
+                            <select id="pilih-siswa-detail" disabled class="w-full border rounded-lg p-3 outline-none border-slate-200 bg-slate-50">
+                                <option value="">Pilih Kelas Terlebih Dahulu...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="siswa-detail-content" class="hidden">
+                        <div class="flex justify-end mb-4 no-print">
+                             <button onclick="generatePDF('siswa-detail-content', 'Detail_Poin_' + document.getElementById('det-nama').innerText, 'Laporan Detail Riwayat Poin Siswa')" class="bg-red-500 text-white text-[10px] px-4 py-2 rounded-lg font-bold uppercase hover:bg-red-600">
+                                Cetak PDF
+                             </button>
+                        </div>
+                        <div id="pdf-siswa-inner">
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl mb-6 border border-slate-200">
+                                <div>
+                                    <h3 id="det-nama" class="font-bold text-xl text-blue-800">-</h3>
+                                    <p id="det-info" class="text-slate-500 text-sm">-</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase">Saldo Poin</p>
+                                    <p id="det-total" class="text-3xl font-black">-</p>
+                                </div>
+                            </div>
+                            <div id="det-history" class="space-y-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl text-sm font-medium"></div>
+
+    <script>
+        // ==============================================================================
+        // KONFIGURASI API (SUDAH DIISI)
+        // ==============================================================================
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby5BuUaHbkdKblAI6FnABKvILzC7WLa3eW89LeUYaT4FWUplk4Og7jCOMz3iIRL66Fi/exec'; 
+        // ==============================================================================
+
+        let allData = { siswa: [], pelanggaran: [], log: [] };
+        let charts = { frekuensi: null, poin: null };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initTabs();
+            fetchData();
+            setupForm();
+            setupFilters();
+            
+            document.getElementById('grafik-filter-tahun').addEventListener('change', renderCharts);
+            document.getElementById('sort-peringkat').addEventListener('change', (e) => renderPeringkat(e.target.value));
+        });
+
+        // ==========================================
+        // FETCH DATA LOGIC (GET)
+        // ==========================================
+        async function fetchData() {
+            // Jika SCRIPT_URL belum diubah (Masih nilai default / kosong)
+            if (!SCRIPT_URL || SCRIPT_URL === 'ISI_DENGAN_URL_WEB_APP_ANDA_DISINI') {
+                document.getElementById('demo-banner').classList.remove('hidden');
+                
+                // Gunakan Data Dummy agar aplikasi tidak blank
+                setTimeout(() => {
+                    allData = {
+                        siswa: [
+                            { nis: "101", nama: "Ahmad Ahsanul Umam", kelas: "VII-A", alamat: "Pati" },
+                            { nis: "102", nama: "Budi Santoso", kelas: "VII-A", alamat: "Kudus" },
+                            { nis: "103", nama: "Citra Kirana", kelas: "VII-B", alamat: "Jepara" },
+                            { nis: "104", nama: "Dewi Lestari", kelas: "VII-B", alamat: "Rembang" }
+                        ],
+                        pelanggaran: [
+                            { jenis: "Terlambat Masuk Kelas", poin: -5 },
+                            { jenis: "Tidak Mengerjakan Tugas", poin: -10 },
+                            { jenis: "Membuang Sampah Sembarangan", poin: -5 },
+                            { jenis: "Juara Lomba Akademik", poin: 50 },
+                            { jenis: "Hafalan Al-Quran (Juz 30)", poin: 100 }
+                        ],
+                        log: [
+                            { 
+                                timestamp: new Date().toISOString(), tanggal: new Date().toISOString(),
+                                nis: "101", nama: "Ahmad Ahsanul Umam", kelas: "VII-A", id_pelanggaran: "P04", pelanggaran: "Juara Lomba Akademik", poin: 50, keterangan: "Juara 1 Lomba Pidato"
+                            },
+                            { 
+                                timestamp: new Date(Date.now() - 86400000).toISOString(), tanggal: new Date(Date.now() - 86400000).toISOString(),
+                                nis: "102", nama: "Budi Santoso", kelas: "VII-A", id_pelanggaran: "P01", pelanggaran: "Terlambat Masuk Kelas", poin: -5, keterangan: "Ban sepeda bocor"
+                            }
+                        ]
+                    };
+                    initializeDashboard();
+                }, 1000); // Simulasi waktu loading
+                return;
+            }
+
+            // Memanggil API Google Apps Script sesungguhnya
+            try {
+                // Menambahkan parameter ?action=getData seperti yang ditangkap oleh doPost/doGet baru Anda
+                const response = await fetch(SCRIPT_URL + '?action=getData');
+                const data = await response.json();
+                
+                if (data.error) { throw new Error(data.error); }
+                
+                allData.siswa = data.siswa || [];
+                allData.pelanggaran = data.pelanggaran || [];
+                allData.log = (data.log || []).sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
+                
+                initializeDashboard();
+            } catch (error) {
+                document.getElementById('loading-message').textContent = "Error Mengambil Data: " + error.message;
+                document.getElementById('loading-overlay').classList.replace('bg-white/90', 'bg-red-50/90');
+                document.getElementById('loading-overlay').querySelector('div').classList.add('hidden');
+            }
+        }
+
+        function initializeDashboard() {
+            renderUI();
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('app').classList.replace('opacity-0', 'opacity-100');
+        }
+
+        // ==========================================
+        // PDF GENERATOR
+        // ==========================================
+        function generatePDF(elementId, fileName, reportTitle) {
+            const element = document.getElementById(elementId);
+            const header = document.createElement('div');
+            header.style.textAlign = 'center';
+            header.style.marginBottom = '20px';
+            header.style.borderBottom = '2px solid #333';
+            header.style.paddingBottom = '10px';
+            header.className = 'temp-pdf-header-el';
+            
+            header.innerHTML = `
+                <h1 style="font-size: 18px; font-weight: bold; margin: 0; color: #1d4ed8;">SMPQT YANBU'UL QUR'AN 2 PATI</h1>
+                <h2 style="font-size: 14px; font-weight: bold; margin: 5px 0; color: #333;">${reportTitle.toUpperCase()}</h2>
+                <p style="font-size: 9px; color: #666; margin: 0;">Dicetak pada: ${new Date().toLocaleString('id-ID')}</p>
+            `;
+            
+            element.prepend(header);
+            const opt = {
+                margin: 10,
+                filename: fileName + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            element.classList.add('pdf-content');
+            const noPrintElements = element.querySelectorAll('.no-print');
+            noPrintElements.forEach(el => el.style.display = 'none');
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.classList.remove('pdf-content');
+                noPrintElements.forEach(el => el.style.display = '');
+                const tempHeader = element.querySelector('.temp-pdf-header-el');
+                if (tempHeader) tempHeader.remove();
+                toast("✅ PDF Berhasil di-download");
+            });
+        }
+
+        // ==========================================
+        // TAB LOGIC
+        // ==========================================
+        function initTabs() {
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+                    btn.classList.add('active');
+                    document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+                    const target = document.getElementById(btn.dataset.target);
+                    target.classList.remove('hidden');
+                    
+                    if (btn.dataset.target === 'view-grafik') {
+                        setTimeout(renderCharts, 100);
+                    }
+                });
+            });
+        }
+
+        // ==========================================
+        // RENDER UI & CHARTS
+        // ==========================================
+        function renderUI() {
+            const kelasList = [...new Set(allData.siswa.map(s => s.kelas))].sort();
+            
+            ['input-kelas', 'pilih-kelas-detail'].forEach(id => {
+                const el = document.getElementById(id);
+                el.innerHTML = '<option value="">Pilih Kelas...</option>';
+                kelasList.forEach(k => el.add(new Option(k, k)));
+            });
+
+            const pSelect = document.getElementById('input-pelanggaran');
+            pSelect.innerHTML = '<option value="">Pilih Kriteria...</option>';
+            allData.pelanggaran.sort((a,b) => a.poin - b.poin).forEach(p => {
+                const label = `${p.jenis} (${p.poin > 0 ? '+' : ''}${p.poin})`;
+                pSelect.add(new Option(label, p.jenis));
+            });
+
+            const tahunSelect = document.getElementById('grafik-filter-tahun');
+            tahunSelect.innerHTML = '';
+            
+            const yearsInLog = [...new Set(allData.log.map(l => new Date(l.tanggal).getFullYear()))].sort();
+            const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth(); 
+            
+            const academicYears = [];
+            academicYears.push("2025/2026");
+            
+            yearsInLog.forEach(y => {
+                academicYears.push(`${y}/${y+1}`);
+                academicYears.push(`${y-1}/${y}`);
+            });
+            
+            const uniqueAY = [...new Set(academicYears)].sort().reverse();
+            uniqueAY.forEach(ay => {
+                tahunSelect.add(new Option(`TA ${ay}`, ay));
+            });
+            
+            const defaultAY = currentMonth < 6 ? `${currentYear-1}/${currentYear}` : `${currentYear}/${currentYear+1}`;
+            tahunSelect.value = academicYears.includes("2025/2026") ? "2025/2026" : (uniqueAY[0] || defaultAY);
+
+            renderRiwayat();
+            renderPeringkat(document.getElementById('sort-peringkat').value);
+        }
+
+        function renderCharts() {
+            const selectedAY = document.getElementById('grafik-filter-tahun').value;
+            if (!selectedAY) return;
+            const [startYear, endYear] = selectedAY.split('/').map(Number);
+            const bulans = ['Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
+            const dataFrekuensi = { pel: Array(12).fill(0), peng: Array(12).fill(0) };
+            const dataPoin = { pel: Array(12).fill(0), peng: Array(12).fill(0) };
+
+            allData.log.forEach(l => {
+                const d = new Date(l.tanggal);
+                const logYear = d.getFullYear();
+                const logMonth = d.getMonth(); 
+                let index = -1;
+                if (logYear === startYear && logMonth >= 6) index = logMonth - 6;
+                else if (logYear === endYear && logMonth < 6) index = logMonth + 6;
+                if (index !== -1) {
+                    const p = Number(l.poin);
+                    if (p < 0) { dataFrekuensi.pel[index]++; dataPoin.pel[index] += Math.abs(p); } 
+                    else { dataFrekuensi.peng[index]++; dataPoin.peng[index] += p; }
+                }
+            });
+
+            if (charts.frekuensi) charts.frekuensi.destroy();
+            charts.frekuensi = new Chart(document.getElementById('chart-frekuensi'), {
+                type: 'bar',
+                data: {
+                    labels: bulans,
+                    datasets: [
+                        { label: 'Penghargaan', data: dataFrekuensi.peng, backgroundColor: '#22c55e', borderRadius: 4 },
+                        { label: 'Pelanggaran', data: dataFrekuensi.pel, backgroundColor: '#ef4444', borderRadius: 4 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+            });
+
+            if (charts.poin) charts.poin.destroy();
+            charts.poin = new Chart(document.getElementById('chart-poin'), {
+                type: 'line',
+                data: {
+                    labels: bulans,
+                    datasets: [
+                        { label: 'Poin (+)', data: dataPoin.peng, borderColor: '#22c55e', backgroundColor: '#22c55e20', tension: 0.4, fill: true, pointRadius: 3 },
+                        { label: 'Poin (-)', data: dataPoin.pel, borderColor: '#ef4444', backgroundColor: '#ef444420', tension: 0.4, fill: true, pointRadius: 3 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+            });
+        }
+
+        function renderRiwayat(filteredLogs = null) {
+            const logs = filteredLogs || allData.log;
+            const body = document.getElementById('rekap-body');
+            body.innerHTML = logs.length ? '' : '<tr><td colspan="4" class="p-8 text-center text-slate-400 italic text-xs">Belum ada catatan</td></tr>';
+            
+            let stats = { cp: 0, sp: 0, cg: 0, sg: 0 };
+            logs.forEach(l => {
+                const p = Number(l.poin);
+                if(p < 0) { stats.cp++; stats.sp += p; } 
+                else { stats.cg++; stats.sg += p; }
+                const tgl = new Date(l.tanggal).toLocaleDateString('id-ID', {day:'2-digit', month:'short'});
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-50 transition-colors";
+                row.innerHTML = `<td class="px-4 py-3 text-[10px] text-slate-500 font-medium">${tgl}</td><td class="px-4 py-3"><div class="font-bold text-slate-800 text-[11px] leading-tight">${l.nama}</div><div class="text-[9px] text-slate-400 font-bold uppercase">${l.kelas}</div></td><td class="px-4 py-3 text-[10px] text-slate-600">${l.pelanggaran}</td><td class="px-4 py-3 text-right font-black text-xs ${p > 0 ? 'text-green-600' : 'text-red-500'}">${p > 0 ? '+' : ''}${p}</td>`;
+                body.appendChild(row);
+            });
+            document.getElementById('stat-count-pel').textContent = stats.cp;
+            document.getElementById('stat-sum-pel').textContent = stats.sp;
+            document.getElementById('stat-count-peng').textContent = stats.cg;
+            document.getElementById('stat-sum-peng').textContent = stats.sg;
+        }
+
+        function renderPeringkat(sortOrder = 'desc') {
+            const saldo = {};
+            allData.siswa.forEach(s => saldo[s.nama] = 0);
+            allData.log.forEach(l => { if(saldo.hasOwnProperty(l.nama)) saldo[l.nama] += Number(l.poin); });
+
+            const sorted = allData.siswa.map(s => ({...s, total: saldo[s.nama]}))
+                .sort((a,b) => sortOrder === 'desc' ? b.total - a.total : a.total - b.total);
+
+            const container = document.getElementById('peringkat-list');
+            container.innerHTML = '';
+            
+            sorted.forEach((s, i) => {
+                const isTop = sortOrder === 'desc' && i < 3;
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-3 rounded-xl border ${isTop ? 'bg-blue-50 border-blue-100' : 'bg-white border-slate-200'}`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <span class="w-7 h-7 flex items-center justify-center rounded-full font-black text-[10px] ${isTop ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-400'}">${i+1}</span>
+                        <div>
+                            <p class="font-bold text-xs text-slate-800">${s.nama}</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase">${s.kelas}</p>
+                        </div>
+                    </div>
+                    <div class="font-black text-sm ${s.total < 0 ? 'text-red-500' : s.total > 0 ? 'text-green-600' : 'text-slate-300'}">${s.total}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // ==========================================
+        // FORM & INTERACTION
+        // ==========================================
+        function setupForm() {
+            const tgl = document.getElementById('input-tanggal');
+            tgl.valueAsDate = new Date();
+            
+            document.getElementById('input-kelas').addEventListener('change', (e) => {
+                const nSelect = document.getElementById('input-nama');
+                nSelect.innerHTML = '<option value="">Pilih Siswa...</option>';
+                allData.siswa.filter(s => s.kelas === e.target.value).forEach(s => nSelect.add(new Option(s.nama, s.nama)));
+                nSelect.disabled = !e.target.value;
+                nSelect.classList.toggle('bg-slate-50', !e.target.value);
+            });
+            
+            document.getElementById('pilih-kelas-detail').addEventListener('change', (e) => {
+                const nSelect = document.getElementById('pilih-siswa-detail');
+                nSelect.innerHTML = '<option value="">Pilih Siswa...</option>';
+                allData.siswa.filter(s => s.kelas === e.target.value).forEach(s => nSelect.add(new Option(s.nama, s.nama)));
+                nSelect.disabled = !e.target.value;
+                nSelect.classList.toggle('bg-slate-50', !e.target.value);
+                document.getElementById('siswa-detail-content').classList.add('hidden');
+            });
+            
+            document.getElementById('log-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('submit-btn');
+                btn.disabled = true;
+                document.getElementById('btn-spinner').classList.remove('hidden');
+                document.getElementById('btn-text').textContent = 'Proses...';
+
+                const newLogData = {
+                    tanggal: tgl.value,
+                    nama: document.getElementById('input-nama').value,
+                    kelas: document.getElementById('input-kelas').value,
+                    pelanggaran: document.getElementById('input-pelanggaran').value,
+                    keterangan: document.getElementById('input-keterangan').value
+                };
+
+                // Jika menjalankan Mode Demo (URL API Belum Diatur)
+                if (!SCRIPT_URL || SCRIPT_URL === 'ISI_DENGAN_URL_WEB_APP_ANDA_DISINI') {
+                    setTimeout(() => {
+                        const getPoin = allData.pelanggaran.find(p => p.jenis === newLogData.pelanggaran)?.poin || 0;
+                        const logEntry = { ...newLogData, poin: getPoin, timestamp: new Date().toISOString() };
+                        
+                        allData.log.unshift(logEntry);
+                        toast("✅ (Demo) Data Berhasil Disimpan!");
+                        
+                        document.getElementById('log-form').reset();
+                        tgl.valueAsDate = new Date();
+                        renderUI();
+                        
+                        btn.disabled = false;
+                        document.getElementById('btn-spinner').classList.add('hidden');
+                        document.getElementById('btn-text').textContent = 'Simpan Data';
+                    }, 800);
+                    return;
+                } 
+                
+                // MENGIRIM DATA KE GOOGLE APPS SCRIPT (POST)
+                try {
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        // Ubah content-type menjadi text/plain untuk melewati batasan CORS Apps Script
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(newLogData)
+                    });
+                    
+                    const res = await response.json();
+                    
+                    if(res.success) {
+                        allData.log.unshift(res.data);
+                        toast("✅ Data Berhasil Disimpan!");
+                        document.getElementById('log-form').reset();
+                        tgl.valueAsDate = new Date();
+                        renderUI();
+                    } else {
+                        toast("❌ Gagal: " + res.message);
+                    }
+                } catch (error) {
+                    toast("❌ Gagal menghubungi server. Pastikan URL sudah benar.");
+                    console.error(error);
+                } finally {
+                    btn.disabled = false;
+                    document.getElementById('btn-spinner').classList.add('hidden');
+                    document.getElementById('btn-text').textContent = 'Simpan Data';
+                }
+            });
+
+            document.getElementById('pilih-siswa-detail').addEventListener('change', (e) => {
+                const name = e.target.value;
+                const content = document.getElementById('siswa-detail-content');
+                if(!name) return content.classList.add('hidden');
+                
+                const s = allData.siswa.find(x => x.nama === name);
+                const logs = allData.log.filter(x => x.nama === name);
+                const total = logs.reduce((a,b) => a + Number(b.poin), 0);
+                
+                document.getElementById('det-nama').textContent = s.nama;
+                document.getElementById('det-info').textContent = `${s.nis || '-'} • Kelas ${s.kelas}`;
+                
+                const totalEl = document.getElementById('det-total');
+                totalEl.textContent = total;
+                totalEl.className = `text-3xl font-black ${total < 0 ? 'text-red-500' : total > 0 ? 'text-green-600' : 'text-slate-300'}`;
+                
+                const hist = document.getElementById('det-history');
+                hist.innerHTML = logs.length ? '' : '<p class="text-center text-slate-400 py-4 italic text-xs">Belum ada riwayat</p>';
+                
+                logs.forEach(l => {
+                    const d = document.createElement('div');
+                    d.className = "p-3 border rounded-lg bg-white flex justify-between items-center border-slate-200 shadow-sm";
+                    d.innerHTML = `<div><p class="text-[11px] font-bold text-slate-700 leading-tight">${l.pelanggaran}</p><p class="text-[9px] text-slate-400 mt-0.5">${new Date(l.tanggal).toLocaleDateString('id-ID', {day:'numeric', month:'long'})}</p>${l.keterangan ? `<p class="text-[9px] italic text-slate-500 mt-1">"${l.keterangan}"</p>` : ''}</div><div class="font-bold text-xs ${l.poin < 0 ? 'text-red-500' : 'text-green-600'}">${l.poin > 0 ? '+' : ''}${l.poin}</div>`;
+                    hist.appendChild(d);
+                });
+                
+                content.classList.remove('hidden');
+            });
+        }
+
+        function setupFilters() {
+            const filter = () => {
+                const name = document.getElementById('filterNama').value.toLowerCase();
+                const dM = document.getElementById('filterTanggalMulai').value;
+                const dS = document.getElementById('filterTanggalSelesai').value;
+                renderRiwayat(allData.log.filter(l => {
+                    const ld = l.tanggal.split('T')[0];
+                    return l.nama.toLowerCase().includes(name) && (!dM || ld >= dM) && (!dS || ld <= dS);
+                }));
+            };
+            ['filterNama', 'filterTanggalMulai', 'filterTanggalSelesai'].forEach(id => document.getElementById(id).addEventListener('input', filter));
+        }
+
+        function resetFilters() {
+            ['filterNama', 'filterTanggalMulai', 'filterTanggalSelesai'].forEach(id => document.getElementById(id).value = '');
+            renderRiwayat();
+        }
+
+        function toast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>
