@@ -174,8 +174,8 @@ interface Submission {
   created_at?: string;
 }
 
-const SUPABASE_URL = 'https://vpdlfjbkfcuukyykrhua.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwZGxmamJrZmN1dWt5eWtyaHVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNzkxNjUsImV4cCI6MjA5Nzc1NTE2NX0.QSHbi71ajuU_AggJJ5xVDeb6jffDRyyuF4C7aYeHW3Y';
+const SUPABASE_URL = 'https://uswyqskcrrhqxwebeakz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzd3lxc2tjcnJocXh3ZWJlYWt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2NjkzNzIsImV4cCI6MjEwNjI0NTM3Mn0.YiDGxufCcIuNfAMNwcyDjTfkokfynPg5r55glF1OgTk';
 
 const reqHeaders = {
   apikey: SUPABASE_ANON_KEY,
