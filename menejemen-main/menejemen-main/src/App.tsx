@@ -3341,6 +3341,18 @@ function MainAppContent() {
               {/* === KONTEN 4: LAPORAN REKAP === */}
 {kebersihanSubTab === 'rekap' && (
   <div className="space-y-4">
+    {/* --- TAMBAHKAN HEADER & TOMBOL CETAK DI SINI --- */}
+    <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+      <h3 className="font-bold text-sm text-slate-800">Data Rekapitulasi Kebersihan</h3>
+      <button 
+        onClick={() => window.print()} 
+        className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2 px-4 py-2 rounded-xl transition-all shadow-md"
+      >
+        <FileText className="w-4 h-4" /> {/* Gunakan ikon yang sudah ada */}
+        Cetak PDF
+      </button>
+    </div>
+    {/* ---------------------------------------------- */}
     {/* Filter & Sortir Controls */}
     <div className="flex flex-col md:flex-row gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
       <div className="flex-1">
