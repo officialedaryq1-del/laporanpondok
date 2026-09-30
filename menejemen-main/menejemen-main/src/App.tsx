@@ -4605,37 +4605,37 @@ function MainAppContent() {
 
             </div>
           )}
-          {/* TAB MONITORING HAFALAN (IFRAME) */}
-{navTab === 'monitoring_hafalan' && (
-  <div className="max-w-7xl mx-auto w-full h-[calc(100vh-120px)] bg-white rounded-3xl overflow-hidden shadow-xs border border-slate-200">
-    <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-      <div>
-        <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-emerald-600" />
-          Sistem Monitoring Hafalan Tahfidz
-        </h3>
-        <p className="text-[11px] text-slate-500 mt-0.5">
-          Terintegrasi langsung dengan portal tahfidh.
-        </p>
-      </div>
-      <a 
-        href="https://tahfidh-chi.vercel.app/" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
-      >
-        Buka di Tab Baru <ExternalLink className="w-3 h-3" />
-      </a>
-    </div>
-    
-    <iframe 
-      src="https://tahfidh-chi.vercel.app/" 
-      className="w-full h-full border-none"
-      title="Sistem Monitoring Hafalan"
-      allowFullScreen
-    />
-  </div>
-)}
+                    {/* TAB MONITORING HAFALAN (IFRAME) */}
+          {navTab === 'monitoring_hafalan' && (
+            <div className="max-w-7xl mx-auto w-full h-[calc(100vh-120px)] bg-white rounded-3xl overflow-hidden shadow-xs border border-slate-200">
+              <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-emerald-600" />
+                    Sistem Monitoring Hafalan Tahfidz
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Terintegrasi langsung dengan portal tahfidh.
+                  </p>
+                </div>
+                <a 
+                  href="https://tahfidh-chi.vercel.app/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                >
+                  Buka di Tab Baru <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+              
+              <iframe 
+                src="https://tahfidh-chi.vercel.app/" 
+                className="w-full h-full border-none"
+                title="Sistem Monitoring Hafalan"
+                allowFullScreen
+              />
+            </div>
+          )}
 
         </div>
 
