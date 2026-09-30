@@ -272,7 +272,6 @@ function MainAppContent() {
   const [mapelList, setMapelList] = useState<Mapel[]>([]);
   const [, setWaliKelasList] = useState<WaliKelas[]>([]);
   const [santriList, setSantriList] = useState<Santri[]>([]);
-  const [daftarNilai, setDaftarNilai] = useState<NilaiSiswa[]>([]);
 
   // State khusus Catatan Laporan IKU per Kegiatan per Bulan
   const [laporanBulan, setLaporanBulan] = useState<string>('2026-09');
@@ -959,32 +958,8 @@ function MainAppContent() {
     return 100;
   };
 
-  const getKetuntasanUjian = (tipeUjianKeywords: string[]): { persen: number; total: number; tuntas: number } => {
-    if (daftarNilai.length === 0) return { persen: 0, total: 0, tuntas: 0 };
-    const filtered = daftarNilai.filter(n => {
-      const ujian = String(n.nama_ujian || '').toLowerCase();
-      return tipeUjianKeywords.some(kw => ujian.includes(kw.toLowerCase()));
-    });
-    if (filtered.length === 0) return { persen: 0, total: 0, tuntas: 0 };
-    const tuntasCount = filtered.filter(n => Number(n.nilai) >= 75).length;
-    const pct = Math.round((tuntasCount / filtered.length) * 100);
-    return { persen: pct, total: filtered.length, tuntas: tuntasCount };
-  };
 
   const getProgramRealisasi = (tpl: ChecklistTemplate): string => {
-    const titleLower = String(tpl.title || '').toLowerCase();
-    if (titleLower.includes('ulangan harian') || titleLower.includes('kontrol nilai')) {
-      const stats = getKetuntasanUjian(['Ulangan Harian', 'UH']);
-      return stats.total > 0 ? `${stats.persen}%` : '-';
-    }
-    if (titleLower.includes('sumatif tengah') || titleLower.includes('asts')) {
-      const stats = getKetuntasanUjian(['ASTS', 'Tengah Semester']);
-      return stats.total > 0 ? `${stats.persen}%` : '-';
-    }
-    if (titleLower.includes('sumatif akhir') || titleLower.includes('sas')) {
-      const stats = getKetuntasanUjian(['SAS', 'Akhir Semester']);
-      return stats.total > 0 ? `${stats.persen}%` : '-';
-    }
     const matchedSubs = submissions.filter(s => s.template_id === tpl.id);
     if (matchedSubs.length === 0) return '-';
     const totalScore = matchedSubs.reduce((acc, curr) => acc + getSubmissionPercentage(curr), 0);
