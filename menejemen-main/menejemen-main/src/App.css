@@ -40,3 +40,14 @@
 .read-the-docs {
   color: #888;
 }
+@media print {
+  /* Sembunyikan sidebar dan tombol-tombol saat dicetak */
+  aside, button, select, input[type="date"] {
+    display: none !important;
+  }
+  /* Buat area utama mengambil lebar penuh */
+  main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}
