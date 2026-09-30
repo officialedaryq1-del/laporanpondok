@@ -45,7 +45,7 @@ const Menu = createIcon(<><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2=
 
 
 type TimeframeCategory = 'Harian' | 'Mingguan' | 'Bulanan' | 'Tahunan';
-type NavigationTab = 'dashboard' | 'ceklis' | 'laporan' | 'monitoring_hafalan' | 'rekap_absensi' | 'pengaturan';
+type NavigationTab = 'dashboard' | 'ceklis' | 'laporan' | 'rekap_absensi' | 'pengaturan' | 'monitoring_kebersihan';
 
 interface Division {
   id: number;
@@ -1692,6 +1692,20 @@ function MainAppContent() {
                 </div>
               </a>
 
+              <button
+                onClick={() => { setNavTab('monitoring_kebersihan'); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  navTab === 'monitoring_kebersihan'
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <ClipboardCheck className="w-5 h-5 shrink-0" />
+                  {(isSidebarExpanded || isMobileMenuOpen) && <span className="truncate">Monitoring Kebersihan</span>}
+                </div>
+              </button>
+              
               {/* Tombol Menu Pengaturan Master Data */}
               <button
                 onClick={() => { setNavTab('pengaturan'); setIsMobileMenuOpen(false); }}
@@ -1771,7 +1785,7 @@ function MainAppContent() {
             <div className="min-w-0">
               <div className="font-bold text-xs truncate">PTYQ 1 PUTRA SMP</div>
               <div className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold truncate">
-                {navTab === 'dashboard' ? 'Dashboard Pantauan' : navTab === 'laporan' ? 'Laporan IKU' : navTab === 'monitoring_hafalan' ? 'Monitoring Hafalan' : navTab === 'rekap_absensi' ? 'Presensi' : activeDivision.name}
+                {navTab === 'dashboard' ? 'Dashboard Pantauan' : navTab === 'laporan' ? 'Laporan IKU' : navTab === 'monitoring_kebersihan' ? 'Monitoring Kebersihan' : navTab === 'rekap_absensi' ? 'Presensi' : activeDivision.name}
               </div>
             </div>
           </div>
@@ -2645,6 +2659,18 @@ function MainAppContent() {
           )}
 
           {}
+          {navTab === 'monitoring_kebersihan' && (
+            <div className="max-w-7xl mx-auto w-full h-[calc(100vh-100px)] md:h-[calc(100vh-60px)] pb-4">
+              <div className="w-full h-full bg-white md:rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <iframe 
+                  src="https://script.google.com/macros/s/AKfycbxhv2TYYhuiCdzx3AwPXwkLUHfvt1w8wglQ-dXI5ORNhXWhZwybqC_5L8R6pDGdL2Te/exec" 
+                  className="w-full h-full border-none"
+                  title="Monitoring Kebersihan"
+                />
+              </div>
+            </div>
+          )}
+          
           {navTab === 'dashboard' && (() => {
             const todayStr = inputAbsensiTanggal || new Date().toISOString().slice(0, 10);
 
