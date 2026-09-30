@@ -3816,8 +3816,6 @@ function MainAppContent() {
             </div>
           )}
 
-          {}
-        
           
           {}
           {navTab === 'pengaturan' && (
