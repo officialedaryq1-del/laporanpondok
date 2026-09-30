@@ -2758,7 +2758,7 @@ function MainAppContent() {
                         <th className="px-5 py-3 max-w-[200px]">Keterangan</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                   <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                       <tr>
                         <td colSpan={4} className="px-5 py-10 text-center text-slate-400 italic">
                           Belum ada laporan ketidakbersihan.
@@ -2774,7 +2774,10 @@ function MainAppContent() {
 
         </div>
       </main>
-            </div>
+
+      {selectedSubmissionForDetail && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+
           )}
           
           {navTab === 'dashboard' && (() => {
