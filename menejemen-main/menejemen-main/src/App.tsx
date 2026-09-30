@@ -2750,18 +2750,17 @@ function MainAppContent() {
                   <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-bold">Sesuai Filter</span>
                 </div>
                 <div className="overflow-x-auto w-full">
-                  <table className="w-full text-sm text-left">
-                    <thead class="text-[11px] text-slate-500 uppercase tracking-wider bg-white border-b border-slate-100">
+                  <thead className="text-[11px] text-slate-500 uppercase tracking-wider bg-white border-b border-slate-100">
                       <tr>
-                        <th class="px-5 py-3">Tanggal</th>
-                        <th class="px-5 py-3">Jenjang</th>
-                        <th class="px-5 py-3">Kamar</th>
-                        <th class="px-5 py-3 max-w-[200px]">Keterangan</th>
+                        <th className="px-5 py-3">Tanggal</th>
+                        <th className="px-5 py-3">Jenjang</th>
+                        <th className="px-5 py-3">Kamar</th>
+                        <th className="px-5 py-3 max-w-[200px]">Keterangan</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                       <tr>
-                        <td colspan="4" className="px-5 py-10 text-center text-slate-400 italic">
+                        <td colSpan={4} className="px-5 py-10 text-center text-slate-400 italic">
                           Belum ada laporan ketidakbersihan.
                         </td>
                       </tr>
