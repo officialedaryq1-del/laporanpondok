@@ -2732,11 +2732,11 @@ function MainAppContent() {
           )}
 
           {}
-         {/* TAB: MONITORING KEBERSIHAN NATIVE (Bukan Iframe) */}
+         {/* TAB: MONITORING KEBERSIHAN NATIVE */}
           {navTab === 'monitoring_kebersihan' && (
             <div className="max-w-7xl mx-auto w-full space-y-4">
               
-              {/* Header E-Kebersihan */}
+              {/* Header E-Kebersihan & Tab Navigasi */}
               <div className="bg-emerald-700 rounded-3xl p-4 sm:p-6 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center space-x-3">
                   <div className="bg-white text-emerald-700 p-2 sm:p-3 rounded-xl shadow-inner flex-shrink-0">
@@ -2748,33 +2748,140 @@ function MainAppContent() {
                   </div>
                 </div>
                 
-                {/* Tab Sub-Menu Internal Kebersihan */}
+                {/* Tombol Sub-Tab */}
                 <div className="flex bg-emerald-800/50 backdrop-blur-md p-1 rounded-2xl overflow-x-auto scrollbar-none border border-emerald-600/50">
-                  <button className="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-emerald-700 shadow-sm shrink-0">
+                  <button
+                    onClick={() => setKebersihanSubTab('dashboard')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                      kebersihanSubTab === 'dashboard' ? 'bg-white text-emerald-700 shadow-sm' : 'text-emerald-100 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
                     Dashboard
                   </button>
-                  <button className="px-4 py-2 rounded-xl text-xs font-bold transition-all text-emerald-100 hover:text-white hover:bg-white/10 shrink-0">
+                  <button
+                    onClick={() => setKebersihanSubTab('input')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                      kebersihanSubTab === 'input' ? 'bg-white text-emerald-700 shadow-sm' : 'text-emerald-100 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
                     Input Laporan
                   </button>
-                  <button className="px-4 py-2 rounded-xl text-xs font-bold transition-all text-emerald-100 hover:text-white hover:bg-white/10 shrink-0">
+                  <button
+                    onClick={() => setKebersihanSubTab('riwayat')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                      kebersihanSubTab === 'riwayat' ? 'bg-white text-emerald-700 shadow-sm' : 'text-emerald-100 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
                     Riwayat Input
                   </button>
-                  <button className="px-4 py-2 rounded-xl text-xs font-bold transition-all text-emerald-100 hover:text-white hover:bg-white/10 shrink-0">
+                  <button
+                    onClick={() => setKebersihanSubTab('rekap')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                      kebersihanSubTab === 'rekap' ? 'bg-white text-emerald-700 shadow-sm' : 'text-emerald-100 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
                     Laporan Rekap
                   </button>
                 </div>
               </div>
-{/* KONTEN 1: DASHBOARD */}
+
+              {/* === KONTEN 1: DASHBOARD === */}
               {kebersihanSubTab === 'dashboard' && (
                 <div className="space-y-4">
-                  {/* Masukkan elemen Filter, Stat Cards, dan Tabel Laporan Terkini di sini */}
+                  {/* Filter Analytics */}
+                  <div className="bg-white p-5 rounded-3xl shadow-xs border border-slate-200">
+                    <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+                      <RotateCw className="w-4 h-4 text-emerald-600" />
+                      Filter Analytics Dashboard
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Mulai Tanggal</label>
+                        <input type="date" className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Sampai Tanggal</label>
+                        <input type="date" className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Filter Jenjang</label>
+                        <select className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold cursor-pointer">
+                          <option value="">Semua Jenjang</option>
+                          <option value="SMP">Unit SMP</option>
+                          <option value="SMA">Unit SMA</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stat Cards */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-rose-500">
+                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Kasus Kotor</p>
+                      <h3 className="text-2xl font-black text-rose-600">{laporanKebersihanList.length}</h3>
+                    </div>
+                    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-amber-500">
+                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Laporan Masuk</p>
+                      <h3 className="text-xl font-black text-slate-800">{laporanKebersihanList.length} Kasus</h3>
+                    </div>
+                    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-emerald-500">
+                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Master Kamar</p>
+                      <h3 className="text-xl font-black text-slate-800">{kamarList.length} Kamar</h3>
+                    </div>
+                    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-blue-500">
+                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Status Database</p>
+                      <h3 className="text-lg font-black text-emerald-600">Terhubung</h3>
+                    </div>
+                  </div>
+
+                  {/* Tabel Laporan Terkini */}
+                  <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                      <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <History className="w-4 h-4 text-emerald-600" />
+                        Laporan Pelanggaran Terkini
+                      </h4>
+                    </div>
+                    <div className="overflow-x-auto w-full">
+                      <table className="w-full text-sm text-left">
+                        <thead className="text-[11px] text-slate-500 uppercase tracking-wider bg-white border-b border-slate-100">
+                          <tr>
+                            <th className="px-5 py-3">Tanggal</th>
+                            <th className="px-5 py-3">Jenjang</th>
+                            <th className="px-5 py-3">Kamar</th>
+                            <th className="px-5 py-3">Wali Halaqoh</th>
+                            <th className="px-5 py-3 max-w-[200px]">Keterangan</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                          {laporanKebersihanList.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-5 py-10 text-center text-slate-400 italic">
+                                Belum ada laporan ketidakbersihan.
+                              </td>
+                            </tr>
+                          ) : (
+                            laporanKebersihanList.slice(0, 5).map((item, idx) => (
+                              <tr key={item.id || idx} className="hover:bg-slate-50">
+                                <td className="px-5 py-3 font-mono">{item.tanggal}</td>
+                                <td className="px-5 py-3"><span className="bg-slate-100 px-2 py-0.5 rounded font-bold">{item.jenjang}</span></td>
+                                <td className="px-5 py-3 font-bold text-emerald-800">{item.kamar}</td>
+                                <td className="px-5 py-3">{item.wali_halaqoh}</td>
+                                <td className="px-5 py-3 text-slate-500">{item.keterangan}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {/* KONTEN 2: FORM INPUT LAPORAN */}
+              {/* === KONTEN 2: INPUT LAPORAN === */}
               {kebersihanSubTab === 'input' && (
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
-                  <h3 className="font-bold text-sm text-slate-800 mb-4">Form Input Ketidakbersihan</h3>
+                  <h3 className="font-bold text-sm text-slate-800 mb-4">Form Input Ketidakbersihan Kamar</h3>
                   <form onSubmit={handleSubmitKebersihan} className="space-y-4">
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal Sidak</label>
@@ -2785,21 +2892,6 @@ function MainAppContent() {
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold"
                       />
                     </div>
-                    {/* === TEMPAT TARUH KODE DROPDOWN KAMAR DI SINI === */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Kamar Santri</label>
-                      <select 
-                        value={formKebersihanKamar} 
-                        onChange={(e) => setFormKebersihanKamar(e.target.value)} 
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold cursor-pointer"
-                      >
-                        <option value="">-- Pilih Kamar --</option>
-                        {kamarList.map(k => (
-                          <option key={k.nama_kamar} value={k.nama_kamar}>{k.nama_kamar}</option>
-                        ))}
-                      </select>
-                    </div>
-                    {/* ============================================= */}
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Kamar Santri</label>
                       <select 
@@ -2819,7 +2911,7 @@ function MainAppContent() {
                         rows={3} 
                         value={formKebersihanKeterangan} 
                         onChange={(e) => setFormKebersihanKeterangan(e.target.value)} 
-                        placeholder="Contoh: Sampah menumpuk..." 
+                        placeholder="Contoh: Sampah menumpuk di belakang pintu..." 
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm"
                       />
                     </div>
@@ -2830,10 +2922,10 @@ function MainAppContent() {
                 </div>
               )}
 
-              {/* KONTEN 3: RIWAYAT INPUT */}
+              {/* === KONTEN 3: RIWAYAT INPUT === */}
               {kebersihanSubTab === 'riwayat' && (
-                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
-                  <h3 className="font-bold text-sm text-slate-800 mb-4">Riwayat Data Laporan Tersimpan</h3>
+                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                  <h3 className="font-bold text-sm text-slate-800">Riwayat Data Laporan Tersimpan</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
                       <thead className="text-xs uppercase bg-slate-50 text-slate-500">
@@ -2849,11 +2941,11 @@ function MainAppContent() {
                           <tr><td colSpan={4} className="px-4 py-6 text-center text-slate-400">Belum ada riwayat laporan.</td></tr>
                         ) : (
                           laporanKebersihanList.map((item, idx) => (
-                            <tr key={item.id || idx}>
-                              <td className="px-4 py-3 font-semibold">{item.tanggal}</td>
+                            <tr key={item.id || idx} className="hover:bg-slate-50">
+                              <td className="px-4 py-3 font-mono">{item.tanggal}</td>
                               <td className="px-4 py-3 font-bold text-emerald-800">{item.kamar} ({item.jenjang})</td>
                               <td className="px-4 py-3">{item.wali_halaqoh}</td>
-                              <td className="px-4 py-3">{item.keterangan}</td>
+                              <td className="px-4 py-3 text-slate-600">{item.keterangan}</td>
                             </tr>
                           ))
                         )}
@@ -2862,84 +2954,50 @@ function MainAppContent() {
                   </div>
                 </div>
               )}
-              {/* Area Filter Dashboard */}
-              <div className="bg-white p-5 rounded-3xl shadow-xs border border-slate-200">
-                <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                  <RotateCw className="w-4 h-4 text-emerald-600" />
-                  Filter Analytics Dashboard
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Mulai Tanggal</label>
-                    <input type="date" className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Sampai Tanggal</label>
-                    <input type="date" className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Filter Jenjang</label>
-                    <select className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer">
-                      <option value="">Semua Jenjang</option>
-                      <option value="SMP">Unit SMP</option>
-                      <option value="SMA">Unit SMA</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
 
-              {/* Stat Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-rose-500">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Kasus Kotor</p>
-                  <h3 className="text-2xl font-black text-rose-600">0</h3>
+              {/* === KONTEN 4: LAPORAN REKAP === */}
+              {kebersihanSubTab === 'rekap' && (
+                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                  <h3 className="font-bold text-sm text-slate-800">Laporan Rekapitulasi Kebersihan Kamar</h3>
+                  <p className="text-xs text-slate-500">Akumulasi total pelanggaran ketidakbersihan berdasarkan data master kamar.</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="text-xs uppercase bg-slate-50 text-slate-500">
+                        <tr>
+                          <th className="px-4 py-3">No</th>
+                          <th className="px-4 py-3">Nama Kamar</th>
+                          <th className="px-4 py-3">Jenjang</th>
+                          <th className="px-4 py-3">Wali Halaqoh</th>
+                          <th className="px-4 py-3 text-center">Total Kasus</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-xs">
+                        {kamarList.length === 0 ? (
+                          <tr><td colSpan={5} className="px-4 py-6 text-center text-slate-400">Belum ada data kamar.</td></tr>
+                        ) : (
+                          kamarList.map((k, idx) => {
+                            // Hitung jumlah kasus per kamar dari laporan
+                            const totalKasus = laporanKebersihanList.filter(l => l.kamar === k.nama_kamar).length;
+                            return (
+                              <tr key={k.nama_kamar || idx} className="hover:bg-slate-50">
+                                <td className="px-4 py-3 text-center font-mono">{idx + 1}</td>
+                                <td className="px-4 py-3 font-bold text-slate-900">{k.nama_kamar}</td>
+                                <td className="px-4 py-3"><span className="bg-slate-100 px-2 py-0.5 rounded font-bold">{k.jenjang}</span></td>
+                                <td className="px-4 py-3 text-slate-600">{k.wali_halaqoh}</td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] ${totalKasus > 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                    {totalKasus} Kasus
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-amber-500">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Kamar Paling Sering</p>
-                  <h3 className="text-xl font-black text-slate-800 truncate">-</h3>
-                  <span className="text-[9px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-bold">0 Pelanggaran</span>
-                </div>
-                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-emerald-500">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Kamar Terbersih</p>
-                  <h3 className="text-xl font-black text-slate-800 truncate">-</h3>
-                  <span className="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold">Bebas Pelanggaran</span>
-                </div>
-                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-blue-500">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Rata-Rata Kebersihan</p>
-                  <h3 className="text-2xl font-black text-blue-600">100%</h3>
-                </div>
-              </div>
-
-              {/* Recent Reports Table */}
-              <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
-                <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                  <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                    <History className="w-4 h-4 text-emerald-600" />
-                    Laporan Pelanggaran Terkini
-                  </h4>
-                  <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-bold">Sesuai Filter</span>
-                </div>
-                <div className="overflow-x-auto w-full">
-                  {/* TAG TABLE PEMBUKA HARUS ADA DI SINI */}
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-[11px] text-slate-500 uppercase tracking-wider bg-white border-b border-slate-100">
-                      <tr>
-                        <th className="px-5 py-3">Tanggal</th>
-                        <th className="px-5 py-3">Jenjang</th>
-                        <th className="px-5 py-3">Kamar</th>
-                        <th className="px-5 py-3 max-w-[200px]">Keterangan</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
-                      <tr>
-                        <td colSpan={4} className="px-5 py-10 text-center text-slate-400 italic">
-                          Belum ada laporan ketidakbersihan.
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              )}
 
             </div>
           )}
