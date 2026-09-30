@@ -3097,77 +3097,97 @@ function MainAppContent() {
               
               {/* === KONTEN 4: LAPORAN REKAP === */}
         {kebersihanSubTab === 'rekap' && (
-          <div className="overflow-x-auto">
-  <table className="w-full text-sm text-left">
-    <thead className="text-xs uppercase bg-slate-50 text-slate-500">
-      <tr>
-        <th className="px-4 py-3 text-center">No</th>
-        <th className="px-4 py-3">Nama Kamar</th>
-        <th className="px-4 py-3">Jenjang</th>
-        <th className="px-4 py-3">Wali Halaqoh</th>
-        <th className="px-4 py-3 text-center">Jumlah Tidak Bersih</th>
-        <th className="px-4 py-3 text-center">Persentase Kebersihan</th>
-        <th className="px-4 py-3">Keterangan / Catatan Ketidakbersihan</th>
-      </tr>
-    </thead>
-    <tbody className="divide-y divide-slate-100 text-xs">
-      {processedRekapKamar.length === 0 ? (
-        <tr><td colSpan={7} className="px-4 py-6 text-center text-slate-400">Belum ada data kamar.</td></tr>
-      ) : (
-        processedRekapKamar.map((k, idx) => {
-          // Asumsi pembagi hari (sesuaikan dengan logika sistem Anda, misalnya 32)
-          // Berdasarkan gambar: 11 kasus = 65.6% -> (32 - 11) / 32 * 100 = 65.6%
-          const asumsiTotalHari = 31; 
-          const persentase = Math.max(0, ((asumsiTotalHari - k.totalKasus) / asumsiTotalHari) * 100).toFixed(1);
+  <div className="space-y-4">
+    {/* Filter & Sortir Controls */}
+    <div className="flex flex-col md:flex-row gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+      <div className="flex-1">
+        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Mulai Tanggal</label>
+        <input type="date" value={rekapStartDate} onChange={(e) => setRekapStartDate(e.target.value)} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
+      </div>
+      <div className="flex-1">
+        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Sampai Tanggal</label>
+        <input type="date" value={rekapEndDate} onChange={(e) => setRekapEndDate(e.target.value)} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
+      </div>
+      <div className="flex-1">
+        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Sortir Berdasarkan</label>
+        <select value={rekapSort} onChange={(e) => setRekapSort(e.target.value as 'kamar' | 'terbanyak')} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" >
+          <option value="kamar">Urutan Kamar</option>
+          <option value="terbanyak">Kasus Terbanyak</option>
+        </select>
+      </div>
+    </div>
 
-          return (
-            <tr key={k.nama_kamar || idx} className="hover:bg-slate-50">
-              <td className="px-4 py-3 text-center font-mono text-slate-500">{idx + 1}</td>
-              <td className="px-4 py-3 font-bold text-slate-900">{k.nama_kamar}</td>
-              <td className="px-4 py-3">
-                <span className="bg-slate-100 px-2 py-0.5 rounded font-bold text-[10px]">{k.jenjang}</span>
-              </td>
-              <td className="px-4 py-3 text-slate-600">{k.wali_halaqoh}</td>
-              
-              {/* Kolom Jumlah Tidak Bersih */}
-              <td className="px-4 py-3 text-center">
-                <span className={`px-3 py-1 rounded-full font-bold text-[10px] ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                  {k.totalKasus} Kasus
-                </span>
-              </td>
+    {/* Tabel Rekapitulasi Utama */}
+    <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm">
+      <table className="w-full text-sm text-left">
+        <thead className="text-xs uppercase bg-slate-50 text-slate-500">
+          <tr>
+            <th className="px-4 py-3 text-center">No</th>
+            <th className="px-4 py-3">Nama Kamar</th>
+            <th className="px-4 py-3">Jenjang</th>
+            <th className="px-4 py-3">Wali Halaqoh</th>
+            <th className="px-4 py-3 text-center">Jumlah Tidak Bersih</th>
+            <th className="px-4 py-3 text-center">Persentase Kebersihan</th>
+            <th className="px-4 py-3">Keterangan / Catatan Ketidakbersihan</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100 text-xs">
+          {processedRekapKamar.length === 0 ? (
+            <tr><td colSpan={7} className="px-4 py-6 text-center text-slate-400">Belum ada data kamar.</td></tr>
+          ) : (
+            processedRekapKamar.map((k, idx) => {
+              const asumsiTotalHari = 31;
+              const persentase = Math.max(0, ((asumsiTotalHari - k.totalKasus) / asumsiTotalHari) * 100).toFixed(1);
 
-              {/* Kolom Persentase Kebersihan */}
-              <td className="px-4 py-3 text-center">
-                <span className={`px-3 py-1 rounded-full font-bold text-[10px] ${Number(persentase) < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                  {persentase}%
-                </span>
-              </td>
+              return (
+                <tr key={k.nama_kamar || idx} className="hover:bg-slate-50">
+                  <td className="px-4 py-3 text-center font-mono text-slate-500">{idx + 1}</td>
+                  <td className="px-4 py-3 font-bold text-slate-900">{k.nama_kamar}</td>
+                  <td className="px-4 py-3">
+                    <span className="bg-slate-100 px-2 py-0.5 rounded font-bold text-[10px]">{k.jenjang}</span>
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">{k.wali_halaqoh}</td>
+                  
+                  {/* Kolom Jumlah Tidak Bersih (Tetap bisa di-klik untuk membuka modal detail) */}
+                  <td className="px-4 py-3 text-center">
+                    <button onClick={() => setDetailKamarModal(k.nama_kamar)} className={`px-3 py-1 rounded-full font-bold text-[10px] transition shadow-sm hover:shadow-md cursor-pointer ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`} title="Klik untuk melihat rincian kasus">
+                      {k.totalKasus} Kasus
+                    </button>
+                  </td>
 
-              {/* Kolom Keterangan / Catatan Ketidakbersihan */}
-              <td className="px-4 py-3 text-slate-700 text-[11px] leading-relaxed">
-                {k.riwayatKasus && k.riwayatKasus.length > 0 ? (
-                  <ul className="space-y-1">
-                    {k.riwayatKasus.map((riwayat: any, i: number) => {
-                      // Format tanggal YYYY-MM-DD ke DD/MM/YYYY
-                      const formatTanggal = riwayat.tanggal.split('-').reverse().join('/');
-                      return (
-                        <li key={i}>
-                          <strong>{formatTanggal}:</strong> {riwayat.keterangan}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                ) : (
-                  <span className="text-slate-400 italic">Bersih / Tidak ada catatan</span>
-                )}
-              </td>
-            </tr>
-          );
-        })
-      )}
-    </tbody>
-  </table>
-</div>
+                  {/* Kolom Persentase Kebersihan */}
+                  <td className="px-4 py-3 text-center">
+                    <span className={`px-3 py-1 rounded-full font-bold text-[10px] ${Number(persentase) < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                      {persentase}%
+                    </span>
+                  </td>
+
+                  {/* Kolom Keterangan / Catatan Ketidakbersihan */}
+                  <td className="px-4 py-3 text-slate-700 text-[11px] leading-relaxed">
+                    {k.riwayatKasus && k.riwayatKasus.length > 0 ? (
+                      <ul className="space-y-1">
+                        {k.riwayatKasus.map((riwayat: any, i: number) => {
+                          const formatTanggal = riwayat.tanggal.split('-').reverse().join('/');
+                          return (
+                            <li key={i}>
+                              <strong>{formatTanggal}:</strong> {riwayat.keterangan}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <span className="text-slate-400 italic">Bersih / Tidak ada catatan</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
 
             {/* Filter & Sortir Controls */}
             <div className="flex flex-col md:flex-row gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
