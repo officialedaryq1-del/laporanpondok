@@ -3096,7 +3096,7 @@ function MainAppContent() {
               )}
               
               {/* === KONTEN 4: LAPORAN REKAP === */}
-        {kebersihanSubTab === 'rekap' && (
+{kebersihanSubTab === 'rekap' && (
   <div className="space-y-4">
     {/* Filter & Sortir Controls */}
     <div className="flex flex-col md:flex-row gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
@@ -3148,7 +3148,7 @@ function MainAppContent() {
                   </td>
                   <td className="px-4 py-3 text-slate-600">{k.wali_halaqoh}</td>
                   
-                  {/* Kolom Jumlah Tidak Bersih (Tetap bisa di-klik untuk membuka modal detail) */}
+                  {/* Kolom Jumlah Tidak Bersih */}
                   <td className="px-4 py-3 text-center">
                     <button onClick={() => setDetailKamarModal(k.nama_kamar)} className={`px-3 py-1 rounded-full font-bold text-[10px] transition shadow-sm hover:shadow-md cursor-pointer ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`} title="Klik untuk melihat rincian kasus">
                       {k.totalKasus} Kasus
@@ -3188,64 +3188,6 @@ function MainAppContent() {
     </div>
   </div>
 )}
-
-            {/* Filter & Sortir Controls */}
-            <div className="flex flex-col md:flex-row gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-              <div className="flex-1">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Mulai Tanggal</label>
-                <input type="date" value={rekapStartDate} onChange={(e) => setRekapStartDate(e.target.value)} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
-              </div>
-              <div className="flex-1">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Sampai Tanggal</label>
-                <input type="date" value={rekapEndDate} onChange={(e) => setRekapEndDate(e.target.value)} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
-              </div>
-              <div className="flex-1">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Sortir Berdasarkan</label>
-                <select value={rekapSort} onChange={(e) => setRekapSort(e.target.value as 'kamar' | 'terbanyak')} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" >
-                  <option value="kamar">Urutan Kamar</option>
-                  <option value="terbanyak">Kasus Terbanyak</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs uppercase bg-slate-50 text-slate-500">
-                  <tr>
-                    <th className="px-4 py-3 text-center">No</th>
-                    <th className="px-4 py-3">Nama Kamar</th>
-                    <th className="px-4 py-3">Jenjang</th>
-                    <th className="px-4 py-3">Wali Halaqoh</th>
-                    <th className="px-4 py-3 text-center">Total Kasus</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-xs">
-                  {processedRekapKamar.length === 0 ? (
-                    <tr><td colSpan={5} className="px-4 py-6 text-center text-slate-400">Belum ada data kamar.</td></tr>
-                  ) : (
-                    processedRekapKamar.map((k, idx) => (
-                      <tr key={k.nama_kamar || idx} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 text-center font-mono text-slate-500">{idx + 1}</td>
-                        <td className="px-4 py-3 font-bold text-slate-900">{k.nama_kamar}</td>
-                        <td className="px-4 py-3"><span className="bg-slate-100 px-2 py-0.5 rounded font-bold">{k.jenjang}</span></td>
-                        <td className="px-4 py-3 text-slate-600">{k.wali_halaqoh}</td>
-                        <td className="px-4 py-3 text-center">
-                          <button 
-                            onClick={() => setDetailKamarModal(k.nama_kamar)}
-                            className={`px-3 py-1 rounded-full font-bold text-[10px] transition shadow-sm hover:shadow-md cursor-pointer ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
-                            title="Klik untuk melihat rincian kasus"
-                          >
-                            {k.totalKasus} Kasus
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
               {/* MODAL EDIT LAPORAN KEBERSIHAN */}
               {isEditKebersihanModalOpen && (
                 <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
