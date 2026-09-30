@@ -696,7 +696,21 @@ function MainAppContent() {
         fetch(`${SUPABASE_URL}/rest/v1/laporan_kebersihan?select=*&order=tanggal.desc`, { headers: reqHeaders })
       ]);
 
-      const [divRes, ikuRes, tplRes, secRes, itRes, subRes, guruRes, mapelRes, waliRes, santriRes, presensiRes] = results;
+     const [
+        divRes, 
+        ikuRes, 
+        tplRes, 
+        secRes, 
+        itRes, 
+        subRes, 
+        guruRes, 
+        mapelRes, 
+        waliRes, 
+        santriRes, 
+        presensiRes, 
+        kamarRes, 
+        laporanKebersihanRes
+      ] = results;
 
       if (divRes.status === 'fulfilled' && divRes.value.ok) {
         const data = await divRes.value.json();
@@ -1585,7 +1599,7 @@ function MainAppContent() {
   const handleSubmitKebersihan = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formKebersihanKamar || !formKebersihanKeterangan) {
-      showToast('Kamar dan keterangan harus diisi!', 'warning');
+      showToast('Kamar dan keterangan harus diisi!', 'error');
       return;
     }
 
