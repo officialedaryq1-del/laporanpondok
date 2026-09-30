@@ -44,9 +44,10 @@ const X = createIcon(<><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>);
 const Settings = createIcon(<><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>);
 const Edit = createIcon(<><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>);
 const Menu = createIcon(<><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></>);
+const ExternalLink = createIcon(<><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></>);
 
 type TimeframeCategory = 'Harian' | 'Mingguan' | 'Bulanan' | 'Tahunan';
-type NavigationTab = 'dashboard' | 'ceklis' | 'laporan' | 'rekap_nilai' | 'rekap_absensi' | 'pengaturan';
+type NavigationTab = 'dashboard' | 'ceklis' | 'laporan' | 'rekap_absensi' | 'pengaturan' | 'monitoring_hafalan';
 
 interface Division {
   id: number;
@@ -1885,6 +1886,18 @@ function MainAppContent() {
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
+                {/* ... (kode tombol presensi) ... */}
+              </button>
+
+              {/* --- TAMBAHKAN KODE TOMBOL MONITORING HAFALAN DI SINI --- */}
+              <button
+                onClick={() => { setNavTab('monitoring_hafalan'); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  navTab === 'monitoring_hafalan'
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+                >
                 <div className="flex items-center gap-3 min-w-0">
                   <UserCheck className="w-5 h-5 text-emerald-400 shrink-0" />
                   {(isSidebarExpanded || isMobileMenuOpen) && <span className="truncate">Presensi & Absensi</span>}
@@ -4592,6 +4605,37 @@ function MainAppContent() {
 
             </div>
           )}
+          {/* TAB MONITORING HAFALAN (IFRAME) */}
+{navTab === 'monitoring_hafalan' && (
+  <div className="max-w-7xl mx-auto w-full h-[calc(100vh-120px)] bg-white rounded-3xl overflow-hidden shadow-xs border border-slate-200">
+    <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+      <div>
+        <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-emerald-600" />
+          Sistem Monitoring Hafalan Tahfidz
+        </h3>
+        <p className="text-[11px] text-slate-500 mt-0.5">
+          Terintegrasi langsung dengan portal tahfidh.
+        </p>
+      </div>
+      <a 
+        href="https://tahfidh-chi.vercel.app/" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+      >
+        Buka di Tab Baru <ExternalLink className="w-3 h-3" />
+      </a>
+    </div>
+    
+    <iframe 
+      src="https://tahfidh-chi.vercel.app/" 
+      className="w-full h-full border-none"
+      title="Sistem Monitoring Hafalan"
+      allowFullScreen
+    />
+  </div>
+)}
 
         </div>
 
