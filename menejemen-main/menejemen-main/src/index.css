@@ -67,35 +67,39 @@ button:focus-visible {
   }
 }
 @media print {
-  /* Sembunyikan elemen yang tidak perlu dicetak */
-  aside, button, select, input[type="date"], .no-print {
+  /* 1. Sembunyikan elemen yang tidak perlu */
+  aside, button, select, input, .no-print {
     display: none !important;
   }
 
-  /* Reset layout body dan html agar bisa berlanjut ke banyak halaman */
-  html, body, #root, main {
-    display: block !important;
+  /* 2. Buka kunci semua container utama (KUNCI PERBAIKANNYA DI SINI) */
+  /* Kita menargetkan class Tailwind yang sering mengunci layout */
+  html, body, #root, main, 
+  .h-screen, .min-h-screen, .max-h-screen, 
+  .overflow-hidden, .overflow-y-auto, .overflow-x-auto, 
+  .flex-1, .flex {
     height: auto !important;
     min-height: auto !important;
+    max-height: none !important;
     overflow: visible !important;
     position: static !important;
+    display: block !important; /* Mematikan flexbox utama agar mengalir ke bawah */
   }
 
-  /* Buat area utama mengambil lebar penuh */
+  /* 3. Buat area utama mengambil lebar penuh */
   main {
+    width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 100% !important;
   }
 
-  /* Jika tabel Anda dibungkus dengan div yang bisa di-scroll, matikan scroll-nya */
-  .overflow-x-auto, .overflow-y-auto {
-    overflow: visible !important;
-  }
-
-  /* Mencegah baris tabel terpotong tepat di tengah pergantian halaman */
+  /* 4. Pengaturan tabel agar tidak terpotong dan header berulang */
   table {
+    width: 100% !important;
     page-break-inside: auto !important;
+  }
+  thead {
+    display: table-header-group !important; /* Membuat judul kolom tabel (No, Nama Kamar, dll) muncul lagi di halaman 2, 3, dst */
   }
   tr, td, th {
     page-break-inside: avoid !important;
