@@ -2748,13 +2748,44 @@ function MainAppContent() {
           {navTab === 'monitoring_kebersihan' && (
             <div className="max-w-7xl mx-auto w-full space-y-4">
               
-              {/* Header E-Kebersihan & Tab Navigasi */}
+              {/* Header E-Kebersihan & Tab Navigasi Lengkap */}
               <div className="bg-emerald-700 rounded-3xl p-4 sm:p-6 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-white text-emerald-700 p-2 sm:p-3 rounded-xl shadow-inner flex-shrink-0">
+                    <ClipboardCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h1 className="text-lg sm:text-xl font-bold tracking-tight leading-none">E-Kebersihan Asrama</h1>
+                    <p className="text-xs text-emerald-100 mt-1">Sistem Kontrol Ketidakbersihan Kamar Santri</p>
+                  </div>
+                </div>
                 
-                {/* ... (kode logo judul) ... */}
-                
+                {/* Tombol Sub-Tab Lengkap */}
                 <div className="flex bg-emerald-800/50 backdrop-blur-md p-1 rounded-2xl overflow-x-auto scrollbar-none border border-emerald-600/50">
-                  {/* ... (tombol dashboard, input, riwayat) ... */}
+                  <button
+                    onClick={() => setKebersihanSubTab('dashboard')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                      kebersihanSubTab === 'dashboard' ? 'bg-white text-emerald-700 shadow-sm' : 'text-emerald-100 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Dashboard
+                  </button>
+                  <button
+                    onClick={() => setKebersihanSubTab('input')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                      kebersihanSubTab === 'input' ? 'bg-white text-emerald-700 shadow-sm' : 'text-emerald-100 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Input Laporan
+                  </button>
+                  <button
+                    onClick={() => setKebersihanSubTab('riwayat')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                      kebersihanSubTab === 'riwayat' ? 'bg-white text-emerald-700 shadow-sm' : 'text-emerald-100 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Riwayat Input
+                  </button>
                   <button
                     onClick={() => setKebersihanSubTab('rekap')}
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
@@ -2765,102 +2796,6 @@ function MainAppContent() {
                   </button>
                 </div>
               </div>
-
-
-              {/* === KONTEN 1: DASHBOARD === */}
-              {kebersihanSubTab === 'dashboard' && (
-                <div className="space-y-4">
-                  {/* Filter Analytics */}
-                  <div className="bg-white p-5 rounded-3xl shadow-xs border border-slate-200">
-                    <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                      <RotateCw className="w-4 h-4 text-emerald-600" />
-                      Filter Analytics Dashboard
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Mulai Tanggal</label>
-                        <input 
-                          type="date" 
-                          value={kebersihanStartDate}
-                          onChange={(e) => setKebersihanStartDate(e.target.value)}
-                          className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" 
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Sampai Tanggal</label>
-                        <input 
-                          type="date" 
-                          value={kebersihanEndDate}
-                          onChange={(e) => setKebersihanEndDate(e.target.value)}
-                          className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" 
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Stat Cards */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-rose-500">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Kasus Kotor</p>
-                      <h3 className="text-2xl font-black text-rose-600">{filteredLaporanKebersihan.length}</h3>
-                    </div>
-                    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-amber-500">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Laporan Masuk</p>
-                      <h3 className="text-xl font-black text-slate-800">{filteredLaporanKebersihan.length} Kasus</h3>
-                    </div>
-                    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-emerald-500">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Master Kamar</p>
-                      <h3 className="text-xl font-black text-slate-800">{kamarList.length} Kamar</h3>
-                    </div>
-                    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-blue-500">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Status Database</p>
-                      <h3 className="text-lg font-black text-emerald-600">Terhubung</h3>
-                    </div>
-                  </div>
-
-                  {/* Tabel Laporan Terkini */}
-                  <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
-                    <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                      <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                        <History className="w-4 h-4 text-emerald-600" />
-                        Laporan Pelanggaran Terkini
-                      </h4>
-                    </div>
-                    <div className="overflow-x-auto w-full">
-                      <table className="w-full text-sm text-left">
-                        <thead className="text-[11px] text-slate-500 uppercase tracking-wider bg-white border-b border-slate-100">
-                          <tr>
-                            <th className="px-5 py-3">Tanggal</th>
-                            <th className="px-5 py-3">Jenjang</th>
-                            <th className="px-5 py-3">Kamar</th>
-                            <th className="px-5 py-3">Wali Halaqoh</th>
-                            <th className="px-5 py-3 max-w-[200px]">Keterangan</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
-                          {filteredLaporanKebersihan.length === 0 ? (
-                            <tr>
-                              <td colSpan={5} className="px-5 py-10 text-center text-slate-400 italic">
-                                Belum ada laporan pada rentang tanggal ini.
-                              </td>
-                            </tr>
-                          ) : (
-                            filteredLaporanKebersihan.slice(0, 5).map((item, idx) => (
-                              <tr key={item.id || idx} className="hover:bg-slate-50">
-                                <td className="px-5 py-3 font-mono">{item.tanggal}</td>
-                                <td className="px-5 py-3"><span className="bg-slate-100 px-2 py-0.5 rounded font-bold">{item.jenjang}</span></td>
-                                <td className="px-5 py-3 font-bold text-emerald-800">{item.kamar}</td>
-                                <td className="px-5 py-3">{item.wali_halaqoh}</td>
-                                <td className="px-5 py-3 text-slate-500">{item.keterangan}</td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* === KONTEN 2: INPUT LAPORAN === */}
               {kebersihanSubTab === 'input' && (
