@@ -3095,6 +3095,7 @@ function MainAppContent() {
                   </div>
                 </div>
               )}
+
               {/* MODAL EDIT LAPORAN KEBERSIHAN */}
               {isEditKebersihanModalOpen && (
                 <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
@@ -3151,10 +3152,11 @@ function MainAppContent() {
                       </div>
                     </form>
                   </div>
-                </div>
+                </div> 
               )}
-            </div>
-          )}
+
+            </div> {/* <--- INI ADALAH PENUTUP DARI CONTAINER "max-w-7xl mx-auto w-full space-y-4" */}
+          )} {/* <--- INI ADALAH PENUTUP DARI "navTab === 'monitoring_kebersihan'" */}
 
           {/* PERHATIAN: JANGAN menaruh </div> dan </main> di sini! */}
           
