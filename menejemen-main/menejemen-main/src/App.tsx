@@ -3097,9 +3097,77 @@ function MainAppContent() {
               
               {/* === KONTEN 4: LAPORAN REKAP === */}
         {kebersihanSubTab === 'rekap' && (
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="font-bold text-sm text-slate-800">Laporan Rekapitulasi Kebersihan Kamar</h3>
-            <p className="text-xs text-slate-500">Akumulasi total pelanggaran ketidakbersihan berdasarkan data master kamar.</p>
+          <div className="overflow-x-auto">
+  <table className="w-full text-sm text-left">
+    <thead className="text-xs uppercase bg-slate-50 text-slate-500">
+      <tr>
+        <th className="px-4 py-3 text-center">No</th>
+        <th className="px-4 py-3">Nama Kamar</th>
+        <th className="px-4 py-3">Jenjang</th>
+        <th className="px-4 py-3">Wali Halaqoh</th>
+        <th className="px-4 py-3 text-center">Jumlah Tidak Bersih</th>
+        <th className="px-4 py-3 text-center">Persentase Kebersihan</th>
+        <th className="px-4 py-3">Keterangan / Catatan Ketidakbersihan</th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-slate-100 text-xs">
+      {processedRekapKamar.length === 0 ? (
+        <tr><td colSpan={7} className="px-4 py-6 text-center text-slate-400">Belum ada data kamar.</td></tr>
+      ) : (
+        processedRekapKamar.map((k, idx) => {
+          // Asumsi pembagi hari (sesuaikan dengan logika sistem Anda, misalnya 32)
+          // Berdasarkan gambar: 11 kasus = 65.6% -> (32 - 11) / 32 * 100 = 65.6%
+          const asumsiTotalHari = 31; 
+          const persentase = Math.max(0, ((asumsiTotalHari - k.totalKasus) / asumsiTotalHari) * 100).toFixed(1);
+
+          return (
+            <tr key={k.nama_kamar || idx} className="hover:bg-slate-50">
+              <td className="px-4 py-3 text-center font-mono text-slate-500">{idx + 1}</td>
+              <td className="px-4 py-3 font-bold text-slate-900">{k.nama_kamar}</td>
+              <td className="px-4 py-3">
+                <span className="bg-slate-100 px-2 py-0.5 rounded font-bold text-[10px]">{k.jenjang}</span>
+              </td>
+              <td className="px-4 py-3 text-slate-600">{k.wali_halaqoh}</td>
+              
+              {/* Kolom Jumlah Tidak Bersih */}
+              <td className="px-4 py-3 text-center">
+                <span className={`px-3 py-1 rounded-full font-bold text-[10px] ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                  {k.totalKasus} Kasus
+                </span>
+              </td>
+
+              {/* Kolom Persentase Kebersihan */}
+              <td className="px-4 py-3 text-center">
+                <span className={`px-3 py-1 rounded-full font-bold text-[10px] ${Number(persentase) < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                  {persentase}%
+                </span>
+              </td>
+
+              {/* Kolom Keterangan / Catatan Ketidakbersihan */}
+              <td className="px-4 py-3 text-slate-700 text-[11px] leading-relaxed">
+                {k.riwayatKasus && k.riwayatKasus.length > 0 ? (
+                  <ul className="space-y-1">
+                    {k.riwayatKasus.map((riwayat: any, i: number) => {
+                      // Format tanggal YYYY-MM-DD ke DD/MM/YYYY
+                      const formatTanggal = riwayat.tanggal.split('-').reverse().join('/');
+                      return (
+                        <li key={i}>
+                          <strong>{formatTanggal}:</strong> {riwayat.keterangan}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <span className="text-slate-400 italic">Bersih / Tidak ada catatan</span>
+                )}
+              </td>
+            </tr>
+          );
+        })
+      )}
+    </tbody>
+  </table>
+</div>
 
             {/* Filter & Sortir Controls */}
             <div className="flex flex-col md:flex-row gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
