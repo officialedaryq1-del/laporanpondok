@@ -838,15 +838,12 @@ function MainAppContent() {
     fetchSupabaseData();
   }, []);
 
-  // Trigger Lazy Load saat tab Rekap Nilai atau Presensi pertama kali diklik
+  // Trigger Lazy Load saat tab Presensi pertama kali diklik
   useEffect(() => {
-    if (navTab === 'rekap_nilai' && !hasFetchedNilai) {
-      fetchDaftarNilaiProgressive();
-    }
     if (navTab === 'rekap_absensi' && !hasFetchedFullPresensi) {
       fetchFullPresensi();
     }
-  }, [navTab, hasFetchedNilai, hasFetchedFullPresensi]);
+  }, [navTab, hasFetchedFullPresensi]);
 
   useEffect(() => {
     const loadCatatanBulan = async () => {
@@ -1090,14 +1087,6 @@ function MainAppContent() {
     const scale3 = parseFloat(((percentage / 100) * 3).toFixed(2));
     return { percentage, scale3, totalViolations: defectCount };
   }, [templateSections, checkedItems, sectionTypeMap, items]);
-
-  const santriNisKelasMap = useMemo(() => {
-    const map = new Map<string, string>();
-    santriList.forEach(s => {
-      if (s.nis && s.kelas) map.set(String(s.nis).trim(), String(s.kelas).trim());
-    });
-    return map;
-  }, [santriList]);
 
 
   const rekapAbsensiList = useMemo(() => {
