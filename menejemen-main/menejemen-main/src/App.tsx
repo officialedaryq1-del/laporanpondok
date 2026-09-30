@@ -3817,12 +3817,12 @@ function MainAppContent() {
           )}
 
           {}
-         {navTab === 'monitoring_hafalan' && (
-            <div className="max-w-7xl mx-auto w-full h-full pb-4">
-              <div className="bg-white rounded-3xl p-1 sm:p-2 border border-slate-200/80 shadow-xs h-[calc(100vh-90px)] w-full overflow-hidden">
+        {navTab === 'monitoring_hafalan' && (
+            <div className="w-full h-[calc(100vh-100px)] md:h-[calc(100vh-60px)]">
+              <div className="w-full h-full bg-white md:rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
                 <iframe 
                   src="https://tahfidh-chi.vercel.app/" 
-                  className="w-full h-full rounded-2xl border-none"
+                  className="w-full h-full border-none"
                   title="Monitoring Hafalan"
                 />
               </div>
