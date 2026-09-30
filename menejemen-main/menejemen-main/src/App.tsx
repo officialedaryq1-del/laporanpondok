@@ -1881,25 +1881,6 @@ function MainAppContent() {
               </button>
 
               <button
-                onClick={() => { setNavTab('rekap_nilai'); setIsMobileMenuOpen(false); }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                  navTab === 'rekap_nilai'
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                }`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <Award className="w-5 h-5 text-amber-400 shrink-0" />
-                  {(isSidebarExpanded || isMobileMenuOpen) && <span className="truncate">Rekap Penilaian</span>}
-                </div>
-                {(isSidebarExpanded || isMobileMenuOpen) && (
-                  <span className="text-[10px] font-mono font-bold bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-full">
-                    {daftarNilai.length}
-                  </span>
-                )}
-              </button>
-
-              <button
                 onClick={() => { setNavTab('rekap_absensi'); setIsMobileMenuOpen(false); }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   navTab === 'rekap_absensi'
@@ -1917,42 +1898,6 @@ function MainAppContent() {
                   </span>
                 )}
               </button>
-
-              {/* Tautan Portal Sistem Tabungan Santri (NFC) */}
-              <a
-                href="https://tabungan.smpqtyq1lilbanat.sch.id/nfc.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-emerald-400 hover:text-white hover:bg-emerald-950/40 border border-emerald-500/20 group"
-                title="Buka Portal Sistem Tabungan Santri (NFC)"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <Wallet className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition shrink-0" />
-                  {(isSidebarExpanded || isMobileMenuOpen) && <span className="truncate">Tabungan Santri (NFC)</span>}
-                </div>
-                {(isSidebarExpanded || isMobileMenuOpen) && (
-                  <ExternalLink className="w-3.5 h-3.5 text-emerald-400/70 group-hover:text-emerald-300 shrink-0" />
-                )}
-              </a>
-
-              {/* Tautan Portal Sistem Poin Santri */}
-              <a
-                href="https://menejemen.smpqtyq1lilbanat.sch.id/sistem_poin.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-amber-400 hover:text-white hover:bg-amber-950/40 border border-amber-500/20 group"
-                title="Buka Portal Sistem Poin Santri"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <Star className="w-5 h-5 text-amber-400 group-hover:scale-110 transition shrink-0" />
-                  {(isSidebarExpanded || isMobileMenuOpen) && <span className="truncate">Poin Santri</span>}
-                </div>
-                {(isSidebarExpanded || isMobileMenuOpen) && (
-                  <ExternalLink className="w-3.5 h-3.5 text-amber-400/70 group-hover:text-amber-300 shrink-0" />
-                )}
-              </a>
 
               {/* Tombol Menu Pengaturan Master Data */}
               <button
