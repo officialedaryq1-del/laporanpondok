@@ -1679,7 +1679,7 @@ function MainAppContent() {
                 )}
               </button>
 
-              <button
+              <a
                 onClick={() => { setNavTab('monitoring_hafalan'); setIsMobileMenuOpen(false); }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   navTab === 'monitoring_hafalan'
@@ -1691,7 +1691,7 @@ function MainAppContent() {
                   <BookOpen className="w-5 h-5 text-amber-400 shrink-0" />
                   {(isSidebarExpanded || isMobileMenuOpen) && <span className="truncate">Monitoring Hafalan</span>}
                 </div>
-              </button>
+              </a>
 
               {/* Tombol Menu Pengaturan Master Data */}
               <button
@@ -3817,17 +3817,7 @@ function MainAppContent() {
           )}
 
           {}
-        {navTab === 'monitoring_hafalan' && (
-            <div className="w-full h-[calc(100vh-100px)] md:h-[calc(100vh-60px)]">
-              <div className="w-full h-full bg-white md:rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                <iframe 
-                  src="https://tahfidh-chi.vercel.app/" 
-                  className="w-full h-full border-none"
-                  title="Monitoring Hafalan"
-                />
-              </div>
-            </div>
-          )}
+        
           
           {}
           {navTab === 'pengaturan' && (
