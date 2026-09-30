@@ -44,10 +44,12 @@ const X = createIcon(<><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>);
 const Settings = createIcon(<><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>);
 const Edit = createIcon(<><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>);
 const Menu = createIcon(<><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></>);
+const Wallet = createIcon(<><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></>);
 const ExternalLink = createIcon(<><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></>);
+const Star = createIcon(<><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></>);
 
 type TimeframeCategory = 'Harian' | 'Mingguan' | 'Bulanan' | 'Tahunan';
-type NavigationTab = 'dashboard' | 'ceklis' | 'laporan' | 'rekap_absensi' | 'pengaturan' | 'monitoring_hafalan';
+type NavigationTab = 'dashboard' | 'ceklis' | 'laporan' | 'rekap_nilai' | 'rekap_absensi' | 'pengaturan';
 
 interface Division {
   id: number;
@@ -850,7 +852,9 @@ function MainAppContent() {
 
   // Trigger Lazy Load saat tab Rekap Nilai atau Presensi pertama kali diklik
   useEffect(() => {
-  useEffect(() => {
+    if (navTab === 'rekap_nilai' && !hasFetchedNilai) {
+      fetchDaftarNilaiProgressive();
+    }
     if (navTab === 'rekap_absensi' && !hasFetchedFullPresensi) {
       fetchFullPresensi();
     }
@@ -1877,6 +1881,25 @@ function MainAppContent() {
               </button>
 
               <button
+                onClick={() => { setNavTab('rekap_nilai'); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  navTab === 'rekap_nilai'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Award className="w-5 h-5 text-amber-400 shrink-0" />
+                  {(isSidebarExpanded || isMobileMenuOpen) && <span className="truncate">Rekap Penilaian</span>}
+                </div>
+                {(isSidebarExpanded || isMobileMenuOpen) && (
+                  <span className="text-[10px] font-mono font-bold bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-full">
+                    {daftarNilai.length}
+                  </span>
+                )}
+              </button>
+
+              <button
                 onClick={() => { setNavTab('rekap_absensi'); setIsMobileMenuOpen(false); }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   navTab === 'rekap_absensi'
@@ -1884,18 +1907,6 @@ function MainAppContent() {
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                {/* ... (kode tombol presensi) ... */}
-              </button>
-
-              {/* --- TAMBAHKAN KODE TOMBOL MONITORING HAFALAN DI SINI --- */}
-              <button
-                onClick={() => { setNavTab('monitoring_hafalan'); setIsMobileMenuOpen(false); }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                  navTab === 'monitoring_hafalan'
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                }`}
-                >
                 <div className="flex items-center gap-3 min-w-0">
                   <UserCheck className="w-5 h-5 text-emerald-400 shrink-0" />
                   {(isSidebarExpanded || isMobileMenuOpen) && <span className="truncate">Presensi & Absensi</span>}
@@ -1906,6 +1917,42 @@ function MainAppContent() {
                   </span>
                 )}
               </button>
+
+              {/* Tautan Portal Sistem Tabungan Santri (NFC) */}
+              <a
+                href="https://tabungan.smpqtyq1lilbanat.sch.id/nfc.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-emerald-400 hover:text-white hover:bg-emerald-950/40 border border-emerald-500/20 group"
+                title="Buka Portal Sistem Tabungan Santri (NFC)"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Wallet className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition shrink-0" />
+                  {(isSidebarExpanded || isMobileMenuOpen) && <span className="truncate">Tabungan Santri (NFC)</span>}
+                </div>
+                {(isSidebarExpanded || isMobileMenuOpen) && (
+                  <ExternalLink className="w-3.5 h-3.5 text-emerald-400/70 group-hover:text-emerald-300 shrink-0" />
+                )}
+              </a>
+
+              {/* Tautan Portal Sistem Poin Santri */}
+              <a
+                href="https://menejemen.smpqtyq1lilbanat.sch.id/sistem_poin.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-amber-400 hover:text-white hover:bg-amber-950/40 border border-amber-500/20 group"
+                title="Buka Portal Sistem Poin Santri"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Star className="w-5 h-5 text-amber-400 group-hover:scale-110 transition shrink-0" />
+                  {(isSidebarExpanded || isMobileMenuOpen) && <span className="truncate">Poin Santri</span>}
+                </div>
+                {(isSidebarExpanded || isMobileMenuOpen) && (
+                  <ExternalLink className="w-3.5 h-3.5 text-amber-400/70 group-hover:text-amber-300 shrink-0" />
+                )}
+              </a>
 
               {/* Tombol Menu Pengaturan Master Data */}
               <button
@@ -1986,7 +2033,7 @@ function MainAppContent() {
             <div className="min-w-0">
               <div className="font-bold text-xs truncate">PTYQ 1 PUTRA SMP</div>
               <div className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold truncate">
-                {navTab === 'dashboard' ? 'Dashboard Pantauan' : navTab === 'laporan' ? 'Laporan IKU' : navTab === 'rekap_absensi' ? 'Presensi' : activeDivision.name}
+                {navTab === 'dashboard' ? 'Dashboard Pantauan' : navTab === 'laporan' ? 'Laporan IKU' : navTab === 'rekap_nilai' ? 'Rekap Nilai' : navTab === 'rekap_absensi' ? 'Presensi' : activeDivision.name}
               </div>
             </div>
           </div>
@@ -2870,7 +2917,8 @@ function MainAppContent() {
             const guruJurnalHariIniSet = new Set(subsHariIni.map(s => s.target_person || s.pj_name).filter(Boolean));
             const countGuruJurnalHariIni = guruJurnalHariIniSet.size;
 
-         
+            const guruLegerSet = new Set(daftarNilai.map(n => n.nama_guru).filter(Boolean));
+            const countGuruLeger = guruLegerSet.size;
             const totalGuruCount = guruList.length || 23;
 
             const countSiswaAbsenHariIni = dailyGlobalStats.sakit + dailyGlobalStats.izin + dailyGlobalStats.alpha;
@@ -2971,7 +3019,30 @@ function MainAppContent() {
                     </div>
                   </div>
 
-                  
+                  {/* Kartu 3: Jumlah Guru Mengisi Leger Nilai */}
+                  <div 
+                    onClick={() => setNavTab('rekap_nilai')}
+                    className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/80 shadow-xs flex items-center justify-between cursor-pointer hover:border-amber-300 hover:shadow-md transition group"
+                  >
+                    <div className="space-y-0.5 sm:space-y-1">
+                      <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 block">
+                        GURU MENGISI LEGER NILAI
+                      </span>
+                      <div className="flex items-baseline gap-1.5 sm:gap-2">
+                        <span className="text-2xl sm:text-3xl font-black text-amber-600 tracking-tight">
+                          {countGuruLeger}
+                        </span>
+                        <span className="text-[11px] sm:text-xs text-slate-400 font-semibold">dari {totalGuruCount} Guru</span>
+                      </div>
+                      <p className="text-[10px] sm:text-[11px] text-slate-500">
+                        Akumulasi: {daftarNilai.length} butir nilai tersimpan
+                      </p>
+                    </div>
+                    <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                      <Award className="w-5 h-5 sm:w-7 sm:h-7" />
+                    </div>
+                  </div>
+
                 </div>
 
                 {/* Tabel Pantauan Input Kegiatan Harian Semua Divisi */}
@@ -4033,6 +4104,260 @@ function MainAppContent() {
           )}
 
           {}
+          {navTab === 'rekap_nilai' && (
+            <div className="max-w-7xl mx-auto w-full space-y-6">
+              
+              {/* Header Filter Panel */}
+              <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-4 sm:space-y-5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                      <Award className="w-6 h-6 text-amber-500" />
+                      Rekapitulasi Ketuntasan Belajar Siswa
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Analisis ketercapaian KKM (Standar Tuntas ≥ 80% Siswa Mencapai KKM)
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 border border-slate-200">
+                      Total: <strong>{rekapNilaiPerRombel.length}</strong> Rombel Kelas
+                    </span>
+                    <button
+                      onClick={() => {
+                        setFilterNilaiMapel('all');
+                        setFilterNilaiGuru('all');
+                        setFilterNilaiKelas('all');
+                        setFilterNilaiUjian('all');
+                        setSearchNilaiSiswa('');
+                        setNilaiPage(1);
+                      }}
+                      className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                    >
+                      Reset Filter
+                    </button>
+                  </div>
+                </div>
+
+                {/* Filter Grid 5 Kolom */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-3 border-t border-slate-100">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                      Mata Pelajaran:
+                    </label>
+                    <select
+                      value={filterNilaiMapel}
+                      onChange={(e) => { setFilterNilaiMapel(e.target.value); setNilaiPage(1); }}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">Semua Mapel</option>
+                      {Array.from(new Set(daftarNilai.map(n => n.nama_mapel).filter(Boolean))).sort().map(m => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                      Guru / Ustadzah:
+                    </label>
+                    <select
+                      value={filterNilaiGuru}
+                      onChange={(e) => { setFilterNilaiGuru(e.target.value); setNilaiPage(1); }}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">Semua Ustadzah</option>
+                      {Array.from(new Set(daftarNilai.map(n => n.nama_guru).filter(Boolean))).sort().map(g => (
+                        <option key={g} value={g}>{g}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                      Kelas:
+                    </label>
+                    <select
+                      value={filterNilaiKelas}
+                      onChange={(e) => { setFilterNilaiKelas(e.target.value); setNilaiPage(1); }}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">Semua Kelas</option>
+                      {['VII A', 'VII B', 'VII C', 'VII D', 'VII E', 'VIII A', 'VIII B', 'VIII C', 'VIII D', 'IX A', 'IX B'].map(k => (
+                        <option key={k} value={k}>{k}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                      Jenis Ujian:
+                    </label>
+                    <select
+                      value={filterNilaiUjian}
+                      onChange={(e) => { setFilterNilaiUjian(e.target.value); setNilaiPage(1); }}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">Semua Ujian</option>
+                      {Array.from(new Set(daftarNilai.map(n => n.nama_ujian).filter(Boolean))).sort().map(u => (
+                        <option key={u} value={u}>{u}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                      Cari Guru / Mapel / Santri:
+                    </label>
+                    <input
+                      type="text"
+                      value={searchNilaiSiswa}
+                      onChange={(e) => { setSearchNilaiSiswa(e.target.value); setNilaiPage(1); }}
+                      placeholder="Ketik nama pencarian..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Tabel Rekap Ketuntasan Rombel */}
+              <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+                <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <span>Daftar Ketuntasan Pembelajaran per Rombel (Halaman {nilaiPage} dari {totalNilaiPages})</span>
+                    {isNilaiLoading && (
+                      <span className="inline-flex items-center gap-1.5 text-blue-600 text-[11px] font-semibold bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                        <RotateCw className="w-3 h-3 animate-spin" /> Memuat data nilai...
+                      </span>
+                    )}
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setNilaiPage(p => Math.max(1, p - 1))}
+                      disabled={nilaiPage === 1}
+                      className="p-1.5 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-30 hover:bg-white cursor-pointer"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <span className="text-xs font-bold text-slate-600 px-2">{nilaiPage}</span>
+                    <button
+                      onClick={() => setNilaiPage(p => Math.min(totalNilaiPages, p + 1))}
+                      disabled={nilaiPage === totalNilaiPages}
+                      className="p-1.5 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-30 hover:bg-white cursor-pointer"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-600 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
+                        <th className="py-3.5 px-4 w-12 text-center">NO</th>
+                        <th className="py-3.5 px-5 min-w-[200px]">NAMA GURU ▲</th>
+                        <th className="py-3.5 px-5 min-w-[170px]">MATA PELAJARAN ⇅</th>
+                        <th className="py-3.5 px-3 text-center min-w-[80px]">KELAS ⇅</th>
+                        <th className="py-3.5 px-3 text-center min-w-[70px]">KKM ⇅</th>
+                        <th className="py-3.5 px-4 text-center min-w-[90px]">JML SISWA ⇅</th>
+                        <th className="py-3.5 px-4 text-center min-w-[90px]">RATA-RATA ⇅</th>
+                        <th className="py-3.5 px-4 text-center min-w-[140px]">SISWA &lt; KKM (%) ⇅</th>
+                        <th className="py-3.5 px-4 text-center min-w-[140px]">SISWA ≥ KKM (%) ⇅</th>
+                        <th className="py-3.5 px-5 text-center min-w-[150px]">STATUS KETUNTASAN ⇅</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-slate-700">
+                      {isNilaiLoading && daftarNilai.length === 0 ? (
+                        <tr>
+                          <td colSpan={10} className="py-12 text-center text-blue-600 italic">
+                            <div className="flex flex-col items-center justify-center gap-2">
+                              <RotateCw className="w-6 h-6 animate-spin text-blue-600" />
+                              <span className="text-xs font-semibold">Mengambil dan merekap data penilaian siswa...</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : paginatedRekapRombel.length === 0 ? (
+                        <tr>
+                          <td colSpan={10} className="py-12 text-center text-slate-400 italic">
+                            Tidak ada data penilaian yang sesuai dengan kriteria filter.
+                          </td>
+                        </tr>
+                      ) : (
+                        paginatedRekapRombel.map((item, idx) => {
+                          const rowNum = (nilaiPage - 1) * NILAI_PER_PAGE + idx + 1;
+
+                          return (
+                            <tr
+                              key={item.id}
+                              onClick={() => setSelectedRombelDetail(item)}
+                              className={`transition-colors cursor-pointer group ${
+                                !item.is_tuntas ? 'bg-rose-50/40 hover:bg-rose-50/70' : 'hover:bg-slate-50/80'
+                              }`}
+                            >
+                              <td className="py-3.5 px-4 text-center font-mono text-slate-400">{rowNum}</td>
+                              <td className="py-3.5 px-5 font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                                {item.nama_guru}
+                              </td>
+                              <td className="py-3.5 px-5 font-semibold text-blue-600">
+                                {item.nama_mapel}
+                              </td>
+                              <td className="py-3.5 px-3 text-center">
+                                <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-800 font-bold text-[11px] border border-slate-200">
+                                  {item.kelas}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-3 text-center font-mono font-bold text-slate-700">
+                                {item.kkm}
+                              </td>
+                              <td className="py-3.5 px-4 text-center font-bold text-slate-800">
+                                {item.jml_siswa}
+                              </td>
+                              <td className="py-3.5 px-4 text-center font-mono font-black text-slate-900">
+                                {item.rata_rata.toFixed(2)}
+                              </td>
+                              <td className="py-3.5 px-4 text-center">
+                                <div className="font-mono font-bold text-rose-600">
+                                  {item.pct_below_kkm.toFixed(1)}%
+                                </div>
+                                <div className="text-[10px] text-slate-400">
+                                  ({item.count_below_kkm} siswa)
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-4 text-center">
+                                <div className="font-mono font-bold text-emerald-600">
+                                  {item.pct_above_kkm.toFixed(1)}%
+                                </div>
+                                <div className="text-[10px] text-slate-400">
+                                  ({item.count_above_kkm} siswa)
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-5 text-center">
+                                {item.is_tuntas ? (
+                                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    <span>Tuntas Baik</span>
+                                  </div>
+                                ) : (
+                                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-600 text-white shadow-xs">
+                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                    <span>&lt; 80% TUNTAS</span>
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {}
           {navTab === 'pengaturan' && (
             <div className="max-w-7xl mx-auto w-full space-y-6">
               
@@ -4349,37 +4674,6 @@ function MainAppContent() {
 
             </div>
           )}
-                    {/* TAB MONITORING HAFALAN (IFRAME) */}
-          {navTab === 'monitoring_hafalan' && (
-            <div className="max-w-7xl mx-auto w-full h-[calc(100vh-120px)] bg-white rounded-3xl overflow-hidden shadow-xs border border-slate-200">
-              <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-emerald-600" />
-                    Sistem Monitoring Hafalan Tahfidz
-                  </h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    Terintegrasi langsung dengan portal tahfidh.
-                  </p>
-                </div>
-                <a 
-                  href="https://tahfidh-chi.vercel.app/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
-                >
-                  Buka di Tab Baru <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-              
-              <iframe 
-                src="https://tahfidh-chi.vercel.app/" 
-                className="w-full h-full border-none"
-                title="Sistem Monitoring Hafalan"
-                allowFullScreen
-              />
-            </div>
-          )}
 
         </div>
 
@@ -4692,14 +4986,9 @@ function MainAppContent() {
                 </button>
               </div>
             </form>
-            )}
           </div>
         </div>
-      )}
-
-     </div>                   
-     );
-  }    
+      );
     })()}
 
     {masterModalType && (
