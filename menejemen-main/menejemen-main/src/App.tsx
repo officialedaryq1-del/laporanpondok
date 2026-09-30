@@ -3003,8 +3003,8 @@ function MainAppContent() {
                   </form>
                 </div>
               )}
-
-              {{/* === KONTEN 3: RIWAYAT INPUT === */}
+              
+              {/* === KONTEN 3: RIWAYAT INPUT === */}
               {kebersihanSubTab === 'riwayat' && (
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
                   <h3 className="font-bold text-sm text-slate-800">Riwayat Data Laporan Tersimpan</h3>
@@ -3155,10 +3155,12 @@ function MainAppContent() {
                 </div> 
               )}
 
-            </div> {/* <--- INI ADALAH PENUTUP DARI CONTAINER "max-w-7xl mx-auto w-full space-y-4" */}
-          })()} {/* <--- INI ADALAH PENUTUP DARI "navTab === 'monitoring_kebersihan'" */}
+            </div>
+          )}
 
-          {/* PERHATIAN: JANGAN menaruh </div> dan </main> di sini! */}
+          {/* ========================================================= */}
+          {/* BATAS MENU KEBERSIHAN BERAKHIR - MULAI MENU DASHBOARD       */}
+          {/* ========================================================= */}
           
           {navTab === 'dashboard' && (() => {
             const todayStr = inputAbsensiTanggal || new Date().toISOString().slice(0, 10);
