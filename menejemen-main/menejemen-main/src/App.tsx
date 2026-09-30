@@ -2979,9 +2979,6 @@ function MainAppContent() {
                     </div>
                   </div>
 
-                  
-                  </div>
-
                 </div>
 
                 {/* Tabel Pantauan Input Kegiatan Harian Semua Divisi */}
@@ -4054,10 +4051,7 @@ function MainAppContent() {
               </div>
             </div>
           )}
-
-            </div>
-          )}
-
+          
           {}
           {navTab === 'pengaturan' && (
             <div className="max-w-7xl mx-auto w-full space-y-6">
