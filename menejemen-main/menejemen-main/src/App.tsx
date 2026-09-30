@@ -295,6 +295,15 @@ function MainAppContent() {
   const [isImporting, setIsImporting] = useState<boolean>(false);
   const [isSavingAbsensi, setIsSavingAbsensi] = useState<boolean>(false);
 
+  // State khusus E-Kebersihan
+  const [kebersihanSubTab, setKebersihanSubTab] = useState<'dashboard' | 'input' | 'riwayat' | 'rekap'>('dashboard');
+  const [kamarList, setKamarList] = useState<Array<{nama_kamar: string; jenjang: string; wali_halaqoh: string}>>([]);
+  const [laporanKebersihanList, setLaporanKebersihanList] = useState<Array<any>>([]);
+  
+  // State form input kebersihan
+  const [formKebersihanTgl, setFormKebersihanTgl] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [formKebersihanKamar, setFormKebersihanKamar] = useState<string>('');
+  const [formKebersihanKeterangan, setFormKebersihanKeterangan] = useState<string>('');
 
   // State Lazy Loading untuk mempercepat Initial Load
   const [hasFetchedFullPresensi, setHasFetchedFullPresensi] = useState<boolean>(false);
@@ -682,7 +691,9 @@ function MainAppContent() {
         fetch(`${SUPABASE_URL}/rest/v1/daftar_mapel?select=*&order=nama_mapel.asc`, { headers: reqHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/wali_kelas?select=*&order=kelas.asc`, { headers: reqHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/santri?select=*&limit=1000`, { headers: reqHeaders }),
-        fetch(`${SUPABASE_URL}/rest/v1/presensi_siswa?select=*&order=tanggal.desc&limit=800`, { headers: reqHeaders })
+        fetch(`${SUPABASE_URL}/rest/v1/presensi_siswa?select=*&order=tanggal.desc&limit=800`, { headers: reqHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/data_kamar?select=*`, { headers: reqHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/laporan_kebersihan?select=*&order=tanggal.desc`, { headers: reqHeaders })
       ]);
 
       const [divRes, ikuRes, tplRes, secRes, itRes, subRes, guruRes, mapelRes, waliRes, santriRes, presensiRes] = results;
@@ -772,6 +783,16 @@ function MainAppContent() {
         }
       }
 
+      // 2. LETAKKAN KODE PENGECEKAN E-KEBERSIHAN DI SINI (Di bawah if presensiRes)
+      if (kamarRes && kamarRes.status === 'fulfilled' && kamarRes.value.ok) {
+        const data = await kamarRes.value.json();
+        if (Array.isArray(data)) setKamarList(data);
+      }
+      if (laporanKebersihanRes && laporanKebersihanRes.status === 'fulfilled' && laporanKebersihanRes.value.ok) {
+        const data = await laporanKebersihanRes.value.json();
+        if (Array.isArray(data)) setLaporanKebersihanList(data);
+      }
+      
       try {
         const catRes = await fetch(`${SUPABASE_URL}/rest/v1/laporan_iku_catatan?bulan=eq.${laporanBulan}`, { headers: reqHeaders });
         if (catRes.ok) {
@@ -1560,7 +1581,45 @@ function MainAppContent() {
       setDetailItemsLoading(false);
     }
   };
+// LETAKKAN FUNGSI handleSubmitKebersihan DI SINI
+  const handleSubmitKebersihan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formKebersihanKamar || !formKebersihanKeterangan) {
+      showToast('Kamar dan keterangan harus diisi!', 'warning');
+      return;
+    }
 
+    const selectedKamar = kamarList.find(k => k.nama_kamar === formKebersihanKamar);
+    
+    const payload = {
+      tanggal: formKebersihanTgl,
+      kamar: formKebersihanKamar,
+      jenjang: selectedKamar?.jenjang || '-',
+      wali_halaqoh: selectedKamar?.wali_halaqoh || '-',
+      keterangan: formKebersihanKeterangan
+    };
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/laporan_kebersihan`, {
+        method: 'POST',
+        headers: reqHeaders,
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        showToast('Laporan kebersihan berhasil disimpan!', 'success');
+        setFormKebersihanKeterangan('');
+        setFormKebersihanKamar('');
+        setKebersihanSubTab('riwayat');
+        fetchSupabaseData(); // Refresh data dari server
+      } else {
+        showToast('Gagal menyimpan laporan kebersihan', 'error');
+      }
+    } catch (err) {
+      showToast('Terjadi kesalahan koneksi', 'error');
+    }
+  };
+  
   const isSidebarExpanded = isSidebarPinned || isSidebarHovered;
 
   return (
@@ -2691,7 +2750,104 @@ function MainAppContent() {
                   </button>
                 </div>
               </div>
+{/* KONTEN 1: DASHBOARD */}
+              {kebersihanSubTab === 'dashboard' && (
+                <div className="space-y-4">
+                  {/* Masukkan elemen Filter, Stat Cards, dan Tabel Laporan Terkini di sini */}
+                </div>
+              )}
 
+              {/* KONTEN 2: FORM INPUT LAPORAN */}
+              {kebersihanSubTab === 'input' && (
+                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
+                  <h3 className="font-bold text-sm text-slate-800 mb-4">Form Input Ketidakbersihan</h3>
+                  <form onSubmit={handleSubmitKebersihan} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal Sidak</label>
+                      <input 
+                        type="date" 
+                        value={formKebersihanTgl} 
+                        onChange={(e) => setFormKebersihanTgl(e.target.value)} 
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold"
+                      />
+                    </div>
+                    {/* === TEMPAT TARUH KODE DROPDOWN KAMAR DI SINI === */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Kamar Santri</label>
+                      <select 
+                        value={formKebersihanKamar} 
+                        onChange={(e) => setFormKebersihanKamar(e.target.value)} 
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold cursor-pointer"
+                      >
+                        <option value="">-- Pilih Kamar --</option>
+                        {kamarList.map(k => (
+                          <option key={k.nama_kamar} value={k.nama_kamar}>{k.nama_kamar}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {/* ============================================= */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Kamar Santri</label>
+                      <select 
+                        value={formKebersihanKamar} 
+                        onChange={(e) => setFormKebersihanKamar(e.target.value)} 
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold cursor-pointer"
+                      >
+                        <option value="">-- Pilih Kamar --</option>
+                        {kamarList.map(k => (
+                          <option key={k.nama_kamar} value={k.nama_kamar}>{k.nama_kamar} ({k.jenjang})</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Detail Keterangan</label>
+                      <textarea 
+                        rows={3} 
+                        value={formKebersihanKeterangan} 
+                        onChange={(e) => setFormKebersihanKeterangan(e.target.value)} 
+                        placeholder="Contoh: Sampah menumpuk..." 
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+                      />
+                    </div>
+                    <button type="submit" className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md">
+                      Simpan Laporan
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {/* KONTEN 3: RIWAYAT INPUT */}
+              {kebersihanSubTab === 'riwayat' && (
+                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
+                  <h3 className="font-bold text-sm text-slate-800 mb-4">Riwayat Data Laporan Tersimpan</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="text-xs uppercase bg-slate-50 text-slate-500">
+                        <tr>
+                          <th className="px-4 py-3">Tanggal</th>
+                          <th className="px-4 py-3">Kamar</th>
+                          <th className="px-4 py-3">Wali Halaqoh</th>
+                          <th className="px-4 py-3">Keterangan</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-xs">
+                        {laporanKebersihanList.length === 0 ? (
+                          <tr><td colSpan={4} className="px-4 py-6 text-center text-slate-400">Belum ada riwayat laporan.</td></tr>
+                        ) : (
+                          laporanKebersihanList.map((item, idx) => (
+                            <tr key={item.id || idx}>
+                              <td className="px-4 py-3 font-semibold">{item.tanggal}</td>
+                              <td className="px-4 py-3 font-bold text-emerald-800">{item.kamar} ({item.jenjang})</td>
+                              <td className="px-4 py-3">{item.wali_halaqoh}</td>
+                              <td className="px-4 py-3">{item.keterangan}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
               {/* Area Filter Dashboard */}
               <div className="bg-white p-5 rounded-3xl shadow-xs border border-slate-200">
                 <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
