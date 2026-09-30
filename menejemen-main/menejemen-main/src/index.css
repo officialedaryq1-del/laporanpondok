@@ -67,13 +67,38 @@ button:focus-visible {
   }
 }
 @media print {
-  /* Sembunyikan sidebar dan tombol-tombol saat dicetak */
-  aside, button, select, input[type="date"] {
+  /* Sembunyikan elemen yang tidak perlu dicetak */
+  aside, button, select, input[type="date"], .no-print {
     display: none !important;
   }
+
+  /* Reset layout body dan html agar bisa berlanjut ke banyak halaman */
+  html, body, #root, main {
+    display: block !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
   /* Buat area utama mengambil lebar penuh */
   main {
-    margin-left: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
     width: 100% !important;
+  }
+
+  /* Jika tabel Anda dibungkus dengan div yang bisa di-scroll, matikan scroll-nya */
+  .overflow-x-auto, .overflow-y-auto {
+    overflow: visible !important;
+  }
+
+  /* Mencegah baris tabel terpotong tepat di tengah pergantian halaman */
+  table {
+    page-break-inside: auto !important;
+  }
+  tr, td, th {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
   }
 }
