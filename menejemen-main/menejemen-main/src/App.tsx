@@ -2771,6 +2771,11 @@ function MainAppContent() {
 
             </div>
           )}
+
+        </div>
+      </main>
+            </div>
+          )}
           
           {navTab === 'dashboard' && (() => {
             const todayStr = inputAbsensiTanggal || new Date().toISOString().slice(0, 10);
