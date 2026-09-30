@@ -2936,7 +2936,7 @@ function MainAppContent() {
                   <div>
                     <h2 className="text-base sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                       <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-                      Dashboard Pantauan Sekolah
+                      Dashboard Pantauan Pondok
                     </h2>
                     <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1">
                       Pantau kepatuhan input kegiatan harian seluruh divisi dan keaktifan guru secara real-time
@@ -3054,7 +3054,7 @@ function MainAppContent() {
                         Pantauan Kegiatan Harian ({todayStr})
                       </h3>
                       <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
-                        Status keterisian formulir ceklis harian seluruh unit kerja sekolah
+                        Status keterisian formulir ceklis harian seluruh unit kerja pondok
                       </p>
                     </div>
 
@@ -3176,7 +3176,7 @@ function MainAppContent() {
                 <div>
                   <h2 className="text-xl font-black tracking-tight flex items-center gap-2.5">
                     <FileSpreadsheet className="w-6 h-6" />
-                    Dashboard Laporan Sekolah
+                    Dashboard Laporan Pondok
                   </h2>
                   <p className="text-xs text-purple-100 mt-1">
                     Pantau capaian IKU dan tuliskan catatan evaluasi per kegiatan tiap bulan
