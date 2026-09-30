@@ -2964,30 +2964,7 @@ function MainAppContent() {
                     </div>
                   </div>
 
-                  {/* Kartu 3: Jumlah Guru Mengisi Leger Nilai */}
-                  <div 
-                    onClick={() => setNavTab('rekap_nilai')}
-                    className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/80 shadow-xs flex items-center justify-between cursor-pointer hover:border-amber-300 hover:shadow-md transition group"
-                  >
-                    <div className="space-y-0.5 sm:space-y-1">
-                      <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 block">
-                        GURU MENGISI LEGER NILAI
-                      </span>
-                      <div className="flex items-baseline gap-1.5 sm:gap-2">
-                        <span className="text-2xl sm:text-3xl font-black text-amber-600 tracking-tight">
-                          {countGuruLeger}
-                        </span>
-                        <span className="text-[11px] sm:text-xs text-slate-400 font-semibold">dari {totalGuruCount} Guru</span>
-                      </div>
-                      <p className="text-[10px] sm:text-[11px] text-slate-500">
-                        Akumulasi: {daftarNilai.length} butir nilai tersimpan
-                      </p>
-                    </div>
-                    <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                      <Award className="w-5 h-5 sm:w-7 sm:h-7" />
-                    </div>
-                  </div>
-
+                  
                 </div>
 
                 {/* Tabel Pantauan Input Kegiatan Harian Semua Divisi */}
