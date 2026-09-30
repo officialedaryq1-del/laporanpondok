@@ -3156,7 +3156,7 @@ function MainAppContent() {
               )}
 
             </div> {/* <--- INI ADALAH PENUTUP DARI CONTAINER "max-w-7xl mx-auto w-full space-y-4" */}
-          )} {/* <--- INI ADALAH PENUTUP DARI "navTab === 'monitoring_kebersihan'" */}
+          })()} {/* <--- INI ADALAH PENUTUP DARI "navTab === 'monitoring_kebersihan'" */}
 
           {/* PERHATIAN: JANGAN menaruh </div> dan </main> di sini! */}
           
