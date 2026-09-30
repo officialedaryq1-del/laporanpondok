@@ -2659,15 +2659,117 @@ function MainAppContent() {
           )}
 
           {}
+         {/* TAB: MONITORING KEBERSIHAN NATIVE (Bukan Iframe) */}
           {navTab === 'monitoring_kebersihan' && (
-            <div className="max-w-7xl mx-auto w-full h-[calc(100vh-100px)] md:h-[calc(100vh-60px)] pb-4">
-              <div className="w-full h-full bg-white md:rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                <iframe 
-                  src="https://script.google.com/macros/s/AKfycbxpAGY6o0I7n9y3Ta7rYNHgx_Iirl1eaA6AME9q61z1-arHRgINM7FJ3VDUKllUC6yg/exec" 
-                  className="w-full h-full border-none"
-                  title="Monitoring Kebersihan"
-                />
+            <div className="max-w-7xl mx-auto w-full space-y-4">
+              
+              {/* Header E-Kebersihan */}
+              <div className="bg-emerald-700 rounded-3xl p-4 sm:p-6 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-white text-emerald-700 p-2 sm:p-3 rounded-xl shadow-inner flex-shrink-0">
+                    <ClipboardCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h1 className="text-lg sm:text-xl font-bold tracking-tight leading-none">E-Kebersihan Asrama</h1>
+                    <p className="text-xs text-emerald-100 mt-1">Sistem Kontrol Ketidakbersihan Kamar Santri</p>
+                  </div>
+                </div>
+                
+                {/* Tab Sub-Menu Internal Kebersihan */}
+                <div className="flex bg-emerald-800/50 backdrop-blur-md p-1 rounded-2xl overflow-x-auto scrollbar-none border border-emerald-600/50">
+                  <button className="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-emerald-700 shadow-sm shrink-0">
+                    Dashboard
+                  </button>
+                  <button className="px-4 py-2 rounded-xl text-xs font-bold transition-all text-emerald-100 hover:text-white hover:bg-white/10 shrink-0">
+                    Input Laporan
+                  </button>
+                  <button className="px-4 py-2 rounded-xl text-xs font-bold transition-all text-emerald-100 hover:text-white hover:bg-white/10 shrink-0">
+                    Riwayat Input
+                  </button>
+                  <button className="px-4 py-2 rounded-xl text-xs font-bold transition-all text-emerald-100 hover:text-white hover:bg-white/10 shrink-0">
+                    Laporan Rekap
+                  </button>
+                </div>
               </div>
+
+              {/* Area Filter Dashboard */}
+              <div className="bg-white p-5 rounded-3xl shadow-xs border border-slate-200">
+                <h4 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+                  <RotateCw className="w-4 h-4 text-emerald-600" />
+                  Filter Analytics Dashboard
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Mulai Tanggal</label>
+                    <input type="date" className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Sampai Tanggal</label>
+                    <input type="date" className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Filter Jenjang</label>
+                    <select className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer">
+                      <option value="">Semua Jenjang</option>
+                      <option value="SMP">Unit SMP</option>
+                      <option value="SMA">Unit SMA</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stat Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-rose-500">
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Kasus Kotor</p>
+                  <h3 className="text-2xl font-black text-rose-600">0</h3>
+                </div>
+                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-amber-500">
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Kamar Paling Sering</p>
+                  <h3 className="text-xl font-black text-slate-800 truncate">-</h3>
+                  <span className="text-[9px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-bold">0 Pelanggaran</span>
+                </div>
+                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-emerald-500">
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Kamar Terbersih</p>
+                  <h3 className="text-xl font-black text-slate-800 truncate">-</h3>
+                  <span className="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold">Bebas Pelanggaran</span>
+                </div>
+                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-blue-500">
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Rata-Rata Kebersihan</p>
+                  <h3 className="text-2xl font-black text-blue-600">100%</h3>
+                </div>
+              </div>
+
+              {/* Recent Reports Table */}
+              <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+                <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                  <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <History className="w-4 h-4 text-emerald-600" />
+                    Laporan Pelanggaran Terkini
+                  </h4>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-bold">Sesuai Filter</span>
+                </div>
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full text-sm text-left">
+                    <thead class="text-[11px] text-slate-500 uppercase tracking-wider bg-white border-b border-slate-100">
+                      <tr>
+                        <th class="px-5 py-3">Tanggal</th>
+                        <th class="px-5 py-3">Jenjang</th>
+                        <th class="px-5 py-3">Kamar</th>
+                        <th class="px-5 py-3 max-w-[200px]">Keterangan</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                      <tr>
+                        <td colspan="4" className="px-5 py-10 text-center text-slate-400 italic">
+                          Belum ada laporan ketidakbersihan.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
             </div>
           )}
           
