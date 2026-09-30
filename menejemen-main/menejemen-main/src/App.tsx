@@ -4032,7 +4032,6 @@ function MainAppContent() {
             </div>
           )}
 
-
           {}
           {navTab === 'pengaturan' && (
             <div className="max-w-7xl mx-auto w-full space-y-6">
@@ -4693,9 +4692,14 @@ function MainAppContent() {
                 </button>
               </div>
             </form>
+            )}
           </div>
         </div>
-      );
+      )}
+
+     </div>                   
+     );
+  }    
     })()}
 
     {masterModalType && (
