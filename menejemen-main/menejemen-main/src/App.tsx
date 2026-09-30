@@ -2939,25 +2939,124 @@ function MainAppContent() {
                     </div>
                   </div>
 
-                  {/* Stat Cards */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-rose-500">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Kasus Kotor</p>
-                      <h3 className="text-2xl font-black text-rose-600">{filteredLaporanKebersihan.length}</h3>
-                    </div>
-                    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-amber-500">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Laporan Masuk</p>
-                      <h3 className="text-xl font-black text-slate-800">{filteredLaporanKebersihan.length} Kasus</h3>
-                    </div>
-                    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-emerald-500">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Master Kamar</p>
-                      <h3 className="text-xl font-black text-slate-800">{kamarList.length} Kamar</h3>
-                    </div>
-                    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-start gap-2 border-l-4 border-l-blue-500">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Status Database</p>
-                      <h3 className="text-lg font-black text-emerald-600">Terhubung</h3>
-                    </div>
-                  </div>
+                 {/* Stat Cards (Sesuai Desain UI Baru) */}
+{(() => {
+  // Hitung jumlah pelanggaran per kamar
+  const kamarStats: Record<string, number> = {};
+  filteredLaporanKebersihan.forEach(item => {
+    kamarStats[item.kamar] = (kamarStats[item.kamar] || 0) + 1;
+  });
+
+  let maxKamar = '-';
+  let maxPelanggaran = 0;
+  let minKamar = '-';
+  let isBebasPelanggaran = true;
+
+  // Cari kamar paling sering kotor
+  Object.entries(kamarStats).forEach(([kamar, jumlah]) => {
+    if (jumlah > maxPelanggaran) {
+      maxPelanggaran = jumlah;
+      maxKamar = kamar;
+    }
+  });
+
+  // Cari kamar terbersih (tidak ada di data pelanggaran atau paling sedikit)
+  const kamarBersihList = kamarList.filter(k => !kamarStats[k.nama_kamar]);
+  if (kamarBersihList.length > 0) {
+    minKamar = kamarBersihList[0].nama_kamar;
+  } else if (kamarList.length > 0) {
+    let minPelanggaran = Infinity;
+    Object.entries(kamarStats).forEach(([kamar, jumlah]) => {
+      if (jumlah < minPelanggaran) {
+        minPelanggaran = jumlah;
+        minKamar = kamar;
+      }
+    });
+    isBebasPelanggaran = minPelanggaran === 0;
+  }
+
+  // Hitung persentase Rata-Rata Kebersihan seluruh kamar
+  const asumsiTotalHari = 31;
+  const totalKamar = kamarList.length || 1;
+  let totalPersentase = 0;
+  kamarList.forEach(k => {
+    const kasus = kamarStats[k.nama_kamar] || 0;
+    const persentase = Math.max(0, ((asumsiTotalHari - kasus) / asumsiTotalHari) * 100);
+    totalPersentase += persentase;
+  });
+  const rataRataKebersihan = (totalPersentase / totalKamar).toFixed(1);
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      {/* Kartu 1: Total Kasus Kotor */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div>
+          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Total Kasus Kotor</p>
+          <h3 className="text-xl sm:text-2xl font-black text-slate-800 leading-none">{filteredLaporanKebersihan.length}</h3>
+        </div>
+      </div>
+
+      {/* Kartu 2: Kamar Paling Sering */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+          <AlertCircle className="w-6 h-6 stroke-[2.5]" />
+        </div>
+        <div>
+          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1.5">Kamar Paling Sering</p>
+          <div className="flex flex-col items-start gap-1.5">
+            <h3 className="text-xl font-black text-slate-800 leading-none">{maxKamar}</h3>
+            <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md">{maxPelanggaran} Pelanggaran</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Kartu 3: Kamar Terbersih */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+            <path d="M4 22h16"/>
+            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+          </svg>
+        </div>
+        <div>
+          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1.5">Kamar Terbersih</p>
+          <div className="flex flex-col items-start gap-1.5">
+            <h3 className="text-xl font-black text-slate-800 leading-none">{minKamar}</h3>
+            <span className="text-[9px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md">{isBebasPelanggaran ? 'Bebas Pelanggaran' : 'Min. Pelanggaran'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Kartu 4: Rata-rata Kebersihan */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+            <line x1="19" x2="5" y1="5" y2="19"></line>
+            <circle cx="6.5" cy="6.5" r="2.5"></circle>
+            <circle cx="17.5" cy="17.5" r="2.5"></circle>
+          </svg>
+        </div>
+        <div>
+          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Rata-Rata Kebersihan</p>
+          <h3 className="text-xl sm:text-2xl font-black text-blue-600 leading-none">{rataRataKebersihan}%</h3>
+        </div>
+      </div>
+
+    </div>
+  );
+})()}
 
                   {/* Tabel Laporan Terkini */}
                   <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
