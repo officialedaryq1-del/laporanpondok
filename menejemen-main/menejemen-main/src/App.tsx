@@ -298,8 +298,6 @@ function MainAppContent() {
 
 
   // State Lazy Loading untuk mempercepat Initial Load
-  const [hasFetchedNilai, setHasFetchedNilai] = useState<boolean>(false);
-  const [isNilaiLoading, setIsNilaiLoading] = useState<boolean>(false);
   const [hasFetchedFullPresensi, setHasFetchedFullPresensi] = useState<boolean>(false);
 
   // State modal detail rombel rekap nilai
@@ -653,41 +651,6 @@ function MainAppContent() {
     }
   };
 
-  const fetchDaftarNilaiProgressive = async () => {
-    if (isNilaiLoading) return;
-    setIsNilaiLoading(true);
-    let allRecords: NilaiSiswa[] = [];
-    let from = 0;
-    const batchSize = 1000;
-    let hasMore = true;
-
-    try {
-      while (hasMore) {
-        const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/daftar_nilai?select=*&limit=${batchSize}&offset=${from}`,
-          { headers: reqHeaders }
-        );
-        if (!res.ok) break;
-        const batch = await res.json();
-        if (Array.isArray(batch) && batch.length > 0) {
-          allRecords = allRecords.concat(batch);
-          setDaftarNilai([...allRecords]);
-          if (batch.length < batchSize) {
-            hasMore = false;
-          } else {
-            from += batchSize;
-          }
-        } else {
-          hasMore = false;
-        }
-      }
-    } catch (err) {
-      console.warn('Selesai atau kendala mengambil batch daftar_nilai:', err);
-    } finally {
-      setIsNilaiLoading(false);
-      setHasFetchedNilai(true);
-    }
-  };
 
   const fetchFullPresensi = async () => {
     try {
