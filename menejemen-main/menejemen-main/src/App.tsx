@@ -301,6 +301,13 @@ function MainAppContent() {
   const [kebersihanEndDate, setKebersihanEndDate] = useState<string>('');
   const [kamarList, setKamarList] = useState<Array<{nama_kamar: string; jenjang: string; wali_halaqoh: string}>>([]);
   const [laporanKebersihanList, setLaporanKebersihanList] = useState<Array<any>>([]);
+
+  // State untuk Edit Laporan Kebersihan
+  const [isEditKebersihanModalOpen, setIsEditKebersihanModalOpen] = useState(false);
+  const [editKebersihanId, setEditKebersihanId] = useState('');
+  const [editKebersihanTgl, setEditKebersihanTgl] = useState('');
+  const [editKebersihanKamar, setEditKebersihanKamar] = useState('');
+  const [editKebersihanKeterangan, setEditKebersihanKeterangan] = useState('');
   
   // State form input kebersihan
   const [formKebersihanTgl, setFormKebersihanTgl] = useState<string>(() => new Date().toISOString().slice(0, 10));
@@ -1645,6 +1652,67 @@ function MainAppContent() {
     if (end && itemDate > end) return false;
     return true;
   });
+  // FUNGSI MEMBUKA MODAL EDIT
+  const handleOpenEditKebersihan = (item: any) => {
+    setEditKebersihanId(item.id);
+    setEditKebersihanTgl(item.tanggal);
+    setEditKebersihanKamar(item.kamar);
+    setEditKebersihanKeterangan(item.keterangan);
+    setIsEditKebersihanModalOpen(true);
+  };
+
+  // FUNGSI UPDATE DATA (EDIT)
+  const handleUpdateKebersihan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editKebersihanKamar || !editKebersihanKeterangan) return;
+
+    const selectedKamar = kamarList.find(k => k.nama_kamar === editKebersihanKamar);
+    const payload = {
+      tanggal: editKebersihanTgl,
+      kamar: editKebersihanKamar,
+      jenjang: selectedKamar?.jenjang || '-',
+      wali_halaqoh: selectedKamar?.wali_halaqoh || '-',
+      keterangan: editKebersihanKeterangan
+    };
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/laporan_kebersihan?id=eq.${editKebersihanId}`, {
+        method: 'PATCH',
+        headers: reqHeaders,
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        showToast('Data berhasil diperbarui!', 'success');
+        setIsEditKebersihanModalOpen(false);
+        fetchSupabaseData(); // Refresh data
+      } else {
+        showToast('Gagal memperbarui data', 'error');
+      }
+    } catch (err) {
+      showToast('Terjadi kesalahan koneksi', 'error');
+    }
+  };
+
+  // FUNGSI HAPUS DATA
+  const handleDeleteKebersihan = async (id: string) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus data laporan ini?')) return;
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/laporan_kebersihan?id=eq.${id}`, {
+        method: 'DELETE',
+        headers: reqHeaders
+      });
+
+      if (res.ok) {
+        showToast('Data laporan berhasil dihapus!', 'success');
+        fetchSupabaseData(); // Refresh data
+      } else {
+        showToast('Gagal menghapus data', 'error');
+      }
+    } catch (err) {
+      showToast('Terjadi kesalahan koneksi', 'error');
+    }
+  };
   
   const isSidebarExpanded = isSidebarPinned || isSidebarHovered;
 
@@ -2936,7 +3004,7 @@ function MainAppContent() {
                 </div>
               )}
 
-              {/* === KONTEN 3: RIWAYAT INPUT === */}
+              {{/* === KONTEN 3: RIWAYAT INPUT === */}
               {kebersihanSubTab === 'riwayat' && (
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
                   <h3 className="font-bold text-sm text-slate-800">Riwayat Data Laporan Tersimpan</h3>
@@ -2948,18 +3016,33 @@ function MainAppContent() {
                           <th className="px-4 py-3">Kamar</th>
                           <th className="px-4 py-3">Wali Halaqoh</th>
                           <th className="px-4 py-3">Keterangan</th>
+                          <th className="px-4 py-3 text-center">Aksi</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-xs">
                         {laporanKebersihanList.length === 0 ? (
-                          <tr><td colSpan={4} className="px-4 py-6 text-center text-slate-400">Belum ada riwayat laporan.</td></tr>
+                          <tr><td colSpan={5} className="px-4 py-6 text-center text-slate-400">Belum ada riwayat laporan.</td></tr>
                         ) : (
                           laporanKebersihanList.map((item, idx) => (
                             <tr key={item.id || idx} className="hover:bg-slate-50">
                               <td className="px-4 py-3 font-mono">{item.tanggal}</td>
-                              <td className="px-4 py-3 font-bold text-emerald-800">{item.kamar} ({item.jenjang})</td>
+                              <td className="px-4 py-3 font-bold text-emerald-800">{item.kamar} <span className="text-[10px] bg-slate-100 px-1 rounded ml-1 font-normal text-slate-500">{item.jenjang}</span></td>
                               <td className="px-4 py-3">{item.wali_halaqoh}</td>
                               <td className="px-4 py-3 text-slate-600">{item.keterangan}</td>
+                              <td className="px-4 py-3 text-center whitespace-nowrap space-x-2">
+                                <button 
+                                  onClick={() => handleOpenEditKebersihan(item)} 
+                                  className="text-[10px] font-bold text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 px-3 py-1.5 rounded-lg transition-colors"
+                                >
+                                  Edit
+                                </button>
+                                <button 
+                                  onClick={() => handleDeleteKebersihan(item.id)} 
+                                  className="text-[10px] font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 px-3 py-1.5 rounded-lg transition-colors"
+                                >
+                                  Hapus
+                                </button>
+                              </td>
                             </tr>
                           ))
                         )}
@@ -2968,7 +3051,7 @@ function MainAppContent() {
                   </div>
                 </div>
               )}
-
+              
               {/* === KONTEN 4: LAPORAN REKAP === */}
               {kebersihanSubTab === 'rekap' && (
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
@@ -3012,7 +3095,64 @@ function MainAppContent() {
                   </div>
                 </div>
               )}
-
+              {/* MODAL EDIT LAPORAN KEBERSIHAN */}
+              {isEditKebersihanModalOpen && (
+                <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+                  <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+                    <div className="bg-blue-600 px-6 py-4 flex items-center justify-between text-white">
+                      <div>
+                        <h3 className="font-bold text-base">Edit Laporan Kebersihan</h3>
+                        <p className="text-xs text-blue-100">Perbarui data laporan yang salah</p>
+                      </div>
+                      <button onClick={() => setIsEditKebersihanModalOpen(false)} className="text-blue-200 hover:text-white">
+                        Tutup
+                      </button>
+                    </div>
+                    
+                    <form onSubmit={handleUpdateKebersihan} className="p-6 space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal Sidak</label>
+                        <input 
+                          type="date" 
+                          value={editKebersihanTgl} 
+                          onChange={(e) => setEditKebersihanTgl(e.target.value)} 
+                          className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Kamar Santri</label>
+                        <select 
+                          value={editKebersihanKamar} 
+                          onChange={(e) => setEditKebersihanKamar(e.target.value)} 
+                          className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold cursor-pointer"
+                        >
+                          <option value="">-- Pilih Kamar --</option>
+                          {kamarList.map(k => (
+                            <option key={k.nama_kamar} value={k.nama_kamar}>{k.nama_kamar}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Detail Keterangan</label>
+                        <textarea 
+                          rows={3} 
+                          value={editKebersihanKeterangan} 
+                          onChange={(e) => setEditKebersihanKeterangan(e.target.value)} 
+                          className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-3 pt-2">
+                        <button type="button" onClick={() => setIsEditKebersihanModalOpen(false)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl">
+                          Batal
+                        </button>
+                        <button type="submit" className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md">
+                          Simpan Perubahan
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
