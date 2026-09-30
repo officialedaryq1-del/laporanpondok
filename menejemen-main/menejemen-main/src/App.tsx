@@ -3058,6 +3058,150 @@ function MainAppContent() {
   );
 })()}
 
+                  {/* ================= GRAFIK STATISTIK (NATIVE) ================= */}
+      {(() => {
+        // 1. Proses Data untuk Bar Chart (Kasus per Kamar)
+        const kamarChartData = (() => {
+          const stats: Record<string, number> = {};
+          filteredLaporanKebersihan.forEach(item => {
+            stats[item.kamar] = (stats[item.kamar] || 0) + 1;
+          });
+          // Mengurutkan nomor kamar secara numerik agar rapi
+          return Object.entries(stats)
+            .map(([kamar, total]) => ({ kamar, total }))
+            .sort((a, b) => {
+              const numA = parseInt(a.kamar.replace(/\D/g, '')) || 0;
+              const numB = parseInt(b.kamar.replace(/\D/g, '')) || 0;
+              return numA - numB;
+            });
+        })();
+
+        // Cari batas nilai tertinggi Y-Axis untuk chart (minimal 5 jika kosong)
+        const maxChartBar = Math.max(...kamarChartData.map(d => d.total), 5); 
+
+        // 2. Proses Data untuk Donut Chart (Kategori Pelanggaran)
+        const kategoriChartData = (() => {
+          let sampah = 0, pakaian = 0, kasur = 0, lantai = 0, lain = 0;
+          
+          filteredLaporanKebersihan.forEach(item => {
+            const ket = String(item.keterangan || '').toLowerCase();
+            if (ket.includes('sampah') || ket.includes('plastik') || ket.includes('kotoran')) sampah++;
+            else if (ket.includes('pakaian') || ket.includes('baju') || ket.includes('sarung') || ket.includes('handuk') || ket.includes('tas') || ket.includes('lemari')) pakaian++;
+            else if (ket.includes('kasur') || ket.includes('ranjang') || ket.includes('bantal') || ket.includes('selimut')) kasur++;
+            else if (ket.includes('lantai') || ket.includes('sapu') || ket.includes('debu') || ket.includes('teras')) lantai++;
+            else lain++;
+          });
+
+          const total = sampah + pakaian + kasur + lantai + lain || 1; // Cegah pembagian 0
+
+          return {
+            sampah: { count: sampah, pct: (sampah / total) * 100, color: '#f59e0b' }, // Amber/Orange
+            pakaian: { count: pakaian, pct: (pakaian / total) * 100, color: '#3b82f6' }, // Biru
+            kasur: { count: kasur, pct: (kasur / total) * 100, color: '#ec4899' }, // Pink
+            lantai: { count: lantai, pct: (lantai / total) * 100, color: '#10b981' }, // Hijau
+            lain: { count: lain, pct: (lain / total) * 100, color: '#94a3b8' } // Abu-abu
+          };
+        })();
+
+        // Kalkulasi sudut background donut chart (menggunakan conic-gradient CSS)
+        let accumulatedPct = 0;
+        const gradientStops = Object.values(kategoriChartData).map(cat => {
+          const start = accumulatedPct;
+          accumulatedPct += cat.pct;
+          return `${cat.color} ${start}% ${accumulatedPct}%`;
+        }).join(', ');
+        
+        const donutStyle = { background: `conic-gradient(${gradientStops})` };
+
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            
+            {/* --- KARTU BAR CHART (KIRI) --- */}
+            <div className="lg:col-span-2 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col">
+              <h4 className="font-bold text-slate-800 text-sm mb-6 flex items-center gap-2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-emerald-600">
+                  <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                Kasus Ketidakbersihan Per Kamar
+              </h4>
+              
+              <div className="relative flex-1 min-h-[260px] w-full overflow-x-auto overflow-y-hidden pb-8 pt-2">
+                {/* Label Y-Axis & Garis Latar */}
+                <div className="absolute left-0 top-2 bottom-12 w-6 flex flex-col justify-between text-[10px] font-bold text-slate-400 text-right pr-2">
+                  <span>{maxChartBar}</span>
+                  <span>{Math.ceil(maxChartBar * 0.75)}</span>
+                  <span>{Math.ceil(maxChartBar * 0.5)}</span>
+                  <span>{Math.ceil(maxChartBar * 0.25)}</span>
+                  <span>0</span>
+                </div>
+                
+                <div className="absolute left-6 right-0 top-2 bottom-12 flex flex-col justify-between pointer-events-none">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="border-b border-slate-100 w-full h-0"></div>
+                  ))}
+                </div>
+
+                {/* Container Balok Bar Chart */}
+                <div className="absolute left-6 top-2 bottom-12 flex items-end gap-1.5 sm:gap-2 px-2 min-w-max">
+                  {kamarChartData.length === 0 ? (
+                    <div className="w-full h-full flex items-center justify-center text-xs text-slate-400 italic">Belum ada data</div>
+                  ) : (
+                    kamarChartData.map((d, i) => (
+                      <div key={i} className="flex flex-col items-center h-full justify-end group w-5 sm:w-6 relative">
+                        {/* Balok Grafik */}
+                        <div className="w-full bg-[#4ade80] rounded-t-sm relative transition-all duration-300 hover:bg-emerald-500"
+                             style={{ height: `${Math.max((d.total / maxChartBar) * 100, 2)}%` }}>
+                          {/* Tooltip Hover */}
+                          <span className="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-0.5 px-2 rounded font-bold transition-opacity z-20">
+                            {d.total}
+                          </span>
+                        </div>
+                        {/* Label X-Axis (Kamar) */}
+                        <span className="text-[9px] font-bold text-slate-500 -rotate-45 origin-top-left mt-3 absolute -bottom-5 left-1/2">
+                          {d.kamar}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* --- KARTU DONUT CHART (KANAN) --- */}
+            <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-center">
+              <h4 className="font-bold text-slate-800 text-sm w-full mb-6 flex items-center gap-2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-emerald-600">
+                  <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>
+                </svg>
+                Kategori Berdasarkan Keterangan
+              </h4>
+              
+              <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full">
+                {/* Donut Shape */}
+                <div className="relative w-44 h-44 rounded-full flex items-center justify-center shadow-inner" style={donutStyle}>
+                  {/* Lingkaran Putih Tengah */}
+                  <div className="w-24 h-24 bg-white rounded-full shadow-sm flex flex-col items-center justify-center">
+                    <span className="text-xl font-black text-slate-800">{filteredLaporanKebersihan.length}</span>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase">Total</span>
+                  </div>
+                </div>
+
+                {/* Legend Kategori */}
+                <div className="flex flex-wrap items-center justify-center gap-3 text-[10px] font-bold text-slate-500 px-2">
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#f59e0b]"></span>Sampah</div>
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#3b82f6]"></span>Pakaian</div>
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#ec4899]"></span>Kasur</div>
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#10b981]"></span>Lantai</div>
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#94a3b8]"></span>Lain-lain</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        );
+      })()}
+      {/* ============================================================= */}
+                  
                   {/* Tabel Laporan Terkini */}
                   <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
                     <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
