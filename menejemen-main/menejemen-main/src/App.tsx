@@ -2774,11 +2774,6 @@ function MainAppContent() {
 
         </div>
       </main>
-
-      {selectedSubmissionForDetail && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-
-          )}
           
           {navTab === 'dashboard' && (() => {
             const todayStr = inputAbsensiTanggal || new Date().toISOString().slice(0, 10);
