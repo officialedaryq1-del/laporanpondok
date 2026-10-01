@@ -3601,6 +3601,206 @@ const [searchSantriPlg, setSearchSantriPlg] = useState<string>('');
                 </div>
               </div>
 
+              {/* KONTEN 0: DASHBOARD PELANGGARAN */}
+              {pelanggaranSubTab === 'dashboard' && (() => {
+                // 1. Kalkulasi Data Kartu
+                const totalSantri = santriList.length;
+                const totalKasus = pelanggaranList.length;
+                const totalSPAktif = pelanggaranList.filter(p => p.sp && p.sp !== 'Tanpa SP').length;
+                const totalSP3Terakhir = pelanggaranList.filter(p => p.sp === 'SP Terakhir' || p.sp === 'SP 3').length;
+                const totalDikeluarkan = pelanggaranList.filter(p => p.sp === 'Dikeluarkan').length;
+
+                // 2. Kalkulasi Data Donut Chart (Distribusi Status SP)
+                const spColors: Record<string, string> = {
+                  'Tanpa SP': '#94a3b8', // Slate
+                  'Surat Pernyataan': '#38bdf8', // Sky
+                  'SP 1': '#fbbf24', // Amber
+                  'SP 2': '#f97316', // Orange
+                  'SP 3': '#ef4444', // Red
+                  'SP Terakhir': '#9f1239', // Rose Dark
+                  'Dikeluarkan': '#450a0a' // Red Dark
+                };
+                
+                const spCounts: Record<string, number> = {
+                  'Tanpa SP': 0, 'Surat Pernyataan': 0, 'SP 1': 0, 'SP 2': 0, 'SP 3': 0, 'SP Terakhir': 0, 'Dikeluarkan': 0
+                };
+                
+                pelanggaranList.forEach(p => {
+                  if (spCounts[p.sp] !== undefined) spCounts[p.sp]++;
+                  else spCounts['Tanpa SP']++;
+                });
+
+                const totalSPForChart = totalKasus || 1; // Hindari pembagian 0
+                let accumulatedPct = 0;
+                const gradientStops = Object.entries(spCounts).map(([key, count]) => {
+                  const pct = (count / totalSPForChart) * 100;
+                  const start = accumulatedPct;
+                  accumulatedPct += pct;
+                  return `${spColors[key]} ${start}% ${accumulatedPct}%`;
+                }).join(', ');
+                
+                const donutStyle = { background: `conic-gradient(${gradientStops})` };
+
+                // 3. Kalkulasi Data Bar Chart (Kasus Per Halaqoh)
+                const halaqohStats: Record<string, number> = {};
+                pelanggaranList.forEach(p => {
+                  const h = p.halaqoh || 'Lainnya';
+                  halaqohStats[h] = (halaqohStats[h] || 0) + 1;
+                });
+                
+                const halaqohChartData = Object.entries(halaqohStats).map(([halaqoh, total]) => ({ halaqoh, total }));
+                const maxHalaqohChart = Math.max(...halaqohChartData.map(d => d.total), 5); // Minimal skala Y adalah 5
+
+                return (
+                  <div className="space-y-6">
+                    {/* --- BAGIAN KARTU STATISTIK (KPI CARDS) --- */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                      {/* Kartu 1: Total Santri */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Total Santri</p>
+                          <h3 className="text-2xl font-black text-slate-800 leading-none">{totalSantri}</h3>
+                        </div>
+                      </div>
+
+                      {/* Kartu 2: Total Kasus */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">Total Kasus</p>
+                          <h3 className="text-2xl font-black text-slate-800 leading-none">{totalKasus}</h3>
+                        </div>
+                      </div>
+
+                      {/* Kartu 3: Total SP Aktif */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-4"/><path d="M12 10h.01"/></svg>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Total SP Aktif</p>
+                          <h3 className="text-2xl font-black text-slate-800 leading-none">{totalSPAktif}</h3>
+                        </div>
+                      </div>
+
+                      {/* Kartu 4: SP Terakhir / SP 3 */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><circle cx="12" cy="10" r="4"/><path d="M8 14v1a4 4 0 0 0 8 0v-1"/><path d="M15.5 17 18 20"/><path d="M8.5 17 6 20"/></svg>
+                        </div>
+                        <div>
+                          <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">SP Terakhir / SP 3</p>
+                          <h3 className="text-2xl font-black text-slate-800 leading-none">{totalSP3Terakhir}</h3>
+                        </div>
+                      </div>
+
+                      {/* Kartu 5: Dikeluarkan */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-red-100 text-red-800 flex items-center justify-center shrink-0">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="22" y2="13"/><line x1="22" y1="8" x2="17" y2="13"/></svg>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">Dikeluarkan</p>
+                          <h3 className="text-2xl font-black text-slate-800 leading-none">{totalDikeluarkan}</h3>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* --- BAGIAN GRAFIK (CHARTS) --- */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      
+                      {/* Donut Chart: Distribusi Status SP */}
+                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center">
+                        <h4 className="font-bold text-slate-800 text-sm w-full mb-6 flex items-center gap-2">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-emerald-700">
+                            <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>
+                          </svg>
+                          Distribusi Status SP
+                        </h4>
+                        
+                        <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full mt-4">
+                          {/* Donut Shape */}
+                          <div className="relative w-48 h-48 rounded-full flex items-center justify-center shadow-inner" style={donutStyle}>
+                            <div className="w-24 h-24 bg-white rounded-full shadow-sm flex flex-col items-center justify-center">
+                               {/* White center to make it a donut */}
+                            </div>
+                          </div>
+
+                          {/* Legend Categories */}
+                          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[10px] font-bold text-slate-500 px-2 mt-2">
+                            {Object.entries(spColors).map(([label, color]) => (
+                              <div key={label} className="flex items-center gap-1.5">
+                                <span className="w-8 h-2.5 rounded-sm" style={{ backgroundColor: color }}></span>
+                                {label}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bar Chart: Kasus Per Halaqoh */}
+                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                        <h4 className="font-bold text-slate-800 text-sm mb-6 flex items-center gap-2">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-emerald-700">
+                            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                          </svg>
+                          Kasus Per Halaqoh
+                        </h4>
+                        
+                        <div className="relative flex-1 min-h-[260px] w-full overflow-x-auto overflow-y-hidden pb-8 pt-2">
+                          {/* Label Y-Axis */}
+                          <div className="absolute left-0 top-2 bottom-12 w-6 flex flex-col justify-between text-[10px] font-bold text-slate-400 text-right pr-2">
+                            <span>{maxHalaqohChart}</span>
+                            <span>{Math.ceil(maxHalaqohChart * 0.75)}</span>
+                            <span>{Math.ceil(maxHalaqohChart * 0.5)}</span>
+                            <span>{Math.ceil(maxHalaqohChart * 0.25)}</span>
+                            <span>0</span>
+                          </div>
+
+                          {/* Garis Latar Horizontal */}
+                          <div className="absolute left-6 right-0 top-2 bottom-12 flex flex-col justify-between pointer-events-none">
+                            {[...Array(5)].map((_, i) => (
+                              <div key={i} className="border-b border-slate-100 w-full h-0"></div>
+                            ))}
+                          </div>
+
+                          {/* Balok (Bars) */}
+                          <div className="absolute left-6 top-2 bottom-12 flex items-end justify-around px-4 min-w-max w-full">
+                            {halaqohChartData.length === 0 ? (
+                              <div className="w-full h-full flex items-center justify-center text-xs text-slate-400 italic">Belum ada kasus</div>
+                            ) : (
+                              halaqohChartData.map((d, i) => (
+                                <div key={i} className="flex flex-col items-center h-full justify-end group relative w-16 sm:w-20">
+                                  <div 
+                                    className="w-full max-w-[60px] bg-[#10b981] rounded-t-sm relative transition-all duration-300 hover:bg-emerald-500"
+                                    style={{ height: `${Math.max((d.total / maxHalaqohChart) * 100, 2)}%` }}
+                                  >
+                                    {/* Tooltip Hover Nilai */}
+                                    <span className="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-0.5 px-2 rounded font-bold transition-opacity z-20">
+                                      {d.total}
+                                    </span>
+                                  </div>
+                                  {/* Label X-Axis (Halaqoh) */}
+                                  <span className="text-[10px] font-medium text-slate-600 mt-2 absolute -bottom-6 w-32 text-center truncate">
+                                    {d.halaqoh}
+                                  </span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                );
+              })()}
+              
               {/* KONTEN 1: INPUT PELANGGARAN */}
               {pelanggaranSubTab === 'input' && (
                 <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 max-w-4xl mx-auto">
