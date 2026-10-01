@@ -5539,11 +5539,8 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
             </div>
           )}
 
-        </div>
-
       </main>
 
-    
       {selectedSubmissionForDetail && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-slate-200">
@@ -6073,8 +6070,7 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
         </div>
       </div>
     )}
-
-    </main>  
+  
   </div>
   );
 }
