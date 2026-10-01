@@ -359,16 +359,16 @@ function MainAppContent() {
 
   // --- STATE PELANGGARAN SANTRI ---
 const [pelanggaranSubTab, setPelanggaranSubTab] = useState<'dashboard' | 'input' | 'laporan' | 'santri'>('dashboard');
-const [laporanPelanggaranSubTab, setLaporanPelanggaranSubTab] = useState<'detail' | 'halaqoh' | 'santri'>('detail');
+//const [laporanPelanggaranSubTab, setLaporanPelanggaranSubTab] = useState<'detail' | 'halaqoh' | 'santri'>('detail');
 const [pelanggaranList, setPelanggaranList] = useState<any[]>([]);
 
 // State untuk Form Input Pelanggaran
 const [selectedSantriPlgIds, setSelectedSantriPlgIds] = useState<string[]>([]);
-const [formPlgTanggal, setFormPlgTanggal] = useState<string>(() => new Date().toISOString().slice(0, 10));
-const [formPlgSP, setFormPlgSP] = useState<string>('Tanpa SP');
-const [formPlgBentuk, setFormPlgBentuk] = useState<string>('');
-const [formPlgSanksiChecked, setFormPlgSanksiChecked] = useState<string[]>([]);
-const [formPlgSanksiCustom, setFormPlgSanksiCustom] = useState<string>('');
+//const [formPlgTanggal, setFormPlgTanggal] = useState<string>(() => new Date().toISOString().slice(0, 10));
+//const [formPlgSP, setFormPlgSP] = useState<string>('Tanpa SP');
+//const [formPlgBentuk, setFormPlgBentuk] = useState<string>('');
+//const [formPlgSanksiChecked, setFormPlgSanksiChecked] = useState<string[]>([]);
+//const [formPlgSanksiCustom, setFormPlgSanksiCustom] = useState<string>('');
 const [searchSantriPlg, setSearchSantriPlg] = useState<string>('');
   
   // State Lazy Loading untuk mempercepat Initial Load
@@ -763,21 +763,7 @@ const [searchSantriPlg, setSearchSantriPlg] = useState<string>('');
         fetch(`${SUPABASE_URL}/rest/v1/pelanggaran_santri?select=*&order=tanggal.desc`, { headers: reqHeaders })
       ]);
 
-     const [
-        divRes, 
-        ikuRes, 
-        tplRes, 
-        secRes, 
-        itRes, 
-        subRes, 
-        guruRes, 
-        mapelRes, 
-        waliRes, 
-        santriRes, 
-        presensiRes, 
-        kamarRes, 
-        laporanKebersihanRes
-      ] = results;
+     const [divRes, ikuRes, tplRes, secRes, itRes, subRes, guruRes, mapelRes, waliRes, santriRes, presensiRes, kamarRes, laporanKebersihanRes, pelanggaranRes] = results;
 
       if (divRes.status === 'fulfilled' && divRes.value.ok) {
         const data = await divRes.value.json();
