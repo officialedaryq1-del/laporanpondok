@@ -67,42 +67,54 @@ button:focus-visible {
   }
 }
 @media print {
-  /* 1. Sembunyikan elemen yang tidak perlu */
-  aside, button, select, input, .no-print {
+  /* 1. Sembunyikan elemen navigasi dan tombol */
+  aside, nav, header, button, select, input, .no-print {
     display: none !important;
   }
 
-  /* 2. Buka kunci semua container utama (KUNCI PERBAIKANNYA DI SINI) */
-  /* Kita menargetkan class Tailwind yang sering mengunci layout */
-  html, body, #root, main, 
-  .h-screen, .min-h-screen, .max-h-screen, 
-  .overflow-hidden, .overflow-y-auto, .overflow-x-auto, 
-  .flex-1, .flex {
+  /* 2. Reset Layout Body dan Root (Hapus Margin & Padding) */
+  html, body, #root {
+    display: block !important;
     height: auto !important;
-    min-height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    position: static !important;
-    display: block !important; /* Mematikan flexbox utama agar mengalir ke bawah */
-  }
-
-  /* 3. Buat area utama mengambil lebar penuh */
-  main {
-    width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
+    background: white !important;
   }
 
-  /* 4. Pengaturan tabel agar tidak terpotong dan header berulang */
+  /* 3. Tarik area utama (main) ke paling atas */
+  main {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important; /* Menghapus padding atas yang membuat judul turun */
+    min-height: auto !important;
+  }
+
+  /* 4. Paksa semua container layout untuk rata atas (Menghindari vertical center) */
+  .flex, .flex-col, .h-screen, .min-h-screen {
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    height: auto !important;
+    min-height: auto !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important; /* Menghilangkan jarak ekstra di atas konten */
+  }
+
+  /* 5. Pengaturan tabel agar baris tidak terpotong */
   table {
     width: 100% !important;
     page-break-inside: auto !important;
   }
   thead {
-    display: table-header-group !important; /* Membuat judul kolom tabel (No, Nama Kamar, dll) muncul lagi di halaman 2, 3, dst */
+    display: table-header-group !important;
   }
   tr, td, th {
     page-break-inside: avoid !important;
     page-break-after: auto !important;
+  }
+  
+  /* 6. Hilangkan shadow dan border berlebih agar cetakan lebih bersih */
+  .shadow-sm, .shadow-md, .shadow-lg {
+    box-shadow: none !important;
   }
 }
