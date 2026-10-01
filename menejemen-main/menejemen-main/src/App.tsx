@@ -3593,10 +3593,11 @@ const [searchSantriPlg, setSearchSantriPlg] = useState<string>('');
 
                 {/* Navigasi Sub-Menu */}
                 <div className="flex bg-emerald-950/50 p-1 rounded-2xl overflow-x-auto scrollbar-none">
-                  <button onClick={() => setPelanggaranSubTab('dashboard')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${pelanggaranSubTab === 'dashboard' ? 'bg-emerald-800 text-white' : 'text-emerald-200 hover:bg-emerald-800/60'}`}>Dashboard</button>
-                  <button onClick={() => setPelanggaranSubTab('input')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${pelanggaranSubTab === 'input' ? 'bg-emerald-800 text-white' : 'text-emerald-200 hover:bg-emerald-800/60'}`}>Input Pelanggaran</button>
-                  <button onClick={() => setPelanggaranSubTab('laporan')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${pelanggaranSubTab === 'laporan' ? 'bg-emerald-800 text-white' : 'text-emerald-200 hover:bg-emerald-800/60'}`}>Laporan & Rekap</button>
-                  <button onClick={() => setPelanggaranSubTab('santri')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${pelanggaranSubTab === 'santri' ? 'bg-emerald-800 text-white' : 'text-emerald-200 hover:bg-emerald-800/60'}`}>Database Santri</button>
+                <button onClick={() => setPelanggaranSubTab('dashboard')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${pelanggaranSubTab === 'dashboard' ? 'bg-emerald-800 text-white' : 'text-emerald-200 hover:bg-emerald-800/60'}`}>Dashboard</button>
+                <button onClick={() => setPelanggaranSubTab('input')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${pelanggaranSubTab === 'input' ? 'bg-emerald-800 text-white' : 'text-emerald-200 hover:bg-emerald-800/60'}`}>Input Pelanggaran</button>
+                <button onClick={() => setPelanggaranSubTab('laporan')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${pelanggaranSubTab === 'laporan' ? 'bg-emerald-800 text-white' : 'text-emerald-200 hover:bg-emerald-800/60'}`}>Laporan & Rekap</button>
+  
+                {/* Baris <button> Database Santri telah dihapus dari sini */}
                 </div>
               </div>
 
