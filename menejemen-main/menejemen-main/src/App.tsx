@@ -41,6 +41,7 @@ const Eye = createIcon(<><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0
 const X = createIcon(<><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>);
 const Settings = createIcon(<><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>);
 const Edit = createIcon(<><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>);
+const Search = createIcon(<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>); // <--- TEMPEL DI SINI
 const Menu = createIcon(<><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></>);
 
 
@@ -362,14 +363,15 @@ const [pelanggaranSubTab, setPelanggaranSubTab] = useState<'dashboard' | 'input'
 //const [laporanPelanggaranSubTab, setLaporanPelanggaranSubTab] = useState<'detail' | 'halaqoh' | 'santri'>('detail');
 const [pelanggaranList, setPelanggaranList] = useState<any[]>([]);
 
-// State untuk Form Input Pelanggaran
+/// State untuk Form Input Pelanggaran
 const [selectedSantriPlgIds, setSelectedSantriPlgIds] = useState<string[]>([]);
-//const [formPlgTanggal, setFormPlgTanggal] = useState<string>(() => new Date().toISOString().slice(0, 10));
-//const [formPlgSP, setFormPlgSP] = useState<string>('Tanpa SP');
-//const [formPlgBentuk, setFormPlgBentuk] = useState<string>('');
-//const [formPlgSanksiChecked, setFormPlgSanksiChecked] = useState<string[]>([]);
-//const [formPlgSanksiCustom, setFormPlgSanksiCustom] = useState<string>('');
+const [formPlgTanggal, setFormPlgTanggal] = useState<string>(() => new Date().toISOString().slice(0, 10));
+const [formPlgSP, setFormPlgSP] = useState<string>('Tanpa SP');
+const [formPlgBentuk, setFormPlgBentuk] = useState<string>('');
+const [formPlgSanksiChecked, setFormPlgSanksiChecked] = useState<string[]>([]);
+const [formPlgSanksiCustom, setFormPlgSanksiCustom] = useState<string>('');
 const [searchSantriPlg, setSearchSantriPlg] = useState<string>('');
+const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
   
   // State Lazy Loading untuk mempercepat Initial Load
   const [hasFetchedFullPresensi, setHasFetchedFullPresensi] = useState<boolean>(false);
@@ -1760,6 +1762,77 @@ const [searchSantriPlg, setSearchSantriPlg] = useState<string>('');
       }
     } catch (err) {
       showToast('Terjadi kesalahan koneksi', 'error');
+    }
+  };
+
+  // Fetch opsi SP dari Supabase secara terpisah agar tidak mengganggu load data lain
+  useEffect(() => {
+    const fetchSpOptions = async () => {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/master_sp_pelanggaran?select=*`, { headers: reqHeaders });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) setSpList(data);
+        }
+      } catch (e) {
+        console.warn("Belum ada tabel master_sp_pelanggaran");
+      }
+    };
+    fetchSpOptions();
+  }, []);
+
+  // Fungsi untuk menyimpan data pelanggaran
+  const handleSubmitPelanggaran = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedSantriPlgIds.length === 0) return showToast('Pilih setidaknya 1 santri!', 'error');
+    if (formPlgSanksiChecked.length === 0) return showToast('Pilih setidaknya 1 sanksi!', 'error');
+    
+    setIsLoading(true);
+    
+    // Gabungkan sanksi yang dicentang, dan jika ada "Lainnya", tambahkan teks custom-nya
+    const sanksiList = formPlgSanksiChecked.map(s => 
+      s === '8. Lainnya (diisi sendiri)' ? `Lainnya: ${formPlgSanksiCustom}` : s
+    ).join('; ');
+
+    const recordsToInsert = selectedSantriPlgIds.map(id => {
+      const s = santriList.find(x => String(x.id) === id);
+      return {
+        tanggal: formPlgTanggal,
+        santri_id: id,
+        nama: s?.nama || '-',
+        jenjang: s?.kelas?.includes('SMA') ? 'SMA' : 'SMP', 
+        kelas: s?.kelas || '-',
+        halaqoh: s?.halaqoh || '-',
+        kamar: s?.halaqoh || '-', 
+        pelanggaran: formPlgBentuk,
+        sp: formPlgSP || 'Tanpa SP',
+        sanksi: sanksiList
+      };
+    });
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/pelanggaran_santri`, {
+        method: 'POST',
+        headers: reqHeaders,
+        body: JSON.stringify(recordsToInsert)
+      });
+      if (res.ok) {
+        showToast('Data pelanggaran berhasil disimpan!', 'success');
+        // Reset Form
+        setSelectedSantriPlgIds([]);
+        setFormPlgBentuk('');
+        setFormPlgSanksiChecked([]);
+        setFormPlgSanksiCustom('');
+        setFormPlgSP('Tanpa SP');
+        setPelanggaranSubTab('laporan'); // Otomatis pindah ke tab laporan
+        fetchSupabaseData(); // Refresh data utama
+      } else {
+        showToast('Gagal menyimpan data!', 'error');
+      }
+    } catch (err) {
+      showToast('Terjadi kesalahan jaringan', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -3804,24 +3877,54 @@ const [searchSantriPlg, setSearchSantriPlg] = useState<string>('');
               {/* KONTEN 1: INPUT PELANGGARAN */}
               {pelanggaranSubTab === 'input' && (
                 <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 max-w-4xl mx-auto">
-                  <h3 className="text-lg font-bold text-slate-800 mb-4 border-b pb-3">Form Input Pelanggaran Santri</h3>
+                  <h3 className="text-lg font-bold text-slate-800 mb-6 border-b pb-3 flex items-center gap-2">
+                    <ClipboardCheck className="w-5 h-5 text-emerald-600" /> Form Input Pelanggaran Santri
+                  </h3>
                   
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1">Cari Santri</label>
-                      <input 
-                        type="text" 
-                        value={searchSantriPlg}
-                        onChange={(e) => setSearchSantriPlg(e.target.value)}
-                        placeholder="Ketik nama santri..." 
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
-                      />
-                      <div className="mt-2 max-h-40 overflow-y-auto border border-slate-200 rounded-xl p-2">
+                  <form onSubmit={handleSubmitPelanggaran} className="space-y-6">
+                    {/* BAGIAN 1: PILIH SANTRI */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Pilih Santri (Bisa Lebih Dari 1)
+                      </label>
+                      {/* Box Santri Terpilih */}
+                      <div className="min-h-[42px] p-2 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap gap-1.5">
+                        {selectedSantriPlgIds.length === 0 ? (
+                          <span className="text-xs text-slate-400 p-1">Belum ada santri terpilih...</span>
+                        ) : (
+                          selectedSantriPlgIds.map(id => {
+                            const s = santriList.find(x => String(x.id) === id);
+                            return s ? (
+                              <span key={id} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 shadow-xs text-slate-700 rounded-lg text-xs font-bold">
+                                {s.nama}
+                                <button type="button" onClick={() => setSelectedSantriPlgIds(prev => prev.filter(x => x !== id))} className="text-rose-500 hover:text-rose-700">
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </span>
+                            ) : null;
+                          })
+                        )}
+                      </div>
+                      
+                      {/* Search Bar */}
+                      <div className="relative">
+                        <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                        <input 
+                          type="text" 
+                          value={searchSantriPlg}
+                          onChange={(e) => setSearchSantriPlg(e.target.value)}
+                          placeholder="Ketik nama santri..." 
+                          className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                      
+                      {/* Daftar Santri */}
+                      <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-xl p-2 space-y-1 bg-white">
                          {santriList
                            .filter(s => s.nama.toLowerCase().includes(searchSantriPlg.toLowerCase()))
-                           .slice(0, 20)
+                           .slice(0, 30) // Dibatasi agar browser tidak lag
                            .map(s => (
-                             <label key={s.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 cursor-pointer">
+                             <label key={s.id} className="flex items-center gap-3 p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer border border-transparent hover:border-slate-100 transition">
                                <input 
                                  type="checkbox" 
                                  checked={selectedSantriPlgIds.includes(String(s.id))}
@@ -3829,81 +3932,118 @@ const [searchSantriPlg, setSearchSantriPlg] = useState<string>('');
                                    if (e.target.checked) setSelectedSantriPlgIds([...selectedSantriPlgIds, String(s.id)]);
                                    else setSelectedSantriPlgIds(selectedSantriPlgIds.filter(id => id !== String(s.id)));
                                  }}
-                                 className="rounded text-emerald-600"
+                                 className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
                                />
-                               <span className="text-xs">{s.nama} ({s.kelas} - {s.halaqoh})</span>
+                               <div className="flex-1 text-xs">
+                                 <span className="font-bold text-slate-800">{s.nama}</span>
+                                 <span className="text-[10px] text-slate-400 ml-2">
+                                   ({s.kelas?.includes('SMA') ? 'SMA' : 'SMP'} | {s.kelas} | {s.halaqoh})
+                                 </span>
+                               </div>
                              </label>
                          ))}
                       </div>
                     </div>
                     
-                    <button 
-                      onClick={() => {}}
-                      className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl"
-                    >
-                      Simpan Record
-                    </button>
-                  </div>
-                </div>
-              )}
+                    {/* BAGIAN 2: TANGGAL & SP */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tanggal Kasus</label>
+                        <input type="date" value={formPlgTanggal} onChange={(e) => setFormPlgTanggal(e.target.value)} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Keterangan SP / Status</label>
+                        <select value={formPlgSP} onChange={(e) => setFormPlgSP(e.target.value)} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer font-medium" required>
+                          {spList.length > 0 ? (
+                            spList.map(sp => <option key={sp.id} value={sp.nama_sp}>{sp.nama_sp}</option>)
+                          ) : (
+                            <>
+                              <option value="Tanpa SP">Tanpa SP</option>
+                              <option value="Surat Pernyataan">Surat Pernyataan</option>
+                              <option value="SP 1">SP 1</option>
+                              <option value="SP 2">SP 2</option>
+                              <option value="SP 3">SP 3</option>
+                              <option value="SP Terakhir">SP Terakhir</option>
+                              <option value="Dikeluarkan">Dikeluarkan</option>
+                            </>
+                          )}
+                        </select>
+                      </div>
+                    </div>
 
-              {/* KONTEN 2: LAPORAN & REKAP */}
-              {pelanggaranSubTab === 'laporan' && (
-                <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-6 mx-auto">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-slate-800">Detail Riwayat Pelanggaran</h3>
-                  </div>
+                    {/* BAGIAN 3: BENTUK PELANGGARAN */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Bentuk Pelanggaran</label>
+                      <textarea rows={3} value={formPlgBentuk} onChange={(e) => setFormPlgBentuk(e.target.value)} placeholder="Contoh: Terlambat shalat" className="w-full px-3 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required />
+                    </div>
 
-                  <div className="overflow-x-auto rounded-xl border border-slate-200">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          <th className="p-3">Tanggal</th>
-                          <th className="p-3">Nama Santri</th>
-                          <th className="p-3">Jenjang</th>
-                          <th className="p-3">Kelas</th>
-                          <th className="p-3">Halaqoh</th>
-                          <th className="p-3">Pelanggaran</th>
-                          <th className="p-3">Sanksi</th>
-                          <th className="p-3">Status SP</th>
-                          <th className="p-3 text-center">Aksi</th>
-                        </tr>
-                      </thead>
-                      
-                      <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-                        {pelanggaranList.length === 0 ? (
-                          <tr>
-                            <td colSpan={9} className="p-6 text-center text-slate-400">Belum ada data pelanggaran</td>
-                          </tr>
+                    {/* BAGIAN 4: SANKSI YANG DIBERIKAN */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Sanksi yang Diberikan</label>
+                      {/* Box Sanksi Terpilih */}
+                      <div className="min-h-[42px] p-2 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap gap-1.5">
+                        {formPlgSanksiChecked.length === 0 ? (
+                          <span className="text-xs text-slate-400 p-1">Belum ada sanksi dipilih...</span>
                         ) : (
-                          pelanggaranList.map((item, idx) => (
-                            <tr key={item.id || idx} className="hover:bg-slate-50 transition">
-                              <td className="p-3 whitespace-nowrap">{item.tanggal}</td>
-                              <td className="p-3 font-bold text-slate-800">{item.nama}</td>
-                              <td className="p-3">{item.jenjang || '-'}</td>
-                              <td className="p-3 whitespace-nowrap">{item.kelas}</td>
-                              <td className="p-3 whitespace-nowrap">{item.halaqoh}</td>
-                              <td className="p-3 max-w-xs break-words">{item.pelanggaran}</td>
-                              <td className="p-3 max-w-xs break-words">{item.sanksi}</td>
-                              <td className="p-3 whitespace-nowrap">
-                                <span className="px-2 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                  {item.sp}
-                                </span>
-                              </td>
-                              <td className="p-3 text-center">
-                                 <button className="text-emerald-600 hover:text-emerald-800 text-xs font-semibold mr-2">Edit</button>
-                              </td>
-                            </tr>
+                          formPlgSanksiChecked.map(s => (
+                            <span key={s} className="inline-flex items-center px-2.5 py-1 bg-white border border-slate-200 shadow-xs text-slate-700 rounded-lg text-[11px] font-semibold">
+                              {s === '8. Lainnya (diisi sendiri)' && formPlgSanksiCustom ? `Lainnya: ${formPlgSanksiCustom}` : s}
+                            </span>
                           ))
                         )}
-                      </tbody>
-                    </table>
-                  </div>
+                      </div>
+                      
+                      {/* Daftar Checkbox Sanksi */}
+                      <div className="border border-slate-200 rounded-xl p-3 bg-white space-y-1">
+                        {[
+                          "1. Pemanggilan Wali Santri",
+                          "2. Potong Rambut 0,3 cm",
+                          "3. Berdiri setelah dzikir dan jamaah dibelakang imam selama 40 hari",
+                          "4. Berdiri setelah dzikir dan jamaah dibelakang imam selama 2 minggu",
+                          "5. Berdiri setelah dzikir dan jamaah dibelakang imam selama 1 minggu",
+                          "6. Barang disita dan dihibahkan",
+                          "7. Mengundurkan diri",
+                          "8. Lainnya (diisi sendiri)"
+                        ].map(opt => (
+                          <label key={opt} className="flex items-start gap-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer transition">
+                            <input
+                              type="checkbox"
+                              value={opt}
+                              checked={formPlgSanksiChecked.includes(opt)}
+                              onChange={(e) => {
+                                if (e.target.checked) setFormPlgSanksiChecked([...formPlgSanksiChecked, opt]);
+                                else setFormPlgSanksiChecked(formPlgSanksiChecked.filter(x => x !== opt));
+                              }}
+                              className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
+                            />
+                            <span className="text-xs text-slate-700 font-medium">{opt}</span>
+                          </label>
+                        ))}
+                      </div>
+
+                      {/* Kotak Input Custom "Lainnya" */}
+                      {formPlgSanksiChecked.includes("8. Lainnya (diisi sendiri)") && (
+                        <textarea
+                          rows={2}
+                          value={formPlgSanksiCustom}
+                          onChange={(e) => setFormPlgSanksiCustom(e.target.value)}
+                          placeholder="Ketik rincian sanksi lainnya di sini..."
+                          className="w-full px-4 py-3 mt-2 bg-amber-50/30 border border-amber-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all animate-in fade-in"
+                          required
+                        />
+                      )}
+                    </div>
+
+                    {/* Tombol Simpan */}
+                    <div className="pt-2">
+                      <button type="submit" disabled={isLoading} className="w-full py-3.5 bg-[#10b981] hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md flex justify-center items-center gap-2 transition disabled:opacity-50">
+                        {isLoading ? <RotateCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />} 
+                        {isLoading ? 'Menyimpan Data...' : 'Simpan Record'}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               )}
-              
-            </div>
-          )}
           
           {navTab === 'dashboard' && (() => {
             const todayStr = inputAbsensiTanggal || new Date().toISOString().slice(0, 10);
