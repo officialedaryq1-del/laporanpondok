@@ -2065,14 +2065,9 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
       </aside>
 
       {/* MAIN CONTENT WORKSPACE */}
-      <main
-        className={`flex-1 min-w-0 h-screen overflow-y-auto transition-all duration-300 pb-24 ml-0 ${
-          isSidebarExpanded ? 'md:ml-72' : 'md:ml-20'
-        }`}
-        </main> 
-
-  </div>
-);
+      <main className={`flex-1 min-w-0 h-screen overflow-y-auto transition-all duration-300 pb-24 ml-0 ${
+          isSidebarExpanded ? 'md:ml-72' : 'md:ml-20' }`}
+        
       >
         {/* Mobile Top Navigation Header */}
         <div className="md:hidden sticky top-0 z-30 bg-[#0b132b] text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 shadow-md">
@@ -6079,6 +6074,7 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
       </div>
     )}
 
+    </main>  
   </div>
   );
 }
