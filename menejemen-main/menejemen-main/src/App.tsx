@@ -45,7 +45,7 @@ const Menu = createIcon(<><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2=
 
 
 type TimeframeCategory = 'Harian' | 'Mingguan' | 'Bulanan' | 'Tahunan';
-type NavigationTab = 'dashboard' | 'ceklis' | 'laporan' | 'rekap_absensi' | 'pengaturan' | 'monitoring_kebersihan';
+type NavigationTab = 'dashboard' | 'ceklis' | 'laporan' | 'rekap_absensi' | 'pengaturan' | 'monitoring_kebersihan' | 'pelanggaran';
 
 interface Division {
   id: number;
@@ -357,6 +357,20 @@ function MainAppContent() {
   const [formKebersihanKamar, setFormKebersihanKamar] = useState<string>('');
   const [formKebersihanKeterangan, setFormKebersihanKeterangan] = useState<string>('');
 
+  // --- STATE PELANGGARAN SANTRI ---
+const [pelanggaranSubTab, setPelanggaranSubTab] = useState<'dashboard' | 'input' | 'laporan' | 'santri'>('dashboard');
+const [laporanPelanggaranSubTab, setLaporanPelanggaranSubTab] = useState<'detail' | 'halaqoh' | 'santri'>('detail');
+const [pelanggaranList, setPelanggaranList] = useState<any[]>([]);
+
+// State untuk Form Input Pelanggaran
+const [selectedSantriPlgIds, setSelectedSantriPlgIds] = useState<string[]>([]);
+const [formPlgTanggal, setFormPlgTanggal] = useState<string>(() => new Date().toISOString().slice(0, 10));
+const [formPlgSP, setFormPlgSP] = useState<string>('Tanpa SP');
+const [formPlgBentuk, setFormPlgBentuk] = useState<string>('');
+const [formPlgSanksiChecked, setFormPlgSanksiChecked] = useState<string[]>([]);
+const [formPlgSanksiCustom, setFormPlgSanksiCustom] = useState<string>('');
+const [searchSantriPlg, setSearchSantriPlg] = useState<string>('');
+  
   // State Lazy Loading untuk mempercepat Initial Load
   const [hasFetchedFullPresensi, setHasFetchedFullPresensi] = useState<boolean>(false);
 
@@ -745,7 +759,8 @@ function MainAppContent() {
         fetch(`${SUPABASE_URL}/rest/v1/santri?select=*&limit=1000`, { headers: reqHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/presensi_siswa?select=*&order=tanggal.desc&limit=800`, { headers: reqHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/data_kamar?select=*`, { headers: reqHeaders }),
-        fetch(`${SUPABASE_URL}/rest/v1/laporan_kebersihan?select=*&order=tanggal.desc`, { headers: reqHeaders })
+        fetch(`${SUPABASE_URL}/rest/v1/laporan_kebersihan?select=*&order=tanggal.desc`, { headers: reqHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/pelanggaran_santri?select=*&order=tanggal.desc`, { headers: reqHeaders })
       ]);
 
      const [
@@ -858,7 +873,12 @@ function MainAppContent() {
         const data = await laporanKebersihanRes.value.json();
         if (Array.isArray(data)) setLaporanKebersihanList(data);
       }
-      
+
+      if (pelanggaranRes && pelanggaranRes.status === 'fulfilled' && pelanggaranRes.value.ok) {
+  const data = await pelanggaranRes.value.json();
+  if (Array.isArray(data)) setPelanggaranList(data);
+}
+    
       try {
         const catRes = await fetch(`${SUPABASE_URL}/rest/v1/laporan_iku_catatan?bulan=eq.${laporanBulan}`, { headers: reqHeaders });
         if (catRes.ok) {
@@ -1901,6 +1921,25 @@ function MainAppContent() {
                   {(isSidebarExpanded || isMobileMenuOpen) && <span className="truncate">Monitoring Kebersihan</span>}
                 </div>
               </button>
+
+              <button
+  onClick={() => {
+    setNavTab('pelanggaran');
+    setIsMobileMenuOpen(false);
+  }}
+  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+    navTab === 'pelanggaran'
+      ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
+      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+  }`}
+>
+  <div className="flex items-center gap-3 min-w-0">
+    <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+    {(isSidebarExpanded || isMobileMenuOpen) && (
+      <span className="truncate">Pelanggaran Santri</span>
+    )}
+  </div>
+</button>
               
               {/* Tombol Menu Pengaturan Master Data */}
               <button
@@ -3552,6 +3591,154 @@ function MainAppContent() {
           {/* ========================================================= */}
           {/* BATAS MENU KEBERSIHAN BERAKHIR - MULAI MENU DASHBOARD       */}
           {/* ========================================================= */}
+          {navTab === 'pelanggaran' && (
+  <div className="max-w-7xl mx-auto w-full space-y-4">
+    {/* Header Aplikasi Pelanggaran */}
+    <div className="bg-emerald-900 rounded-3xl p-4 sm:p-6 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex items-center space-x-3">
+        <div className="bg-emerald-600 text-white p-2 sm:p-3 rounded-xl shadow-inner flex-shrink-0">
+          <AlertCircle className="w-6 h-6" /> {/* Gunakan ikon AlertCircle atau buat SVG shield */}
+        </div>
+        <div>
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight leading-none">SIPENG SANTRI</h1>
+          <p className="text-xs text-emerald-300 mt-1">Sistem Pencatatan Pelanggaran Santri</p>
+        </div>
+      </div>
+
+      {/* Navigasi Sub-Menu */}
+      <div className="flex bg-emerald-950/50 p-1 rounded-2xl overflow-x-auto scrollbar-none">
+        <button onClick={() => setPelanggaranSubTab('dashboard')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${pelanggaranSubTab === 'dashboard' ? 'bg-emerald-800 text-white' : 'text-emerald-200 hover:bg-emerald-800/60'}`}>Dashboard</button>
+        <button onClick={() => setPelanggaranSubTab('input')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${pelanggaranSubTab === 'input' ? 'bg-emerald-800 text-white' : 'text-emerald-200 hover:bg-emerald-800/60'}`}>Input Pelanggaran</button>
+        <button onClick={() => setPelanggaranSubTab('laporan')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${pelanggaranSubTab === 'laporan' ? 'bg-emerald-800 text-white' : 'text-emerald-200 hover:bg-emerald-800/60'}`}>Laporan & Rekap</button>
+        <button onClick={() => setPelanggaranSubTab('santri')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${pelanggaranSubTab === 'santri' ? 'bg-emerald-800 text-white' : 'text-emerald-200 hover:bg-emerald-800/60'}`}>Database Santri</button>
+      </div>
+    </div>
+
+    {/* KONTEN: INPUT PELANGGARAN */}
+    {pelanggaranSubTab === 'input' && (
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 max-w-4xl mx-auto">
+        <h3 className="text-lg font-bold text-slate-800 mb-4 border-b pb-3">Form Input Pelanggaran Santri</h3>
+        
+        {/* Logika Pencarian & Pilihan Santri Menggunakan State React */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">Cari Santri</label>
+            <input 
+              type="text" 
+              value={searchSantriPlg}
+              onChange={(e) => setSearchSantriPlg(e.target.value)}
+              placeholder="Ketik nama santri..." 
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+            />
+            {/* Render List Santri Berdasarkan Pencarian */}
+            <div className="mt-2 max-h-40 overflow-y-auto border border-slate-200 rounded-xl p-2">
+               {santriList
+                 .filter(s => s.nama.toLowerCase().includes(searchSantriPlg.toLowerCase()))
+                 .slice(0, 20) // Batasi render agar tidak lag
+                 .map(s => (
+                   <label key={s.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 cursor-pointer">
+                     <input 
+                       type="checkbox" 
+                       checked={selectedSantriPlgIds.includes(String(s.id))}
+                       onChange={(e) => {
+                         if (e.target.checked) setSelectedSantriPlgIds([...selectedSantriPlgIds, String(s.id)]);
+                         else setSelectedSantriPlgIds(selectedSantriPlgIds.filter(id => id !== String(s.id)));
+                       }}
+                       className="rounded text-emerald-600"
+                     />
+                     <span className="text-xs">{s.nama} ({s.kelas} - {s.halaqoh})</span>
+                   </label>
+               ))}
+            </div>
+          </div>
+          
+          {/* Form Input lainnya (Tanggal, SP, Bentuk, Sanksi) */}
+          {/* ... (Terjemahkan class HTML ke className di sini) ... */}
+          
+          <button 
+            onClick={/* Buat fungsi handleSubmitPelanggaran yang melakukan fetch POST ke Supabase */ () => {}}
+            className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl"
+          >
+            Simpan Record
+          </button>
+        </div>
+      </div>
+    )}
+
+    {/* KONTEN: DASHBOARD & LAPORAN */}
+    {/* Implementasikan dengan me-mapping data dari state pelanggaranList persis seperti fungsi renderTable() di file HTML Anda */}
+    
+  </div>
+)}
+          {/* KONTEN: INPUT PELANGGARAN */}
+    {pelanggaranSubTab === 'input' && (
+       // ... (Kode form input yang sebelumnya) ...
+    )}
+
+    {/* ================================================== */}
+    {/* ---> KONTEN: LAPORAN & REKAP (TARUH DI SINI) <--- */}
+    {/* ================================================== */}
+    {pelanggaranSubTab === 'laporan' && (
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-6 mx-auto">
+        
+        {/* Header/Filter Laporan (Opsional, sesuaikan dengan HTML Anda) */}
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-slate-800">Detail Riwayat Pelanggaran</h3>
+        </div>
+
+        {/* Tabel Data */}
+        <div className="overflow-x-auto rounded-xl border border-slate-200">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="p-3">Tanggal</th>
+                <th className="p-3">Nama Santri</th>
+                <th className="p-3">Jenjang</th>
+                <th className="p-3">Kelas</th>
+                <th className="p-3">Halaqoh</th>
+                <th className="p-3">Pelanggaran</th>
+                <th className="p-3">Sanksi</th>
+                <th className="p-3">Status SP</th>
+                <th className="p-3 text-center">Aksi</th>
+              </tr>
+            </thead>
+            
+            {/* ---> INI ADALAH KODE MAPPING YANG ANDA TANYAKAN <--- */}
+            <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+              {pelanggaranList.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="p-6 text-center text-slate-400">Belum ada data pelanggaran</td>
+                </tr>
+              ) : (
+                pelanggaranList.map((item, idx) => (
+                  <tr key={item.id || idx} className="hover:bg-slate-50 transition">
+                    <td className="p-3 whitespace-nowrap">{item.tanggal}</td>
+                    <td className="p-3 font-bold text-slate-800">{item.nama}</td>
+                    <td className="p-3">{item.jenjang || '-'}</td>
+                    <td className="p-3 whitespace-nowrap">{item.kelas}</td>
+                    <td className="p-3 whitespace-nowrap">{item.halaqoh}</td>
+                    <td className="p-3 max-w-xs break-words">{item.pelanggaran}</td>
+                    <td className="p-3 max-w-xs break-words">{item.sanksi}</td>
+                    <td className="p-3 whitespace-nowrap">
+                      {/* Desain badge SP (Bisa disesuaikan warnanya nanti) */}
+                      <span className="px-2 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        {item.sp}
+                      </span>
+                    </td>
+                    <td className="p-3 text-center">
+                       {/* Tombol aksi (Edit/Hapus) bisa ditambahkan di sini nantinya */}
+                       <button className="text-emerald-600 hover:text-emerald-800 text-xs font-semibold mr-2">Edit</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+            {/* ---------------------------------------------------- */}
+
+          </table>
+        </div>
+      </div>
+    )}
           
           {navTab === 'dashboard' && (() => {
             const todayStr = inputAbsensiTanggal || new Date().toISOString().slice(0, 10);
