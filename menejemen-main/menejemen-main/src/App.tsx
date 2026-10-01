@@ -1982,23 +1982,23 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
               </button>
 
               <button
-  onClick={() => {
-    setNavTab('pelanggaran');
-    setIsMobileMenuOpen(false);
-  }}
-  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
-    navTab === 'pelanggaran'
-      ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
-      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-  }`}
->
-  <div className="flex items-center gap-3 min-w-0">
-    <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
-    {(isSidebarExpanded || isMobileMenuOpen) && (
-      <span className="truncate">Pelanggaran Santri</span>
-    )}
-  </div>
-</button>
+                onClick={() => {
+                  setNavTab('pelanggaran');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  navTab === 'pelanggaran'
+                    ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                  {(isSidebarExpanded || isMobileMenuOpen) && (
+                    <span className="truncate">Pelanggaran Santri</span>
+                  )}
+                </div>
+              </button>
               
               {/* Tombol Menu Pengaturan Master Data */}
               <button
@@ -2093,7 +2093,7 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
         </div>
 
         <div className="p-2.5 sm:p-6 lg:p-8 space-y-3.5 sm:space-y-6 max-w-full overflow-x-hidden">
-
+        </div>
           {}
           {navTab === 'ceklis' && (
             <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
