@@ -4072,6 +4072,58 @@ const rekapSantriData = useMemo(() => {
                     </div>
                   </div>
                 );
+              {/* ========================================= */}
+              {/* MODAL EDIT DATA PELANGGARAN               */}
+              {/* ========================================= */}
+              {isEditPlgModalOpen && (
+                  <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+                      <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+                          <div className="bg-teal-700 px-6 py-4 flex items-center justify-between text-white">
+                              <div>
+                                  <h3 className="font-bold text-base">Edit Data Pelanggaran</h3>
+                                  <p className="text-xs text-teal-100">Perbarui rincian kasus pelanggaran santri</p>
+                              </div>
+                              <button onClick={() => setIsEditPlgModalOpen(false)} className="text-teal-200 hover:text-white transition">
+                                  Tutup
+                              </button>
+                          </div>
+                          <form onSubmit={handleUpdatePelanggaran} className="p-6 space-y-4">
+                              <div>
+                                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal</label>
+                                  <input type="date" value={editPlgTanggal} onChange={(e) => setEditPlgTanggal(e.target.value)} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-teal-600" required />
+                              </div>
+                              <div>
+                                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Bentuk Pelanggaran</label>
+                                  <input type="text" value={editPlgBentuk} onChange={(e) => setEditPlgBentuk(e.target.value)} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-600" required />
+                              </div>
+                              <div>
+                                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Sanksi / Tindakan</label>
+                                  <textarea rows={3} value={editPlgSanksi} onChange={(e) => setEditPlgSanksi(e.target.value)} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-600" required />
+                              </div>
+                              <div>
+                                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Status SP</label>
+                                  <select value={editPlgSP} onChange={(e) => setEditPlgSP(e.target.value)} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-600">
+                                      <option value="Tanpa SP">Tanpa SP</option>
+                                      <option value="Surat Pernyataan">Surat Pernyataan</option>
+                                      <option value="SP 1">SP 1</option>
+                                      <option value="SP 2">SP 2</option>
+                                      <option value="SP 3">SP 3</option>
+                                      <option value="SP Terakhir">SP Terakhir</option>
+                                      <option value="Dikeluarkan">Dikeluarkan</option>
+                                  </select>
+                              </div>
+                              <div className="flex justify-end gap-3 pt-3">
+                                  <button type="button" onClick={() => setIsEditPlgModalOpen(false)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+                                      Batal
+                                  </button>
+                                  <button type="submit" className="px-6 py-2.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl shadow-md transition">
+                                      Simpan Perubahan
+                                  </button>
+                              </div>
+                          </form>
+                      </div>
+                  </div>
+              )}
               })()}
               
               {/* KONTEN 1: INPUT PELANGGARAN */}
@@ -4383,9 +4435,13 @@ const rekapSantriData = useMemo(() => {
                                               <span className="bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-full text-[10px]">{p.sp}</span>
                                           </td>
                                           <td className="px-5 py-3 whitespace-nowrap">
-                                              <button className="text-emerald-600 hover:text-emerald-800 mr-2"><Edit className="w-4 h-4"/></button>
-                                              <button className="text-rose-600 hover:text-rose-800"><Trash2 className="w-4 h-4"/></button>
-                                          </td>
+                                          <button onClick={() => handleOpenEditPelanggaran(p)} className="text-emerald-600 hover:bg-emerald-50 hover:text-emerald-800 mr-2 p-1.5 rounded-lg transition-colors" title="Edit Data">
+                                              <Edit className="w-4 h-4"/>
+                                          </button>
+                                          <button onClick={() => handleDeletePelanggaran(p.id)} className="text-rose-600 hover:bg-rose-50 hover:text-rose-800 p-1.5 rounded-lg transition-colors" title="Hapus Data">
+                                              <Trash2 className="w-4 h-4"/>
+                                          </button>
+                                      </td>
                                       </tr>
                                   ))}
           
