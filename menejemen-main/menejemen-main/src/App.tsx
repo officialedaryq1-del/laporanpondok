@@ -4400,7 +4400,7 @@ const rekapSantriData = useMemo(() => {
                                           <th className="px-5 py-4">PELANGGARAN</th>
                                           <th className="px-5 py-4 min-w-[200px]">SANKSI</th>
                                           <th className="px-5 py-4">STATUS SP</th>
-                                          <th className="px-5 py-4">AKSI</th>
+                                          <th className="px-5 py-4 print:hidden">AKSI</th>
                                       </tr>
                                   )}
                                   {/* 2. KONTEN REKAP HALAQOH */}
@@ -4441,7 +4441,7 @@ const rekapSantriData = useMemo(() => {
                                           <td className="px-5 py-3">
                                               <span className="bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-full text-[10px]">{p.sp}</span>
                                           </td>
-                                          <td className="px-5 py-3 whitespace-nowrap">
+                                          <td className="px-5 py-3 whitespace-nowrap print:hidden">
                                           <button onClick={() => handleOpenEditPelanggaran(p)} className="text-emerald-600 hover:bg-emerald-50 hover:text-emerald-800 mr-2 p-1.5 rounded-lg transition-colors" title="Edit Data">
                                               <Edit className="w-4 h-4"/>
                                           </button>
