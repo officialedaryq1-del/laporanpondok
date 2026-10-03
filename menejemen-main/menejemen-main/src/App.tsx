@@ -3951,57 +3951,8 @@ const rekapSantriData = useMemo(() => {
                 </div>
               </div>
 
-             {{/* === KONTEN 0: DASHBOARD PELANGGARAN === */}
-              {pelanggaranSubTab === 'dashboard' && (() => {
-                // 1. Kalkulasi Data Kartu
-                const totalSantri = santriList.length;
-                const totalKasus = filteredDashboardPelanggaran.length;
-                const totalSPAktif = filteredDashboardPelanggaran.filter(p => p.sp && p.sp !== 'Tanpa SP').length;
-                const totalSP3Terakhir = filteredDashboardPelanggaran.filter(p => p.sp === 'SP Terakhir' || p.sp === 'SP 3').length;
-                const totalDikeluarkan = filteredDashboardPelanggaran.filter(p => p.sp === 'Dikeluarkan').length;
-
-                // 2. Kalkulasi Data Donut Chart (Distribusi Status SP)
-                const spColors: Record<string, string> = {
-                  'Tanpa SP': '#94a3b8', 
-                  'Surat Pernyataan': '#38bdf8', 
-                  'SP 1': '#fbbf24', 
-                  'SP 2': '#f97316', 
-                  'SP 3': '#ef4444', 
-                  'SP Terakhir': '#9f1239', 
-                  'Dikeluarkan': '#450a0a' 
-                };
-                
-                const spCounts: Record<string, number> = {
-                  'Tanpa SP': 0, 'Surat Pernyataan': 0, 'SP 1': 0, 'SP 2': 0, 'SP 3': 0, 'SP Terakhir': 0, 'Dikeluarkan': 0
-                };
-                
-                filteredDashboardPelanggaran.forEach(p => {
-                  if (spCounts[p.sp] !== undefined) spCounts[p.sp]++;
-                  else spCounts['Tanpa SP']++;
-                });
-
-                const totalSPForChart = totalKasus || 1; 
-                let accumulatedPct = 0;
-                const gradientStops = Object.entries(spCounts).map(([key, count]) => {
-                  const pct = (count / totalSPForChart) * 100;
-                  const start = accumulatedPct;
-                  accumulatedPct += pct;
-                  return `${spColors[key]} ${start}% ${accumulatedPct}%`;
-                }).join(', ');
-                
-                const donutStyle = { background: `conic-gradient(${gradientStops})` };
-
-                // 3. Kalkulasi Data Bar Chart (Kasus Per Halaqoh)
-                const halaqohStats: Record<string, number> = {};
-                filteredDashboardPelanggaran.forEach(p => {
-                  const h = p.halaqoh || 'Lainnya';
-                  halaqohStats[h] = (halaqohStats[h] || 0) + 1;
-                });
-                
-                const halaqohChartData = Object.entries(halaqohStats).map(([halaqoh, total]) => ({ halaqoh, total }));
-                const maxHalaqohChart = Math.max(...halaqohChartData.map(d => d.total), 5);
-
-                return (
+             {/* === KONTEN 0: DASHBOARD PELANGGARAN === */}
+              {pelanggaranSubTab === 'dashboard' && (
                   <div className="space-y-6">
                     {/* --- FILTER RENTANG WAKTU DASHBOARD --- */}
                     <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-4">
@@ -4046,7 +3997,7 @@ const rekapSantriData = useMemo(() => {
                         </div>
                         <div>
                           <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Total Santri</p>
-                          <h3 className="text-2xl font-black text-slate-800 leading-none">{totalSantri}</h3>
+                          <h3 className="text-2xl font-black text-slate-800 leading-none">{dashboardStatsPlg.totalSantri}</h3>
                         </div>
                       </div>
 
@@ -4057,7 +4008,7 @@ const rekapSantriData = useMemo(() => {
                         </div>
                         <div>
                           <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">Total Kasus</p>
-                          <h3 className="text-2xl font-black text-slate-800 leading-none">{totalKasus}</h3>
+                          <h3 className="text-2xl font-black text-slate-800 leading-none">{dashboardStatsPlg.totalKasus}</h3>
                         </div>
                       </div>
 
@@ -4068,7 +4019,7 @@ const rekapSantriData = useMemo(() => {
                         </div>
                         <div>
                           <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Total SP Aktif</p>
-                          <h3 className="text-2xl font-black text-slate-800 leading-none">{totalSPAktif}</h3>
+                          <h3 className="text-2xl font-black text-slate-800 leading-none">{dashboardStatsPlg.totalSPAktif}</h3>
                         </div>
                       </div>
 
@@ -4079,7 +4030,7 @@ const rekapSantriData = useMemo(() => {
                         </div>
                         <div>
                           <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">SP Terakhir / SP 3</p>
-                          <h3 className="text-2xl font-black text-slate-800 leading-none">{totalSP3Terakhir}</h3>
+                          <h3 className="text-2xl font-black text-slate-800 leading-none">{dashboardStatsPlg.totalSP3Terakhir}</h3>
                         </div>
                       </div>
 
@@ -4090,7 +4041,7 @@ const rekapSantriData = useMemo(() => {
                         </div>
                         <div>
                           <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">Dikeluarkan</p>
-                          <h3 className="text-2xl font-black text-slate-800 leading-none">{totalDikeluarkan}</h3>
+                          <h3 className="text-2xl font-black text-slate-800 leading-none">{dashboardStatsPlg.totalDikeluarkan}</h3>
                         </div>
                       </div>
                     </div>
@@ -4108,15 +4059,15 @@ const rekapSantriData = useMemo(() => {
                         </h4>
                         
                         <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full mt-4">
-                          <div className="relative w-48 h-48 rounded-full flex items-center justify-center shadow-inner" style={donutStyle}>
+                          <div className="relative w-48 h-48 rounded-full flex items-center justify-center shadow-inner" style={dashboardStatsPlg.donutStyle}>
                             <div className="w-24 h-24 bg-white rounded-full shadow-sm flex flex-col items-center justify-center">
                             </div>
                           </div>
 
                           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[10px] font-bold text-slate-500 px-2 mt-2">
-                            {Object.entries(spColors).map(([label, color]) => (
+                            {Object.entries(dashboardStatsPlg.spColors).map(([label, color]) => (
                               <div key={label} className="flex items-center gap-1.5">
-                                <span className="w-8 h-2.5 rounded-sm" style={{ backgroundColor: color }}></span>
+                                <span className="w-8 h-2.5 rounded-sm" style={{ backgroundColor: color as string }}></span>
                                 {label}
                               </div>
                             ))}
@@ -4135,10 +4086,10 @@ const rekapSantriData = useMemo(() => {
                         
                         <div className="relative flex-1 min-h-[260px] w-full overflow-x-auto overflow-y-hidden pb-8 pt-2">
                           <div className="absolute left-0 top-2 bottom-12 w-6 flex flex-col justify-between text-[10px] font-bold text-slate-400 text-right pr-2">
-                            <span>{maxHalaqohChart}</span>
-                            <span>{Math.ceil(maxHalaqohChart * 0.75)}</span>
-                            <span>{Math.ceil(maxHalaqohChart * 0.5)}</span>
-                            <span>{Math.ceil(maxHalaqohChart * 0.25)}</span>
+                            <span>{dashboardStatsPlg.maxHalaqohChart}</span>
+                            <span>{Math.ceil(dashboardStatsPlg.maxHalaqohChart * 0.75)}</span>
+                            <span>{Math.ceil(dashboardStatsPlg.maxHalaqohChart * 0.5)}</span>
+                            <span>{Math.ceil(dashboardStatsPlg.maxHalaqohChart * 0.25)}</span>
                             <span>0</span>
                           </div>
 
@@ -4149,14 +4100,14 @@ const rekapSantriData = useMemo(() => {
                           </div>
 
                           <div className="absolute left-6 top-2 bottom-12 flex items-end justify-around px-4 min-w-max w-full">
-                            {halaqohChartData.length === 0 ? (
+                            {dashboardStatsPlg.halaqohChartData.length === 0 ? (
                               <div className="w-full h-full flex items-center justify-center text-xs text-slate-400 italic">Belum ada kasus</div>
                             ) : (
-                              halaqohChartData.map((d, i) => (
+                              dashboardStatsPlg.halaqohChartData.map((d: any, i: number) => (
                                 <div key={i} className="flex flex-col items-center h-full justify-end group relative w-16 sm:w-20">
                                   <div 
                                     className="w-full max-w-[60px] bg-[#10b981] rounded-t-sm relative transition-all duration-300 hover:bg-emerald-500"
-                                    style={{ height: `${Math.max((d.total / maxHalaqohChart) * 100, 2)}%` }}
+                                    style={{ height: `${Math.max((d.total / dashboardStatsPlg.maxHalaqohChart) * 100, 2)}%` }}
                                   >
                                     <span className="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-0.5 px-2 rounded font-bold transition-opacity z-20">
                                       {d.total}
@@ -4174,8 +4125,7 @@ const rekapSantriData = useMemo(() => {
 
                     </div>
                   </div>
-                );
-              })()}
+              )}
               
               {/* ========================================= */}
               {/* MODAL EDIT DATA PELANGGARAN               */}
