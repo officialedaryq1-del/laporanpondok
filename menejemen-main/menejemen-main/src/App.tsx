@@ -1866,23 +1866,32 @@ const filteredPelanggaran = useMemo(() => {
     });
 }, [pelanggaranList, filterPlgKataKunci, filterPlgKelas, filterPlgStatusSP, filterPlgMulai, filterPlgSampai]);
 
-// 2. Update Rekap Halaqoh (Perbaikan duplikat nama beda kapital)
+// 2. Update Rekap Halaqoh (Pemisahan Kolom Halaqoh dan Kamar)
 const rekapHalaqohData = useMemo(() => {
-    const stats: Record<string, { halaqohName: string, totalSantri: Set<string>, totalKasus: number, spAktif: number }> = {};
+    // Tambahkan 'kamar' ke dalam tipe object stats
+    const stats: Record<string, { ustadz: string, kamar: string, totalSantri: Set<string>, totalKasus: number, spAktif: number }> = {};
 
     // Inisialisasi SEMUA ustadz/kamar dari kamarList
     kamarList.forEach(k => {
-        const hName = k.wali_halaqoh && k.wali_halaqoh !== '-' 
-            ? `${k.wali_halaqoh} / ${k.nama_kamar}` 
-            : `${k.nama_kamar}`;
+        const ustadzName = k.wali_halaqoh && k.wali_halaqoh !== '-' ? k.wali_halaqoh : '-';
+        const kamarName = k.nama_kamar || '-';
         
-        // Gunakan UPPERCASE sebagai kunci (key) unik
-        stats[hName.toUpperCase()] = { halaqohName: hName, totalSantri: new Set(), totalKasus: 0, spAktif: 0 };
+        // Gunakan kombinasi ustadz dan kamar sebagai kunci (key) unik
+        const key = `${ustadzName}_${kamarName}`.toUpperCase();
+        
+        stats[key] = { 
+            ustadz: ustadzName, 
+            kamar: kamarName, 
+            totalSantri: new Set(), 
+            totalKasus: 0, 
+            spAktif: 0 
+        };
     });
 
     filteredPelanggaran.forEach(p => {
-        let hName = p.halaqoh || 'Lainnya';
-        let key = hName.toUpperCase();
+        let ustadzName = p.halaqoh || '-';
+        let kamarName = p.kamar || '-';
+        let key = `${ustadzName}_${kamarName}`.toUpperCase();
 
         // Pastikan tidak error jika data string kosong/undefined
         const pHalaqohStr = p.halaqoh ? p.halaqoh.toLowerCase() : '';
@@ -1896,16 +1905,13 @@ const rekapHalaqohData = useMemo(() => {
         );
         
         if (kMatch) {
-            const matchedName = kMatch.wali_halaqoh && kMatch.wali_halaqoh !== '-' 
-                ? `${kMatch.wali_halaqoh} / ${kMatch.nama_kamar}` 
-                : `${kMatch.nama_kamar}`;
-            
-            key = matchedName.toUpperCase(); // Update key menggunakan data baku master kamar
-            hName = matchedName; // Update nama untuk tampilan
+            ustadzName = kMatch.wali_halaqoh && kMatch.wali_halaqoh !== '-' ? kMatch.wali_halaqoh : '-';
+            kamarName = kMatch.nama_kamar || '-';
+            key = `${ustadzName}_${kamarName}`.toUpperCase();
         }
 
         if (!stats[key]) {
-            stats[key] = { halaqohName: hName, totalSantri: new Set(), totalKasus: 0, spAktif: 0 };
+            stats[key] = { ustadz: ustadzName, kamar: kamarName, totalSantri: new Set(), totalKasus: 0, spAktif: 0 };
         }
 
         stats[key].totalSantri.add(p.santri_id || p.nama); 
@@ -1914,7 +1920,8 @@ const rekapHalaqohData = useMemo(() => {
     });
 
     let result = Object.values(stats).map(data => ({
-        halaqoh: data.halaqohName,
+        halaqoh: data.ustadz,
+        kamar: data.kamar,
         totalSantri: data.totalSantri.size,
         totalKasus: data.totalKasus,
         spAktif: data.spAktif
@@ -4264,7 +4271,7 @@ const rekapSantriData = useMemo(() => {
                                   {laporanPelanggaranSubTab === 'halaqoh' && (
                                       <tr>
                                           <th className="px-5 py-4">NO</th>
-                                          <th className="px-5 py-4">HALAQOH</th>
+                                          <th className="px-5 py-4 min-w-[220px]">HALAQOH</th>
                                           <th className="px-5 py-4">KAMAR</th>
                                           <th className="px-5 py-4">TOTAL SANTRI</th>
                                           <th className="px-5 py-4">TOTAL PELANGGARAN</th>
@@ -4309,17 +4316,22 @@ const rekapSantriData = useMemo(() => {
                                   {laporanPelanggaranSubTab === 'halaqoh' && rekapHalaqohData.map((h, i) => (
                                       <tr key={i} className="hover:bg-slate-50">
                                           <td className="px-5 py-4">{i + 1}</td>
-                                          <td className="px-5 py-4 font-bold">{h.halaqoh}</td>
+                                          <td className="px-5 py-4 font-bold text-slate-800">{h.halaqoh}</td>
+                                          {/* Kolom Baru untuk Kamar */}
+                                          <td className="px-5 py-4 font-bold text-slate-600">{h.kamar}</td>
+                                          
                                           <td className="px-5 py-4">{h.totalSantri} Santri</td>
                                           <td className="px-5 py-4">
-                                              <span className="border border-amber-300 text-amber-600 font-bold px-3 py-1 rounded-lg text-[11px] bg-amber-50">
+                                              <span className={`font-bold px-3 py-1 rounded-lg text-[11px] ${h.totalKasus > 0 ? 'border border-amber-300 text-amber-600 bg-amber-50' : 'bg-slate-100 text-slate-400'}`}>
                                                   {h.totalKasus} Kasus
                                               </span>
                                           </td>
-                                          <td className="px-5 py-4 text-rose-600 font-bold">{h.spAktif} SP</td>
+                                          <td className="px-5 py-4 font-bold">
+                                              {h.spAktif > 0 ? <span className="text-rose-600">{h.spAktif} SP</span> : <span className="text-slate-300">-</span>}
+                                          </td>
                                       </tr>
                                   ))}
-          
+                    
                                   {/* 3. KONTEN REKAP SANTRI */}
                                   {laporanPelanggaranSubTab === 'santri' && rekapSantriData.map((s, i) => (
                                       <tr key={i} className="hover:bg-slate-50 align-top">
