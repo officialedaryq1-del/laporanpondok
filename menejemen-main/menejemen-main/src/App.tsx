@@ -3905,73 +3905,36 @@ const rekapSantriData = useMemo(() => {
                 </div>
               </div>
 
-              {/* KONTEN 0: DASHBOARD PELANGGARAN */}
-              {pelanggaranSubTab === 'dashboard' && (
-                    <div className="space-y-4">
-        
-                {/* --- FILTER RENTANG WAKTU DASHBOARD --- */}
-                <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center">
-                            <History className="w-4 h-4" />
-                        </div>
-                        <div>
-                            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Filter Waktu</h4>
-                            <p className="text-[10px] text-slate-500">Rentang data dashboard</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex flex-1 gap-3 w-full md:w-auto mt-2 md:mt-0">
-                        <div className="flex-1 md:max-w-[200px]">
-                            <label className="block text-[10px] font-bold text-slate-500 mb-1">Mulai Tanggal</label>
-                            <input type="date" value={dashPlgMulai} onChange={(e) => setDashPlgMulai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-teal-600 cursor-pointer" />
-                        </div>
-                        <div className="flex-1 md:max-w-[200px]">
-                            <label className="block text-[10px] font-bold text-slate-500 mb-1">Sampai Tanggal</label>
-                            <input type="date" value={dashPlgSampai} onChange={(e) => setDashPlgSampai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-teal-600 cursor-pointer" />
-                        </div>
-                    </div>
-        
-                    <button onClick={() => {
-                        const date = new Date();
-                        const f = new Date(date.getFullYear(), date.getMonth(), 1);
-                        const l = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-                        setDashPlgMulai(`${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`);
-                        setDashPlgSampai(`${l.getFullYear()}-${String(l.getMonth() + 1).padStart(2, '0')}-${String(l.getDate()).padStart(2, '0')}`);
-                    }} className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition-colors w-full md:w-auto">
-                        Reset ke Bulan Ini
-                    </button>
-                </div>
-           // 1. Kalkulasi Data Kartu
-                const totalSantri = santriList.length; // Ini tetap santriList (master santri)
+             {/* KONTEN 0: DASHBOARD PELANGGARAN */}
+              {pelanggaranSubTab === 'dashboard' && (() => {
+                // 1. Kalkulasi Data Kartu
+                const totalSantri = santriList.length;
                 const totalKasus = filteredDashboardPelanggaran.length;
-                // PERBAIKAN: Gunakan filteredDashboardPelanggaran di bawah ini
                 const totalSPAktif = filteredDashboardPelanggaran.filter(p => p.sp && p.sp !== 'Tanpa SP').length;
                 const totalSP3Terakhir = filteredDashboardPelanggaran.filter(p => p.sp === 'SP Terakhir' || p.sp === 'SP 3').length;
                 const totalDikeluarkan = filteredDashboardPelanggaran.filter(p => p.sp === 'Dikeluarkan').length;
 
                 // 2. Kalkulasi Data Donut Chart (Distribusi Status SP)
                 const spColors: Record<string, string> = {
-                  'Tanpa SP': '#94a3b8', // Slate
-                  'Surat Pernyataan': '#38bdf8', // Sky
-                  'SP 1': '#fbbf24', // Amber
-                  'SP 2': '#f97316', // Orange
-                  'SP 3': '#ef4444', // Red
-                  'SP Terakhir': '#9f1239', // Rose Dark
-                  'Dikeluarkan': '#450a0a' // Red Dark
+                  'Tanpa SP': '#94a3b8', 
+                  'Surat Pernyataan': '#38bdf8', 
+                  'SP 1': '#fbbf24', 
+                  'SP 2': '#f97316', 
+                  'SP 3': '#ef4444', 
+                  'SP Terakhir': '#9f1239', 
+                  'Dikeluarkan': '#450a0a' 
                 };
                 
                 const spCounts: Record<string, number> = {
                   'Tanpa SP': 0, 'Surat Pernyataan': 0, 'SP 1': 0, 'SP 2': 0, 'SP 3': 0, 'SP Terakhir': 0, 'Dikeluarkan': 0
                 };
                 
-                // PERBAIKAN: Gunakan filteredDashboardPelanggaran agar grafik ikut terfilter waktu
                 filteredDashboardPelanggaran.forEach(p => {
                   if (spCounts[p.sp] !== undefined) spCounts[p.sp]++;
                   else spCounts['Tanpa SP']++;
                 });
 
-                const totalSPForChart = totalKasus || 1; // Hindari pembagian 0
+                const totalSPForChart = totalKasus || 1; 
                 let accumulatedPct = 0;
                 const gradientStops = Object.entries(spCounts).map(([key, count]) => {
                   const pct = (count / totalSPForChart) * 100;
@@ -3984,18 +3947,50 @@ const rekapSantriData = useMemo(() => {
 
                 // 3. Kalkulasi Data Bar Chart (Kasus Per Halaqoh)
                 const halaqohStats: Record<string, number> = {};
-                
-                // PERBAIKAN: Gunakan filteredDashboardPelanggaran di sini juga
                 filteredDashboardPelanggaran.forEach(p => {
                   const h = p.halaqoh || 'Lainnya';
                   halaqohStats[h] = (halaqohStats[h] || 0) + 1;
                 });
                 
                 const halaqohChartData = Object.entries(halaqohStats).map(([halaqoh, total]) => ({ halaqoh, total }));
-                const maxHalaqohChart = Math.max(...halaqohChartData.map(d => d.total), 5); // Minimal skala Y adalah 5
+                const maxHalaqohChart = Math.max(...halaqohChartData.map(d => d.total), 5);
 
                 return (
                   <div className="space-y-6">
+                    {/* --- FILTER RENTANG WAKTU DASHBOARD --- */}
+                    <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center">
+                                <History className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Filter Waktu</h4>
+                                <p className="text-[10px] text-slate-500">Rentang data dashboard</p>
+                            </div>
+                        </div>
+                        
+                        <div className="flex flex-1 gap-3 w-full md:w-auto mt-2 md:mt-0">
+                            <div className="flex-1 md:max-w-[200px]">
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Mulai Tanggal</label>
+                                <input type="date" value={dashPlgMulai} onChange={(e) => setDashPlgMulai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-teal-600 cursor-pointer" />
+                            </div>
+                            <div className="flex-1 md:max-w-[200px]">
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Sampai Tanggal</label>
+                                <input type="date" value={dashPlgSampai} onChange={(e) => setDashPlgSampai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-teal-600 cursor-pointer" />
+                            </div>
+                        </div>
+            
+                        <button onClick={() => {
+                            const date = new Date();
+                            const f = new Date(date.getFullYear(), date.getMonth(), 1);
+                            const l = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                            setDashPlgMulai(`${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`);
+                            setDashPlgSampai(`${l.getFullYear()}-${String(l.getMonth() + 1).padStart(2, '0')}-${String(l.getDate()).padStart(2, '0')}`);
+                        }} className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition-colors w-full md:w-auto">
+                            Reset ke Bulan Ini
+                        </button>
+                    </div>
+
                     {/* --- BAGIAN KARTU STATISTIK (KPI CARDS) --- */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                       {/* Kartu 1: Total Santri */}
@@ -4067,14 +4062,11 @@ const rekapSantriData = useMemo(() => {
                         </h4>
                         
                         <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full mt-4">
-                          {/* Donut Shape */}
                           <div className="relative w-48 h-48 rounded-full flex items-center justify-center shadow-inner" style={donutStyle}>
                             <div className="w-24 h-24 bg-white rounded-full shadow-sm flex flex-col items-center justify-center">
-                               {/* White center to make it a donut */}
                             </div>
                           </div>
 
-                          {/* Legend Categories */}
                           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[10px] font-bold text-slate-500 px-2 mt-2">
                             {Object.entries(spColors).map(([label, color]) => (
                               <div key={label} className="flex items-center gap-1.5">
@@ -4096,7 +4088,6 @@ const rekapSantriData = useMemo(() => {
                         </h4>
                         
                         <div className="relative flex-1 min-h-[260px] w-full overflow-x-auto overflow-y-hidden pb-8 pt-2">
-                          {/* Label Y-Axis */}
                           <div className="absolute left-0 top-2 bottom-12 w-6 flex flex-col justify-between text-[10px] font-bold text-slate-400 text-right pr-2">
                             <span>{maxHalaqohChart}</span>
                             <span>{Math.ceil(maxHalaqohChart * 0.75)}</span>
@@ -4105,14 +4096,12 @@ const rekapSantriData = useMemo(() => {
                             <span>0</span>
                           </div>
 
-                          {/* Garis Latar Horizontal */}
                           <div className="absolute left-6 right-0 top-2 bottom-12 flex flex-col justify-between pointer-events-none">
                             {[...Array(5)].map((_, i) => (
                               <div key={i} className="border-b border-slate-100 w-full h-0"></div>
                             ))}
                           </div>
 
-                          {/* Balok (Bars) */}
                           <div className="absolute left-6 top-2 bottom-12 flex items-end justify-around px-4 min-w-max w-full">
                             {halaqohChartData.length === 0 ? (
                               <div className="w-full h-full flex items-center justify-center text-xs text-slate-400 italic">Belum ada kasus</div>
@@ -4123,12 +4112,10 @@ const rekapSantriData = useMemo(() => {
                                     className="w-full max-w-[60px] bg-[#10b981] rounded-t-sm relative transition-all duration-300 hover:bg-emerald-500"
                                     style={{ height: `${Math.max((d.total / maxHalaqohChart) * 100, 2)}%` }}
                                   >
-                                    {/* Tooltip Hover Nilai */}
                                     <span className="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-0.5 px-2 rounded font-bold transition-opacity z-20">
                                       {d.total}
                                     </span>
                                   </div>
-                                  {/* Label X-Axis (Halaqoh) */}
                                   <span className="text-[10px] font-medium text-slate-600 mt-2 absolute -bottom-6 w-32 text-center truncate">
                                     {d.halaqoh}
                                   </span>
@@ -4142,6 +4129,7 @@ const rekapSantriData = useMemo(() => {
                     </div>
                   </div>
                 );
+              })()}
               {/* ========================================= */}
               {/* MODAL EDIT DATA PELANGGARAN               */}
               {/* ========================================= */}
