@@ -447,6 +447,10 @@ const dashboardStatsPlg = useMemo(() => {
     };
 }, [filteredDashboardPelanggaran, santriList]);
 
+  // State untuk Modal Klik Kartu Dashboard Pelanggaran
+const [dashCardModal, setDashCardModal] = useState<{ title: string; subtitle: string; data: any[] } | null>(null);
+const [searchDashCardModal, setSearchDashCardModal] = useState('');
+  
   // State untuk Modal Detail Pelanggaran per Halaqoh
 const [detailHalaqohModal, setDetailHalaqohModal] = useState<{ustadz: string, kamar: string, riwayat: any[]} | null>(null);
 const [searchDetailHalaqoh, setSearchDetailHalaqoh] = useState('');
@@ -3990,7 +3994,7 @@ const rekapSantriData = useMemo(() => {
 
                     {/* --- BAGIAN KARTU STATISTIK (KPI CARDS) --- */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                      {/* Kartu 1: Total Santri */}
+                      {/* Kartu 1: Total Santri (Tidak Berubah) */}
                       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -4001,46 +4005,89 @@ const rekapSantriData = useMemo(() => {
                         </div>
                       </div>
 
-                      {/* Kartu 2: Total Kasus */}
-                      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                      {/* Kartu 2: Total Kasus (Bisa Diklik) */}
+                      <div 
+                        onClick={() => {
+                            setDashCardModal({
+                                title: "Rincian Seluruh Kasus",
+                                subtitle: "Menampilkan daftar seluruh pelanggaran pada rentang waktu terpilih",
+                                data: filteredDashboardPelanggaran
+                            });
+                            setSearchDashCardModal('');
+                        }}
+                        className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-pointer hover:border-amber-400 hover:shadow-md transition-all group"
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                         </div>
                         <div>
-                          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">Total Kasus</p>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">Total Kasus <span className="text-[9px] text-amber-600 font-normal">(Klik)</span></p>
                           <h3 className="text-2xl font-black text-slate-800 leading-none">{dashboardStatsPlg.totalKasus}</h3>
                         </div>
                       </div>
 
-                      {/* Kartu 3: Total SP Aktif */}
-                      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
+                      {/* Kartu 3: Total SP Aktif (Bisa Diklik) */}
+                      <div 
+                        onClick={() => {
+                            const dataAktif = filteredDashboardPelanggaran.filter(p => p.sp && p.sp !== 'Tanpa SP');
+                            setDashCardModal({
+                                title: "Rincian Status SP Aktif",
+                                subtitle: "Menampilkan santri yang memiliki status Surat Peringatan aktif",
+                                data: dataAktif
+                            });
+                            setSearchDashCardModal('');
+                        }}
+                        className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-pointer hover:border-orange-400 hover:shadow-md transition-all group"
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-4"/><path d="M12 10h.01"/></svg>
                         </div>
                         <div>
-                          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Total SP Aktif</p>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Total SP Aktif <span className="text-[9px] text-orange-600 font-normal">(Klik)</span></p>
                           <h3 className="text-2xl font-black text-slate-800 leading-none">{dashboardStatsPlg.totalSPAktif}</h3>
                         </div>
                       </div>
 
-                      {/* Kartu 4: SP Terakhir / SP 3 */}
-                      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                      {/* Kartu 4: SP Terakhir / SP 3 (Bisa Diklik) */}
+                      <div 
+                        onClick={() => {
+                            const dataBerat = filteredDashboardPelanggaran.filter(p => p.sp === 'SP Terakhir' || p.sp === 'SP 3');
+                            setDashCardModal({
+                                title: "Rincian Kasus SP 3 / SP Terakhir",
+                                subtitle: "Menampilkan santri dengan tingkat pelanggaran berat",
+                                data: dataBerat
+                            });
+                            setSearchDashCardModal('');
+                        }}
+                        className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-pointer hover:border-rose-400 hover:shadow-md transition-all group"
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><circle cx="12" cy="10" r="4"/><path d="M8 14v1a4 4 0 0 0 8 0v-1"/><path d="M15.5 17 18 20"/><path d="M8.5 17 6 20"/></svg>
                         </div>
                         <div>
-                          <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">SP Terakhir / SP 3</p>
+                          <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">SP Terakhir / SP 3 <span className="text-[9px] text-rose-600 font-normal">(Klik)</span></p>
                           <h3 className="text-2xl font-black text-slate-800 leading-none">{dashboardStatsPlg.totalSP3Terakhir}</h3>
                         </div>
                       </div>
 
-                      {/* Kartu 5: Dikeluarkan */}
-                      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-red-100 text-red-800 flex items-center justify-center shrink-0">
+                      {/* Kartu 5: Dikeluarkan (Bisa Diklik) */}
+                      <div 
+                        onClick={() => {
+                            const dataOut = filteredDashboardPelanggaran.filter(p => p.sp === 'Dikeluarkan');
+                            setDashCardModal({
+                                title: "Rincian Santri Dikeluarkan",
+                                subtitle: "Menampilkan daftar santri yang telah dikenakan sanksi dikeluarkan",
+                                data: dataOut
+                            });
+                            setSearchDashCardModal('');
+                        }}
+                        className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-pointer hover:border-red-400 hover:shadow-md transition-all group"
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-red-100 text-red-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="22" y2="13"/><line x1="22" y1="8" x2="17" y2="13"/></svg>
                         </div>
                         <div>
-                          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">Dikeluarkan</p>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">Dikeluarkan <span className="text-[9px] text-red-700 font-normal">(Klik)</span></p>
                           <h3 className="text-2xl font-black text-slate-800 leading-none">{dashboardStatsPlg.totalDikeluarkan}</h3>
                         </div>
                       </div>
@@ -4179,7 +4226,103 @@ const rekapSantriData = useMemo(() => {
                       </div>
                   </div>
               )}
+
+              {/* ========================================= */}
+              {/* MODAL KLIK KARTU STATISTIK DASHBOARD      */}
+              {/* ========================================= */}
+              {dashCardModal && (
+                  <div className="fixed inset-0 z-[999] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+                      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+                          
+                          {/* Header Modal */}
+                          <div className="bg-[#1e293b] px-6 py-4 flex items-center justify-between text-white shrink-0">
+                              <div className="flex items-center gap-4">
+                                  <div className="bg-amber-500/20 p-2.5 rounded-xl border border-amber-500/30 text-amber-400">
+                                      <AlertCircle className="w-6 h-6" />
+                                  </div>
+                                  <div>
+                                      <h3 className="font-bold text-base sm:text-lg">{dashCardModal.title}</h3>
+                                      <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">{dashCardModal.subtitle}</p>
+                                  </div>
+                              </div>
+                              <button onClick={() => setDashCardModal(null)} className="text-slate-400 hover:text-white transition-colors bg-slate-800 hover:bg-slate-700 p-2 rounded-xl">
+                                  <X className="w-5 h-5" />
+                              </button>
+                          </div>
               
+                          {/* Kotak Pencarian di Dalam Modal */}
+                          <div className="p-4 border-b border-slate-100 bg-white shrink-0">
+                              <div className="relative">
+                                  <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+                                  <input 
+                                      type="text" 
+                                      placeholder="Cari nama santri di rincian ini..." 
+                                      value={searchDashCardModal} 
+                                      onChange={(e) => setSearchDashCardModal(e.target.value)}
+                                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+                                  />
+                              </div>
+                          </div>
+              
+                          {/* Daftar Riwayat Santri */}
+                          <div className="p-4 sm:p-5 overflow-y-auto space-y-4 bg-slate-50/50 flex-1">
+                              {dashCardModal.data
+                                  ?.filter((r: any) => r.nama?.toLowerCase().includes(searchDashCardModal.toLowerCase()) || r.pelanggaran?.toLowerCase().includes(searchDashCardModal.toLowerCase()))
+                                  .map((r: any, idx: number) => (
+                                      <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+                                          
+                                          <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-3">
+                                              <div>
+                                                  <h4 className="font-black text-slate-800 uppercase text-sm sm:text-base">{r.nama}</h4>
+                                                  <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                                                      {r.jenjang} | Kelas {r.kelas} | Halaqoh: {r.halaqoh}
+                                                  </p>
+                                              </div>
+                                              <div className="flex flex-col items-end gap-1.5 shrink-0 ml-4">
+                                                  <span className={`font-bold px-3 py-1 rounded-full text-[10px] ${r.sp === 'Dikeluarkan' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                      {r.sp}
+                                                  </span>
+                                                  <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+                                                      <History className="w-3.5 h-3.5"/> {r.tanggal}
+                                                  </span>
+                                              </div>
+                                          </div>
+              
+                                          <div className="space-y-3">
+                                              <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 sm:p-4">
+                                                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Bentuk Pelanggaran:</span>
+                                                  <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">{r.pelanggaran}</p>
+                                              </div>
+                                              <div className="bg-emerald-50/40 border border-emerald-100/60 rounded-xl p-3 sm:p-4">
+                                                  <span className="text-[10px] font-bold text-emerald-600 uppercase block mb-1">Sanksi Diberikan:</span>
+                                                  <p className="text-xs sm:text-sm text-emerald-800 font-medium whitespace-pre-wrap leading-relaxed">{r.sanksi}</p>
+                                              </div>
+                                          </div>
+              
+                                      </div>
+                                  ))}
+                                  
+                                  {dashCardModal.data?.filter((r: any) => r.nama?.toLowerCase().includes(searchDashCardModal.toLowerCase())).length === 0 && (
+                                      <div className="text-center py-10 text-slate-400 text-xs italic">
+                                          Tidak ada data pelanggaran yang cocok.
+                                      </div>
+                                  )}
+                          </div>
+              
+                          {/* Footer Modal */}
+                          <div className="bg-white px-6 py-4 flex items-center justify-between border-t border-slate-100 shrink-0">
+                              <span className="text-xs font-bold text-slate-500">
+                                  Total: {dashCardModal.data?.filter((r: any) => r.nama?.toLowerCase().includes(searchDashCardModal.toLowerCase())).length || 0} Data
+                              </span>
+                              <button onClick={() => setDashCardModal(null)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+                                  Tutup
+                              </button>
+                          </div>
+              
+                      </div>
+                  </div>
+              )}
+                            
               {/* KONTEN 1: INPUT PELANGGARAN */}
               {pelanggaranSubTab === 'input' && (
                 <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 max-w-4xl mx-auto">
