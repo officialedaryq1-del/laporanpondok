@@ -4141,8 +4141,9 @@ const rekapSantriData = useMemo(() => {
                                       <AlertCircle className="w-6 h-6" />
                                   </div>
                                   <div>
-                                      <h3 className="font-bold text-base sm:text-lg">Detail Kasus - {detailHalaqohModal.ustadz}</h3>
-                                      <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Menampilkan daftar santri yang melanggar di halaqoh {detailHalaqohModal.ustadz}</p>
+                                      {/* PERBAIKAN: Tambahkan ? setelah detailHalaqohModal */}
+                                      <h3 className="font-bold text-base sm:text-lg">Detail Kasus - {detailHalaqohModal?.ustadz}</h3>
+                                      <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Menampilkan daftar santri yang melanggar di halaqoh {detailHalaqohModal?.ustadz}</p>
                                   </div>
                               </div>
                               <button onClick={() => setDetailHalaqohModal(null)} className="text-slate-400 hover:text-white transition-colors bg-slate-800 hover:bg-slate-700 p-2 rounded-xl">
@@ -4166,8 +4167,9 @@ const rekapSantriData = useMemo(() => {
               
                           {/* Daftar Riwayat Santri (Scrollable) */}
                           <div className="p-4 sm:p-5 overflow-y-auto space-y-4 bg-slate-50/50 flex-1">
-                              {detailHalaqohModal.riwayat
-                                  .filter(r => r.nama?.toLowerCase().includes(searchDetailHalaqoh.toLowerCase()) || r.pelanggaran?.toLowerCase().includes(searchDetailHalaqoh.toLowerCase()))
+                              {/* PERBAIKAN: Tambahkan ? setelah detailHalaqohModal dan riwayat */}
+                              {detailHalaqohModal?.riwayat
+                                  ?.filter(r => r.nama?.toLowerCase().includes(searchDetailHalaqoh.toLowerCase()) || r.pelanggaran?.toLowerCase().includes(searchDetailHalaqoh.toLowerCase()))
                                   .map((r, idx) => (
                                       <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
                                           
@@ -4202,7 +4204,8 @@ const rekapSantriData = useMemo(() => {
                                       </div>
                                   ))}
                                   
-                                  {detailHalaqohModal.riwayat.filter(r => r.nama?.toLowerCase().includes(searchDetailHalaqoh.toLowerCase())).length === 0 && (
+                                  {/* PERBAIKAN: Tambahkan ? setelah detailHalaqohModal dan riwayat */}
+                                  {detailHalaqohModal?.riwayat?.filter(r => r.nama?.toLowerCase().includes(searchDetailHalaqoh.toLowerCase())).length === 0 && (
                                       <div className="text-center py-10 text-slate-400 text-xs italic">
                                           Tidak ditemukan pelanggaran yang cocok dengan pencarian.
                                       </div>
@@ -4212,7 +4215,8 @@ const rekapSantriData = useMemo(() => {
                           {/* Footer Modal */}
                           <div className="bg-white px-6 py-4 flex items-center justify-between border-t border-slate-100 shrink-0">
                               <span className="text-xs font-bold text-slate-500">
-                                  Total: {detailHalaqohModal.riwayat.filter(r => r.nama?.toLowerCase().includes(searchDetailHalaqoh.toLowerCase())).length} Record Pelanggaran
+                                  {/* PERBAIKAN: Tambahkan ? setelah detailHalaqohModal dan riwayat */}
+                                  Total: {detailHalaqohModal?.riwayat?.filter(r => r.nama?.toLowerCase().includes(searchDetailHalaqoh.toLowerCase())).length || 0} Record Pelanggaran
                               </span>
                               <button onClick={() => setDetailHalaqohModal(null)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
                                   Tutup
