@@ -1866,23 +1866,29 @@ const filteredPelanggaran = useMemo(() => {
     });
 }, [pelanggaranList, filterPlgKataKunci, filterPlgKelas, filterPlgStatusSP, filterPlgMulai, filterPlgSampai]);
 
-// 2. Update Rekap Halaqoh (Pemisahan Kolom Halaqoh dan Kamar)
+// 2. Update Rekap Halaqoh (Total Santri dari Master Data)
 const rekapHalaqohData = useMemo(() => {
-    // Tambahkan 'kamar' ke dalam tipe object stats
-    const stats: Record<string, { ustadz: string, kamar: string, totalSantri: Set<string>, totalKasus: number, spAktif: number }> = {};
+    // Ubah totalSantri menjadi number biasa
+    const stats: Record<string, { ustadz: string, kamar: string, totalSantri: number, totalKasus: number, spAktif: number }> = {};
 
     // Inisialisasi SEMUA ustadz/kamar dari kamarList
     kamarList.forEach(k => {
         const ustadzName = k.wali_halaqoh && k.wali_halaqoh !== '-' ? k.wali_halaqoh : '-';
         const kamarName = k.nama_kamar || '-';
-        
+
+        // Hitung total santri real dari master data (santriList)
+        const realTotalSantri = santriList.filter(s => 
+            (s.halaqoh && s.halaqoh.toLowerCase() === kamarName.toLowerCase()) || 
+            (s.halaqoh && s.halaqoh.toLowerCase() === ustadzName.toLowerCase())
+        ).length;
+
         // Gunakan kombinasi ustadz dan kamar sebagai kunci (key) unik
         const key = `${ustadzName}_${kamarName}`.toUpperCase();
         
         stats[key] = { 
             ustadz: ustadzName, 
             kamar: kamarName, 
-            totalSantri: new Set(), 
+            totalSantri: realTotalSantri, // <-- Gunakan angka total real
             totalKasus: 0, 
             spAktif: 0 
         };
@@ -1893,7 +1899,6 @@ const rekapHalaqohData = useMemo(() => {
         let kamarName = p.kamar || '-';
         let key = `${ustadzName}_${kamarName}`.toUpperCase();
 
-        // Pastikan tidak error jika data string kosong/undefined
         const pHalaqohStr = p.halaqoh ? p.halaqoh.toLowerCase() : '';
         const pKamarStr = p.kamar ? p.kamar.toLowerCase() : '';
 
@@ -1911,10 +1916,9 @@ const rekapHalaqohData = useMemo(() => {
         }
 
         if (!stats[key]) {
-            stats[key] = { ustadz: ustadzName, kamar: kamarName, totalSantri: new Set(), totalKasus: 0, spAktif: 0 };
+            stats[key] = { ustadz: ustadzName, kamar: kamarName, totalSantri: 0, totalKasus: 0, spAktif: 0 };
         }
 
-        stats[key].totalSantri.add(p.santri_id || p.nama); 
         stats[key].totalKasus += 1;
         if (p.sp && p.sp !== 'Tanpa SP') stats[key].spAktif += 1;
     });
@@ -1922,11 +1926,12 @@ const rekapHalaqohData = useMemo(() => {
     let result = Object.values(stats).map(data => ({
         halaqoh: data.ustadz,
         kamar: data.kamar,
-        totalSantri: data.totalSantri.size,
+        totalSantri: data.totalSantri, // <-- Ambil langsung datanya, bukan .size lagi
         totalKasus: data.totalKasus,
         spAktif: data.spAktif
     }));
 
+    // Logika Sortir (Terbanyak / Abjad)
     if (sortHalaqoh === 'terbanyak') {
         result.sort((a, b) => b.totalKasus - a.totalKasus);
     } else {
@@ -1934,7 +1939,7 @@ const rekapHalaqohData = useMemo(() => {
     }
 
     return result;
-}, [filteredPelanggaran, kamarList, sortHalaqoh]);
+}, [filteredPelanggaran, kamarList, sortHalaqoh, santriList]); // <-- Tambahkan santriList di dependency array
 
 // 3. Update Rekap Santri (Perbaikan Bug Riwayat Tercampur)
 const rekapSantriData = useMemo(() => {
