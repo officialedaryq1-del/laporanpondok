@@ -4265,6 +4265,7 @@ const rekapSantriData = useMemo(() => {
                                       <tr>
                                           <th className="px-5 py-4">NO</th>
                                           <th className="px-5 py-4">HALAQOH</th>
+                                          <th className="px-5 py-4">KAMAR</th>
                                           <th className="px-5 py-4">TOTAL SANTRI</th>
                                           <th className="px-5 py-4">TOTAL PELANGGARAN</th>
                                           <th className="px-5 py-4">JUMLAH SP AKTIF</th>
