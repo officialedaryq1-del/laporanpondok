@@ -4179,8 +4179,6 @@ const rekapSantriData = useMemo(() => {
                       </div>
                   </div>
               )}
-                            
-              })()}
               
               {/* KONTEN 1: INPUT PELANGGARAN */}
               {pelanggaranSubTab === 'input' && (
