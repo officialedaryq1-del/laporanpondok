@@ -365,7 +365,7 @@ const [pelanggaranList, setPelanggaranList] = useState<any[]>([]);
 
   // Tambahkan state untuk filter Laporan Pelanggaran
 const [filterPlgKataKunci, setFilterPlgKataKunci] = useState('');
-const [filterPlgJenjang, setFilterPlgJenjang] = useState('Semua Jenjang');
+//const [filterPlgJenjang, setFilterPlgJenjang] = useState('Semua Jenjang');
 const [filterPlgKelas, setFilterPlgKelas] = useState('Semua Kelas');
 const [filterPlgStatusSP, setFilterPlgStatusSP] = useState('Semua Status');
 const [filterPlgMulai, setFilterPlgMulai] = useState('');
