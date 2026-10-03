@@ -846,7 +846,6 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
                 setSantriList(data);
             }
         }
-      }
 
       if (presensiRes.status === 'fulfilled' && presensiRes.value.ok) {
         const data = await presensiRes.value.json();
