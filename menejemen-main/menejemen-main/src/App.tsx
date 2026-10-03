@@ -3907,8 +3907,8 @@ const rekapSantriData = useMemo(() => {
               </div>
 
               {/* KONTEN 0: DASHBOARD PELANGGARAN */}
-              {pelanggaranSubTab === 'dashboard' && (() => {
-              <div className="space-y-4">
+              {pelanggaranSubTab === 'dashboard' && (
+                    <div className="space-y-4">
         
                 {/* --- FILTER RENTANG WAKTU DASHBOARD --- */}
                 <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-4">
