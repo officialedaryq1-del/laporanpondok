@@ -4549,9 +4549,22 @@ const rekapSantriData = useMemo(() => {
                                   ))}
           
                                   {/* 2. KONTEN REKAP HALAQOH */}
-                                  {laporanPelanggaranSubTab === 'halaqoh' && rekapHalaqohData.map((h, i) => (
+                                  {laporanPelanggaranSubTab === 'halaqoh' && rekapHalaqohData?.map((h, i) => (
                                       <tr key={i} className="hover:bg-slate-50">
-                                         <td className="px-5 py-4">
+                                          {/* Kolom 1: No */}
+                                          <td className="px-5 py-4">{i + 1}</td>
+                                          
+                                          {/* Kolom 2: Halaqoh */}
+                                          <td className="px-5 py-4 font-bold text-slate-800">{h.halaqoh}</td>
+                                          
+                                          {/* Kolom 3: Kamar */}
+                                          <td className="px-5 py-4 font-bold text-slate-600">{h.kamar}</td>
+                                          
+                                          {/* Kolom 4: Total Santri */}
+                                          <td className="px-5 py-4">{h.totalSantri} Santri</td>
+                                          
+                                          {/* Kolom 5: Total Pelanggaran (Tombol Pop-up) */}
+                                          <td className="px-5 py-4">
                                               <button 
                                                   onClick={() => {
                                                       if (h.totalKasus > 0) {
@@ -4564,6 +4577,11 @@ const rekapSantriData = useMemo(() => {
                                               >
                                                   {h.totalKasus} Kasus
                                               </button>
+                                          </td>
+          
+                                          {/* Kolom 6: Jumlah SP Aktif */}
+                                          <td className="px-5 py-4 font-bold">
+                                              {h.spAktif > 0 ? <span className="text-rose-600">{h.spAktif} SP</span> : <span className="text-slate-300">-</span>}
                                           </td>
                                       </tr>
                                   ))}
