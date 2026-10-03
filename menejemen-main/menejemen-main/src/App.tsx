@@ -3943,12 +3943,13 @@ const rekapSantriData = useMemo(() => {
                         Reset ke Bulan Ini
                     </button>
                 </div>
-                // 1. Kalkulasi Data Kartu
-                const totalSantri = santriList.length;
+           // 1. Kalkulasi Data Kartu
+                const totalSantri = santriList.length; // Ini tetap santriList (master santri)
                 const totalKasus = filteredDashboardPelanggaran.length;
-                const totalSPAktif = pelanggaranList.filter(p => p.sp && p.sp !== 'Tanpa SP').length;
-                const totalSP3Terakhir = pelanggaranList.filter(p => p.sp === 'SP Terakhir' || p.sp === 'SP 3').length;
-                const totalDikeluarkan = pelanggaranList.filter(p => p.sp === 'Dikeluarkan').length;
+                // PERBAIKAN: Gunakan filteredDashboardPelanggaran di bawah ini
+                const totalSPAktif = filteredDashboardPelanggaran.filter(p => p.sp && p.sp !== 'Tanpa SP').length;
+                const totalSP3Terakhir = filteredDashboardPelanggaran.filter(p => p.sp === 'SP Terakhir' || p.sp === 'SP 3').length;
+                const totalDikeluarkan = filteredDashboardPelanggaran.filter(p => p.sp === 'Dikeluarkan').length;
 
                 // 2. Kalkulasi Data Donut Chart (Distribusi Status SP)
                 const spColors: Record<string, string> = {
@@ -3965,7 +3966,8 @@ const rekapSantriData = useMemo(() => {
                   'Tanpa SP': 0, 'Surat Pernyataan': 0, 'SP 1': 0, 'SP 2': 0, 'SP 3': 0, 'SP Terakhir': 0, 'Dikeluarkan': 0
                 };
                 
-                pelanggaranList.forEach(p => {
+                // PERBAIKAN: Gunakan filteredDashboardPelanggaran agar grafik ikut terfilter waktu
+                filteredDashboardPelanggaran.forEach(p => {
                   if (spCounts[p.sp] !== undefined) spCounts[p.sp]++;
                   else spCounts['Tanpa SP']++;
                 });
@@ -3983,7 +3985,9 @@ const rekapSantriData = useMemo(() => {
 
                 // 3. Kalkulasi Data Bar Chart (Kasus Per Halaqoh)
                 const halaqohStats: Record<string, number> = {};
-                pelanggaranList.forEach(p => {
+                
+                // PERBAIKAN: Gunakan filteredDashboardPelanggaran di sini juga
+                filteredDashboardPelanggaran.forEach(p => {
                   const h = p.halaqoh || 'Lainnya';
                   halaqohStats[h] = (halaqohStats[h] || 0) + 1;
                 });
