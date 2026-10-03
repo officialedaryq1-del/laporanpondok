@@ -3995,14 +3995,14 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
                       {/* Daftar Checkbox Sanksi */}
                       <div className="border border-slate-200 rounded-xl p-3 bg-white space-y-1">
                         {[
-                          "1. Pemanggilan Wali Santri",
-                          "2. Potong Rambut 0,3 cm",
-                          "3. Berdiri setelah dzikir dan jamaah dibelakang imam selama 40 hari",
-                          "4. Berdiri setelah dzikir dan jamaah dibelakang imam selama 2 minggu",
-                          "5. Berdiri setelah dzikir dan jamaah dibelakang imam selama 1 minggu",
-                          "6. Barang disita dan dihibahkan",
-                          "7. Mengundurkan diri",
-                          "8. Lainnya (diisi sendiri)"
+                          "Pemanggilan Wali Santri",
+                          "Potong Rambut 0,3 cm",
+                          "Berdiri setelah dzikir dan jamaah dibelakang imam selama 40 hari",
+                          "Berdiri setelah dzikir dan jamaah dibelakang imam selama 2 minggu",
+                          "Berdiri setelah dzikir dan jamaah dibelakang imam selama 1 minggu",
+                          "Barang disita dan dihibahkan",
+                          "Mengundurkan diri",
+                          "Lainnya (diisi sendiri)"
                         ].map(opt => (
                           <label key={opt} className="flex items-start gap-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer transition">
                             <input
