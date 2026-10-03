@@ -371,6 +371,14 @@ const [filterPlgStatusSP, setFilterPlgStatusSP] = useState('Semua Status');
 const [filterPlgMulai, setFilterPlgMulai] = useState('');
 const [filterPlgSampai, setFilterPlgSampai] = useState('');
 
+  // State untuk Modal Edit Pelanggaran
+const [isEditPlgModalOpen, setIsEditPlgModalOpen] = useState(false);
+const [editPlgId, setEditPlgId] = useState('');
+const [editPlgTanggal, setEditPlgTanggal] = useState('');
+const [editPlgBentuk, setEditPlgBentuk] = useState('');
+const [editPlgSanksi, setEditPlgSanksi] = useState('');
+const [editPlgSP, setEditPlgSP] = useState('');
+
 /// State untuk Form Input Pelanggaran
 const [selectedSantriPlgIds, setSelectedSantriPlgIds] = useState<string[]>([]);
 const [formPlgTanggal, setFormPlgTanggal] = useState<string>(() => new Date().toISOString().slice(0, 10));
@@ -1868,6 +1876,68 @@ const filteredPelanggaran = useMemo(() => {
     });
 }, [pelanggaranList, filterPlgKataKunci, filterPlgKelas, filterPlgStatusSP, filterPlgMulai, filterPlgSampai]);
 
+ // FUNGSI MEMBUKA MODAL EDIT PELANGGARAN
+const handleOpenEditPelanggaran = (item: any) => {
+    setEditPlgId(item.id);
+    setEditPlgTanggal(item.tanggal);
+    setEditPlgBentuk(item.pelanggaran);
+    setEditPlgSanksi(item.sanksi);
+    setEditPlgSP(item.sp);
+    setIsEditPlgModalOpen(true);
+};
+
+// FUNGSI UPDATE DATA PELANGGARAN
+const handleUpdatePelanggaran = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editPlgBentuk || !editPlgSanksi) return;
+
+    const payload = {
+        tanggal: editPlgTanggal,
+        pelanggaran: editPlgBentuk,
+        sanksi: editPlgSanksi,
+        sp: editPlgSP
+    };
+
+    try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/pelanggaran_santri?id=eq.${editPlgId}`, {
+            method: 'PATCH',
+            headers: reqHeaders,
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            showToast('Data pelanggaran berhasil diperbarui!', 'success');
+            setIsEditPlgModalOpen(false);
+            fetchSupabaseData(); // Me-refresh tabel otomatis
+        } else {
+            showToast('Gagal memperbarui data pelanggaran', 'error');
+        }
+    } catch (err) {
+        showToast('Terjadi kesalahan koneksi', 'error');
+    }
+};
+
+// FUNGSI HAPUS DATA PELANGGARAN
+const handleDeletePelanggaran = async (id: string) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus catatan pelanggaran ini?')) return;
+
+    try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/pelanggaran_santri?id=eq.${id}`, {
+            method: 'DELETE',
+            headers: reqHeaders
+        });
+
+        if (res.ok) {
+            showToast('Data pelanggaran berhasil dihapus!', 'success');
+            fetchSupabaseData(); // Me-refresh tabel otomatis
+        } else {
+            showToast('Gagal menghapus data pelanggaran', 'error');
+        }
+    } catch (err) {
+        showToast('Terjadi kesalahan koneksi', 'error');
+    }
+};
+  
 // 2. Update Rekap Halaqoh (Total Santri dari Master Data)
 const rekapHalaqohData = useMemo(() => {
     // Ubah totalSantri menjadi number biasa
