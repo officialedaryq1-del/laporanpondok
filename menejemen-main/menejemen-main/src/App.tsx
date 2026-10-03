@@ -4321,10 +4321,14 @@ const rekapSantriData = useMemo(() => {
                       </div>
                       
                       <div className="flex gap-2">
-                          <button className="flex items-center gap-2 bg-[#0f766e] hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm transition">
-                              <FileSpreadsheet className="w-4 h-4" /> Ekspor Excel
-                          </button>
-                          <button className="flex items-center gap-2 bg-[#e11d48] hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm transition">
+                          {/* Tombol Ekspor Excel telah dihapus */}
+                          
+                          {/* Tombol Ekspor PDF ditambahkan fungsi window.print() */}
+                          <button 
+                              onClick={() => window.print()} 
+                              className="flex items-center gap-2 bg-[#e11d48] hover:bg-rose-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md transition"
+                              title="Cetak atau Simpan sebagai PDF"
+                          >
                               <FileText className="w-4 h-4" /> Ekspor PDF
                           </button>
                       </div>
