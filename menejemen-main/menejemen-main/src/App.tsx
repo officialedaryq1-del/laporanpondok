@@ -371,6 +371,10 @@ const [filterPlgStatusSP, setFilterPlgStatusSP] = useState('Semua Status');
 const [filterPlgMulai, setFilterPlgMulai] = useState('');
 const [filterPlgSampai, setFilterPlgSampai] = useState('');
 
+  // State untuk Modal Detail Pelanggaran per Halaqoh
+const [detailHalaqohModal, setDetailHalaqohModal] = useState<{ustadz: string, kamar: string, riwayat: any[]} | null>(null);
+const [searchDetailHalaqoh, setSearchDetailHalaqoh] = useState('');
+  
   // State untuk Modal Edit Pelanggaran
 const [isEditPlgModalOpen, setIsEditPlgModalOpen] = useState(false);
 const [editPlgId, setEditPlgId] = useState('');
@@ -1938,31 +1942,29 @@ const handleDeletePelanggaran = async (id: string) => {
     }
 };
   
-// 2. Update Rekap Halaqoh (Total Santri dari Master Data)
+// 2. Update Rekap Halaqoh (Dengan penambahan array riwayat)
 const rekapHalaqohData = useMemo(() => {
-    // Ubah totalSantri menjadi number biasa
-    const stats: Record<string, { ustadz: string, kamar: string, totalSantri: number, totalKasus: number, spAktif: number }> = {};
+    // Tambahkan 'riwayat: any[]' pada definisi tipe
+    const stats: Record<string, { ustadz: string, kamar: string, totalSantri: number, totalKasus: number, spAktif: number, riwayat: any[] }> = {};
 
-    // Inisialisasi SEMUA ustadz/kamar dari kamarList
     kamarList.forEach(k => {
         const ustadzName = k.wali_halaqoh && k.wali_halaqoh !== '-' ? k.wali_halaqoh : '-';
         const kamarName = k.nama_kamar || '-';
 
-        // Hitung total santri real dari master data (santriList)
         const realTotalSantri = santriList.filter(s => 
             (s.halaqoh && s.halaqoh.toLowerCase() === kamarName.toLowerCase()) || 
             (s.halaqoh && s.halaqoh.toLowerCase() === ustadzName.toLowerCase())
         ).length;
 
-        // Gunakan kombinasi ustadz dan kamar sebagai kunci (key) unik
         const key = `${ustadzName}_${kamarName}`.toUpperCase();
         
         stats[key] = { 
             ustadz: ustadzName, 
             kamar: kamarName, 
-            totalSantri: realTotalSantri, // <-- Gunakan angka total real
+            totalSantri: realTotalSantri,
             totalKasus: 0, 
-            spAktif: 0 
+            spAktif: 0,
+            riwayat: [] // Inisialisasi array kosong
         };
     });
 
@@ -1974,7 +1976,6 @@ const rekapHalaqohData = useMemo(() => {
         const pHalaqohStr = p.halaqoh ? p.halaqoh.toLowerCase() : '';
         const pKamarStr = p.kamar ? p.kamar.toLowerCase() : '';
 
-        // Cari kecocokan TANPA peduli huruf besar/kecil
         const kMatch = kamarList.find(k => 
             (k.nama_kamar && k.nama_kamar.toLowerCase() === pHalaqohStr) || 
             (k.wali_halaqoh && k.wali_halaqoh.toLowerCase() === pHalaqohStr) || 
@@ -1988,22 +1989,23 @@ const rekapHalaqohData = useMemo(() => {
         }
 
         if (!stats[key]) {
-            stats[key] = { ustadz: ustadzName, kamar: kamarName, totalSantri: 0, totalKasus: 0, spAktif: 0 };
+            stats[key] = { ustadz: ustadzName, kamar: kamarName, totalSantri: 0, totalKasus: 0, spAktif: 0, riwayat: [] };
         }
 
         stats[key].totalKasus += 1;
+        stats[key].riwayat.push(p); // Masukkan data pelanggaran ke dalam riwayat
         if (p.sp && p.sp !== 'Tanpa SP') stats[key].spAktif += 1;
     });
 
     let result = Object.values(stats).map(data => ({
         halaqoh: data.ustadz,
         kamar: data.kamar,
-        totalSantri: data.totalSantri, // <-- Ambil langsung datanya, bukan .size lagi
+        totalSantri: data.totalSantri,
         totalKasus: data.totalKasus,
-        spAktif: data.spAktif
+        spAktif: data.spAktif,
+        riwayat: data.riwayat // Bawa data riwayat ke hasil akhir
     }));
 
-    // Logika Sortir (Terbanyak / Abjad)
     if (sortHalaqoh === 'terbanyak') {
         result.sort((a, b) => b.totalKasus - a.totalKasus);
     } else {
@@ -2011,7 +2013,7 @@ const rekapHalaqohData = useMemo(() => {
     }
 
     return result;
-}, [filteredPelanggaran, kamarList, sortHalaqoh, santriList]); // <-- Tambahkan santriList di dependency array
+}, [filteredPelanggaran, kamarList, sortHalaqoh, santriList]);
 
 // 3. Update Rekap Santri (Perbaikan Bug Riwayat Tercampur)
 const rekapSantriData = useMemo(() => {
@@ -4124,6 +4126,103 @@ const rekapSantriData = useMemo(() => {
                       </div>
                   </div>
               )}
+
+              {/* ========================================= */}
+              {/* MODAL DETAIL KASUS PER HALAQOH            */}
+              {/* ========================================= */}
+              {detailHalaqohModal && (
+                  <div className="fixed inset-0 z-[70] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+                      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+                          
+                          {/* Header Modal (Warna Gelap) */}
+                          <div className="bg-[#1e293b] px-6 py-4 flex items-center justify-between text-white shrink-0">
+                              <div className="flex items-center gap-4">
+                                  <div className="bg-amber-500/20 p-2.5 rounded-xl border border-amber-500/30 text-amber-400">
+                                      <AlertCircle className="w-6 h-6" />
+                                  </div>
+                                  <div>
+                                      <h3 className="font-bold text-base sm:text-lg">Detail Kasus - {detailHalaqohModal.ustadz}</h3>
+                                      <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Menampilkan daftar santri yang melanggar di halaqoh {detailHalaqohModal.ustadz}</p>
+                                  </div>
+                              </div>
+                              <button onClick={() => setDetailHalaqohModal(null)} className="text-slate-400 hover:text-white transition-colors bg-slate-800 hover:bg-slate-700 p-2 rounded-xl">
+                                  <X className="w-5 h-5" />
+                              </button>
+                          </div>
+              
+                          {/* Kotak Pencarian di Dalam Modal */}
+                          <div className="p-4 border-b border-slate-100 bg-white shrink-0">
+                              <div className="relative">
+                                  <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+                                  <input 
+                                      type="text" 
+                                      placeholder="Cari nama santri di rincian ini..." 
+                                      value={searchDetailHalaqoh} 
+                                      onChange={(e) => setSearchDetailHalaqoh(e.target.value)}
+                                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+                                  />
+                              </div>
+                          </div>
+              
+                          {/* Daftar Riwayat Santri (Scrollable) */}
+                          <div className="p-4 sm:p-5 overflow-y-auto space-y-4 bg-slate-50/50 flex-1">
+                              {detailHalaqohModal.riwayat
+                                  .filter(r => r.nama?.toLowerCase().includes(searchDetailHalaqoh.toLowerCase()) || r.pelanggaran?.toLowerCase().includes(searchDetailHalaqoh.toLowerCase()))
+                                  .map((r, idx) => (
+                                      <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+                                          
+                                          <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-3">
+                                              <div>
+                                                  <h4 className="font-black text-slate-800 uppercase text-sm sm:text-base">{r.nama}</h4>
+                                                  <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                                                      {r.jenjang} | Kelas {r.kelas} | {r.halaqoh} ({r.kamar})
+                                                  </p>
+                                              </div>
+                                              <div className="flex flex-col items-end gap-1.5 shrink-0 ml-4">
+                                                  <span className={`font-bold px-3 py-1 rounded-full text-[10px] ${r.sp === 'Dikeluarkan' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                      {r.sp}
+                                                  </span>
+                                                  <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+                                                      <History className="w-3.5 h-3.5"/> {r.tanggal}
+                                                  </span>
+                                              </div>
+                                          </div>
+              
+                                          <div className="space-y-3">
+                                              <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 sm:p-4">
+                                                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Bentuk Pelanggaran:</span>
+                                                  <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">{r.pelanggaran}</p>
+                                              </div>
+                                              <div className="bg-emerald-50/40 border border-emerald-100/60 rounded-xl p-3 sm:p-4">
+                                                  <span className="text-[10px] font-bold text-emerald-600 uppercase block mb-1">Sanksi Diberikan:</span>
+                                                  <p className="text-xs sm:text-sm text-emerald-800 font-medium whitespace-pre-wrap leading-relaxed">{r.sanksi}</p>
+                                              </div>
+                                          </div>
+              
+                                      </div>
+                                  ))}
+                                  
+                                  {detailHalaqohModal.riwayat.filter(r => r.nama?.toLowerCase().includes(searchDetailHalaqoh.toLowerCase())).length === 0 && (
+                                      <div className="text-center py-10 text-slate-400 text-xs italic">
+                                          Tidak ditemukan pelanggaran yang cocok dengan pencarian.
+                                      </div>
+                                  )}
+                          </div>
+              
+                          {/* Footer Modal */}
+                          <div className="bg-white px-6 py-4 flex items-center justify-between border-t border-slate-100 shrink-0">
+                              <span className="text-xs font-bold text-slate-500">
+                                  Total: {detailHalaqohModal.riwayat.filter(r => r.nama?.toLowerCase().includes(searchDetailHalaqoh.toLowerCase())).length} Record Pelanggaran
+                              </span>
+                              <button onClick={() => setDetailHalaqohModal(null)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+                                  Tutup
+                              </button>
+                          </div>
+              
+                      </div>
+                  </div>
+              )}
+                            
               })()}
               
               {/* KONTEN 1: INPUT PELANGGARAN */}
@@ -4448,19 +4547,19 @@ const rekapSantriData = useMemo(() => {
                                   {/* 2. KONTEN REKAP HALAQOH */}
                                   {laporanPelanggaranSubTab === 'halaqoh' && rekapHalaqohData.map((h, i) => (
                                       <tr key={i} className="hover:bg-slate-50">
-                                          <td className="px-5 py-4">{i + 1}</td>
-                                          <td className="px-5 py-4 font-bold text-slate-800">{h.halaqoh}</td>
-                                          {/* Kolom Baru untuk Kamar */}
-                                          <td className="px-5 py-4 font-bold text-slate-600">{h.kamar}</td>
-                                          
-                                          <td className="px-5 py-4">{h.totalSantri} Santri</td>
-                                          <td className="px-5 py-4">
-                                              <span className={`font-bold px-3 py-1 rounded-lg text-[11px] ${h.totalKasus > 0 ? 'border border-amber-300 text-amber-600 bg-amber-50' : 'bg-slate-100 text-slate-400'}`}>
+                                         <td className="px-5 py-4">
+                                              <button 
+                                                  onClick={() => {
+                                                      if (h.totalKasus > 0) {
+                                                          setDetailHalaqohModal({ ustadz: h.halaqoh, kamar: h.kamar, riwayat: h.riwayat });
+                                                          setSearchDetailHalaqoh('');
+                                                      }
+                                                  }}
+                                                  disabled={h.totalKasus === 0}
+                                                  className={`font-bold px-3 py-1.5 rounded-lg text-[11px] transition-all flex items-center gap-1.5 ${h.totalKasus > 0 ? 'border border-amber-300 text-amber-600 bg-amber-50 hover:bg-amber-100 hover:shadow-sm cursor-pointer' : 'bg-slate-100 text-slate-400 cursor-default'}`}
+                                              >
                                                   {h.totalKasus} Kasus
-                                              </span>
-                                          </td>
-                                          <td className="px-5 py-4 font-bold">
-                                              {h.spAktif > 0 ? <span className="text-rose-600">{h.spAktif} SP</span> : <span className="text-slate-300">-</span>}
+                                              </button>
                                           </td>
                                       </tr>
                                   ))}
