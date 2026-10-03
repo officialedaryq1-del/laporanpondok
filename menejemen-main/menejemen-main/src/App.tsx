@@ -4052,7 +4052,7 @@ const rekapSantriData = useMemo(() => {
                       <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-xl p-2 space-y-1 bg-white">
                          {santriList
                            .filter(s => s.nama.toLowerCase().includes(searchSantriPlg.toLowerCase()))
-                           .slice(0, 30) // Dibatasi agar browser tidak lag
+                          // .slice(0, 30) // Dibatasi agar browser tidak lag
                            .map(s => (
                              <label key={s.id} className="flex items-center gap-3 p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer border border-transparent hover:border-slate-100 transition">
                                <input 
@@ -4152,7 +4152,7 @@ const rekapSantriData = useMemo(() => {
                       </div>
 
                       {/* Kotak Input Custom "Lainnya" */}
-                      {formPlgSanksiChecked.includes("8. Lainnya (diisi sendiri)") && (
+                      {formPlgSanksiChecked.includes("Lainnya (diisi sendiri)") && (
                         <textarea
                           rows={2}
                           value={formPlgSanksiCustom}
