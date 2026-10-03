@@ -360,8 +360,16 @@ function MainAppContent() {
 
   // --- STATE PELANGGARAN SANTRI ---
 const [pelanggaranSubTab, setPelanggaranSubTab] = useState<'dashboard' | 'input' | 'laporan' | 'santri'>('dashboard');
-//const [laporanPelanggaranSubTab, setLaporanPelanggaranSubTab] = useState<'detail' | 'halaqoh' | 'santri'>('detail');
+const [laporanPelanggaranSubTab, setLaporanPelanggaranSubTab] = useState<'detail' | 'halaqoh' | 'santri'>('detail');
 const [pelanggaranList, setPelanggaranList] = useState<any[]>([]);
+
+  // Tambahkan state untuk filter Laporan Pelanggaran
+const [filterPlgKataKunci, setFilterPlgKataKunci] = useState('');
+const [filterPlgJenjang, setFilterPlgJenjang] = useState('Semua Jenjang');
+const [filterPlgKelas, setFilterPlgKelas] = useState('Semua Kelas');
+const [filterPlgStatusSP, setFilterPlgStatusSP] = useState('Semua Status');
+const [filterPlgMulai, setFilterPlgMulai] = useState('');
+const [filterPlgSampai, setFilterPlgSampai] = useState('');
 
 /// State untuk Form Input Pelanggaran
 const [selectedSantriPlgIds, setSelectedSantriPlgIds] = useState<string[]>([]);
@@ -1838,6 +1846,67 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
   
   const isSidebarExpanded = isSidebarPinned || isSidebarHovered;
 
+  // 1. Filter Data Master Pelanggaran
+const filteredPelanggaran = useMemo(() => {
+    return pelanggaranList.filter(p => {
+        const matchKataKunci = p.nama?.toLowerCase().includes(filterPlgKataKunci.toLowerCase()) || 
+                               p.sanksi?.toLowerCase().includes(filterPlgKataKunci.toLowerCase()) || 
+                               p.pelanggaran?.toLowerCase().includes(filterPlgKataKunci.toLowerCase());
+        const matchJenjang = filterPlgJenjang === 'Semua Jenjang' || p.jenjang === filterPlgJenjang;
+        const matchKelas = filterPlgKelas === 'Semua Kelas' || p.kelas === filterPlgKelas;
+        const matchStatus = filterPlgStatusSP === 'Semua Status' || p.sp === filterPlgStatusSP;
+
+        const pDate = new Date(p.tanggal);
+        const matchMulai = !filterPlgMulai || pDate >= new Date(filterPlgMulai);
+        const matchSampai = !filterPlgSampai || pDate <= new Date(filterPlgSampai);
+
+        return matchKataKunci && matchJenjang && matchKelas && matchStatus && matchMulai && matchSampai;
+    });
+}, [pelanggaranList, filterPlgKataKunci, filterPlgJenjang, filterPlgKelas, filterPlgStatusSP, filterPlgMulai, filterPlgSampai]);
+
+// 2. Olah Data untuk Rekap Halaqoh
+const rekapHalaqohData = useMemo(() => {
+    const stats: Record<string, { totalSantri: Set<string>, totalKasus: number, spAktif: number }> = {};
+    filteredPelanggaran.forEach(p => {
+        const h = p.halaqoh || 'Lainnya';
+        if (!stats[h]) stats[h] = { totalSantri: new Set(), totalKasus: 0, spAktif: 0 };
+        
+        stats[h].totalSantri.add(p.santri_id);
+        stats[h].totalKasus += 1;
+        if (p.sp && p.sp !== 'Tanpa SP') stats[h].spAktif += 1;
+    });
+    
+    return Object.entries(stats).map(([halaqoh, data]) => ({
+        halaqoh,
+        totalSantri: data.totalSantri.size,
+        totalKasus: data.totalKasus,
+        spAktif: data.spAktif
+    })).sort((a, b) => b.totalKasus - a.totalKasus);
+}, [filteredPelanggaran]);
+
+// 3. Olah Data untuk Rekap Santri
+const rekapSantriData = useMemo(() => {
+    const stats: Record<string, { nama: string, jenjang: string, kelas: string, halaqoh: string, totalKasus: number, spTertinggi: string, riwayat: any[] }> = {};
+    const spHierarchy = ['Tanpa SP', 'Surat Pernyataan', 'SP 1', 'SP 2', 'SP 3', 'SP Terakhir', 'Dikeluarkan'];
+
+    filteredPelanggaran.forEach(p => {
+        const id = p.santri_id;
+        if (!stats[id]) {
+            stats[id] = { nama: p.nama, jenjang: p.jenjang, kelas: p.kelas, halaqoh: p.halaqoh, totalKasus: 0, spTertinggi: 'Tanpa SP', riwayat: [] };
+        }
+        stats[id].totalKasus += 1;
+        stats[id].riwayat.push(p);
+
+        const currentSpIndex = spHierarchy.indexOf(p.sp);
+        const highestSpIndex = spHierarchy.indexOf(stats[id].spTertinggi);
+        if (currentSpIndex > highestSpIndex) {
+            stats[id].spTertinggi = p.sp;
+        }
+    });
+    
+    return Object.values(stats).sort((a, b) => b.totalKasus - a.totalKasus);
+}, [filteredPelanggaran]);
+  
   return (
     <div className="h-screen w-full flex overflow-hidden bg-slate-50 font-sans text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
       
@@ -4043,10 +4112,199 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
                   </form>
                 </div>
               )}
+
+              {pelanggaranSubTab === 'laporan' && (
+              <div className="space-y-4">
+                  
+                  {/* --- KONTROL SUB-TAB & EXPORT --- */}
+                  <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                      <div className="flex bg-slate-100/80 p-1 rounded-2xl border border-slate-200/50">
+                          <button onClick={() => setLaporanPelanggaranSubTab('detail')} 
+                              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${laporanPelanggaranSubTab === 'detail' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                              Detail Riwayat
+                          </button>
+                          <button onClick={() => setLaporanPelanggaranSubTab('halaqoh')} 
+                              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${laporanPelanggaranSubTab === 'halaqoh' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                              Rekap Halaqoh
+                          </button>
+                          <button onClick={() => setLaporanPelanggaranSubTab('santri')} 
+                              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${laporanPelanggaranSubTab === 'santri' ? 'bg-white text-teal-700 shadow-sm border-b-2 border-teal-600' : 'text-slate-500 hover:text-slate-700'}`}>
+                              Rekap Santri
+                          </button>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                          <button className="flex items-center gap-2 bg-[#0f766e] hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm transition">
+                              <FileSpreadsheet className="w-4 h-4" /> Ekspor Excel
+                          </button>
+                          <button className="flex items-center gap-2 bg-[#e11d48] hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm transition">
+                              <FileText className="w-4 h-4" /> Ekspor PDF
+                          </button>
+                      </div>
+                  </div>
           
-            </div> 
+                  {/* --- FILTER BAR --- */}
+                  <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                          <div>
+                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Cari Nama/Sanksi</label>
+                              <input type="text" value={filterPlgKataKunci} onChange={(e) => setFilterPlgKataKunci(e.target.value)} placeholder="Kata kunci..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+                          </div>
+                          <div>
+                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter Jenjang</label>
+                              <select value={filterPlgJenjang} onChange={(e) => setFilterPlgJenjang(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                                  <option>Semua Jenjang</option>
+                                  <option>SMP</option>
+                                  <option>SMA</option>
+                              </select>
+                          </div>
+                          <div>
+                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter Kelas</label>
+                              <select value={filterPlgKelas} onChange={(e) => setFilterPlgKelas(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                                  <option>Semua Kelas</option>
+                                  {/* Tambahkan opsi kelas lainnya */}
+                              </select>
+                          </div>
+                          <div>
+                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter Status SP</label>
+                              <select value={filterPlgStatusSP} onChange={(e) => setFilterPlgStatusSP(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                                  <option>Semua Status</option>
+                                  <option>Tanpa SP</option>
+                                  <option>SP 1</option>
+                                  <option>SP 2</option>
+                                  <option>SP 3</option>
+                                  <option>Dikeluarkan</option>
+                              </select>
+                          </div>
+                          <div className="flex gap-2">
+                              <div className="flex-1">
+                                  <label className="block text-[10px] font-bold text-slate-500 mb-1">Rentang Tanggal</label>
+                                  <input type="date" value={filterPlgMulai} onChange={(e) => setFilterPlgMulai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+                              </div>
+                              <div className="flex-1">
+                                  <label className="block text-[10px] font-bold text-slate-500 mb-1">&nbsp;</label>
+                                  <input type="date" value={filterPlgSampai} onChange={(e) => setFilterPlgSampai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+          
+                  {/* --- TABEL KONTEN --- */}
+                  <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                      <div className="overflow-x-auto">
+                          <table className="w-full text-left text-xs">
+                              <thead className="bg-slate-50/80 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
+                                  {laporanPelanggaranSubTab === 'detail' && (
+                                      <tr>
+                                          <th className="px-5 py-4">TANGGAL</th>
+                                          <th className="px-5 py-4">NAMA SANTRI</th>
+                                          <th className="px-5 py-4">JENJANG</th>
+                                          <th className="px-5 py-4">KELAS</th>
+                                          <th className="px-5 py-4">HALAQOH</th>
+                                          <th className="px-5 py-4">PELANGGARAN</th>
+                                          <th className="px-5 py-4 min-w-[200px]">SANKSI</th>
+                                          <th className="px-5 py-4">STATUS SP</th>
+                                          <th className="px-5 py-4">AKSI</th>
+                                      </tr>
+                                  )}
+                                  {laporanPelanggaranSubTab === 'halaqoh' && (
+                                      <tr>
+                                          <th className="px-5 py-4">NO</th>
+                                          <th className="px-5 py-4">HALAQOH</th>
+                                          <th className="px-5 py-4">TOTAL SANTRI</th>
+                                          <th className="px-5 py-4">TOTAL PELANGGARAN</th>
+                                          <th className="px-5 py-4">JUMLAH SP AKTIF</th>
+                                      </tr>
+                                  )}
+                                  {laporanPelanggaranSubTab === 'santri' && (
+                                      <tr>
+                                          <th className="px-5 py-4">NO</th>
+                                          <th className="px-5 py-4">NAMA SANTRI</th>
+                                          <th className="px-5 py-4">JENJANG</th>
+                                          <th className="px-5 py-4">KELAS</th>
+                                          <th className="px-5 py-4">HALAQOH/KAMAR</th>
+                                          <th className="px-5 py-4">TOTAL KASUS</th>
+                                          <th className="px-5 py-4">SP TERTINGGI</th>
+                                          <th className="px-5 py-4 min-w-[250px]">KETERANGAN</th>
+                                      </tr>
+                                  )}
+                              </thead>
+                              <tbody className="divide-y divide-slate-100 text-slate-700">
+                                  {/* 1. KONTEN DETAIL RIWAYAT */}
+                                  {laporanPelanggaranSubTab === 'detail' && filteredPelanggaran.map((p, i) => (
+                                      <tr key={i} className="hover:bg-slate-50">
+                                          <td className="px-5 py-3 whitespace-nowrap">{p.tanggal}</td>
+                                          <td className="px-5 py-3 font-bold">{p.nama}</td>
+                                          <td className="px-5 py-3">{p.jenjang}</td>
+                                          <td className="px-5 py-3">{p.kelas}</td>
+                                          <td className="px-5 py-3">{p.halaqoh}</td>
+                                          <td className="px-5 py-3">{p.pelanggaran}</td>
+                                          <td className="px-5 py-3 whitespace-pre-wrap">{p.sanksi}</td>
+                                          <td className="px-5 py-3">
+                                              <span className="bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-full text-[10px]">{p.sp}</span>
+                                          </td>
+                                          <td className="px-5 py-3 whitespace-nowrap">
+                                              <button className="text-emerald-600 hover:text-emerald-800 mr-2"><Edit className="w-4 h-4"/></button>
+                                              <button className="text-rose-600 hover:text-rose-800"><Trash2 className="w-4 h-4"/></button>
+                                          </td>
+                                      </tr>
+                                  ))}
+          
+                                  {/* 2. KONTEN REKAP HALAQOH */}
+                                  {laporanPelanggaranSubTab === 'halaqoh' && rekapHalaqohData.map((h, i) => (
+                                      <tr key={i} className="hover:bg-slate-50">
+                                          <td className="px-5 py-4">{i + 1}</td>
+                                          <td className="px-5 py-4 font-bold">{h.halaqoh}</td>
+                                          <td className="px-5 py-4">{h.totalSantri} Santri</td>
+                                          <td className="px-5 py-4">
+                                              <span className="border border-amber-300 text-amber-600 font-bold px-3 py-1 rounded-lg text-[11px] bg-amber-50">
+                                                  {h.totalKasus} Kasus
+                                              </span>
+                                          </td>
+                                          <td className="px-5 py-4 text-rose-600 font-bold">{h.spAktif} SP</td>
+                                      </tr>
+                                  ))}
+          
+                                  {/* 3. KONTEN REKAP SANTRI */}
+                                  {laporanPelanggaranSubTab === 'santri' && rekapSantriData.map((s, i) => (
+                                      <tr key={i} className="hover:bg-slate-50 align-top">
+                                          <td className="px-5 py-4">{i + 1}</td>
+                                          <td className="px-5 py-4 font-bold uppercase">{s.nama}</td>
+                                          <td className="px-5 py-4">{s.jenjang}</td>
+                                          <td className="px-5 py-4">{s.kelas}</td>
+                                          <td className="px-5 py-4">{s.halaqoh}</td>
+                                          <td className="px-5 py-4">
+                                              <span className="border border-amber-300 text-amber-600 font-bold px-3 py-1 rounded-lg text-[11px] bg-amber-50">
+                                                  {s.totalKasus} Kasus
+                                              </span>
+                                          </td>
+                                          <td className="px-5 py-4">
+                                              <span className={`font-bold px-3 py-1 rounded-full text-[10px] ${s.spTertinggi === 'Dikeluarkan' ? 'bg-rose-700 text-white' : 'bg-amber-100 text-amber-700'}`}>
+                                                  {s.spTertinggi}
+                                              </span>
+                                          </td>
+                                          <td className="px-5 py-4">
+                                              <ol className="list-decimal pl-4 space-y-1.5 text-[11px]">
+                                                  {s.riwayat.map((r, rIdx) => (
+                                                      <li key={rIdx}>
+                                                          <span className="font-bold">[{r.tanggal}]</span> {r.pelanggaran} 
+                                                          <span className={r.sp === 'Dikeluarkan' ? 'text-rose-600 font-semibold' : 'text-amber-600 font-semibold'}>
+                                                              ({r.sp})
+                                                          </span>
+                                                      </li>
+                                                  ))}
+                                              </ol>
+                                          </td>
+                                      </tr>
+                                  ))}
+                              </tbody>
+                          </table>
+                      </div>
+                  </div>
+          
+              </div>
           )}
-         
+          
           
           {/* ========================================================= */}
           {/* MENU DASHBOARD UTAMA (JANGAN DIHAPUS)                       */}
