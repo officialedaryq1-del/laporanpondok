@@ -3905,7 +3905,7 @@ const rekapSantriData = useMemo(() => {
                 </div>
               </div>
 
-             {/* KONTEN 0: DASHBOARD PELANGGARAN */}
+             {{/* === KONTEN 0: DASHBOARD PELANGGARAN === */}
               {pelanggaranSubTab === 'dashboard' && (() => {
                 // 1. Kalkulasi Data Kartu
                 const totalSantri = santriList.length;
@@ -4130,6 +4130,7 @@ const rekapSantriData = useMemo(() => {
                   </div>
                 );
               })()}
+              
               {/* ========================================= */}
               {/* MODAL EDIT DATA PELANGGARAN               */}
               {/* ========================================= */}
