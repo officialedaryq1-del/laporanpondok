@@ -1866,37 +1866,51 @@ const filteredPelanggaran = useMemo(() => {
     });
 }, [pelanggaranList, filterPlgKataKunci, filterPlgKelas, filterPlgStatusSP, filterPlgMulai, filterPlgSampai]);
 
-// 2. Update Rekap Halaqoh (Semua Ustadz Tampil, Format Nama/Kamar & Sortir)
+// 2. Update Rekap Halaqoh (Perbaikan duplikat nama beda kapital)
 const rekapHalaqohData = useMemo(() => {
     const stats: Record<string, { halaqohName: string, totalSantri: Set<string>, totalKasus: number, spAktif: number }> = {};
 
-    // Inisialisasi SEMUA ustadz/kamar dari kamarList agar tampil walau 0 kasus
+    // Inisialisasi SEMUA ustadz/kamar dari kamarList
     kamarList.forEach(k => {
         const hName = k.wali_halaqoh && k.wali_halaqoh !== '-' 
             ? `${k.wali_halaqoh} / ${k.nama_kamar}` 
             : `${k.nama_kamar}`;
-        stats[hName] = { halaqohName: hName, totalSantri: new Set(), totalKasus: 0, spAktif: 0 };
+        
+        // Gunakan UPPERCASE sebagai kunci (key) unik
+        stats[hName.toUpperCase()] = { halaqohName: hName, totalSantri: new Set(), totalKasus: 0, spAktif: 0 };
     });
 
     filteredPelanggaran.forEach(p => {
         let hName = p.halaqoh || 'Lainnya';
-        // Mencari kecocokan ustadz dengan daftar kamar
-        const kMatch = kamarList.find(k => k.nama_kamar === p.halaqoh || k.wali_halaqoh === p.halaqoh || k.nama_kamar === p.kamar);
+        let key = hName.toUpperCase();
+
+        // Pastikan tidak error jika data string kosong/undefined
+        const pHalaqohStr = p.halaqoh ? p.halaqoh.toLowerCase() : '';
+        const pKamarStr = p.kamar ? p.kamar.toLowerCase() : '';
+
+        // Cari kecocokan TANPA peduli huruf besar/kecil
+        const kMatch = kamarList.find(k => 
+            (k.nama_kamar && k.nama_kamar.toLowerCase() === pHalaqohStr) || 
+            (k.wali_halaqoh && k.wali_halaqoh.toLowerCase() === pHalaqohStr) || 
+            (k.nama_kamar && k.nama_kamar.toLowerCase() === pKamarStr)
+        );
         
         if (kMatch) {
-            hName = kMatch.wali_halaqoh && kMatch.wali_halaqoh !== '-' 
+            const matchedName = kMatch.wali_halaqoh && kMatch.wali_halaqoh !== '-' 
                 ? `${kMatch.wali_halaqoh} / ${kMatch.nama_kamar}` 
                 : `${kMatch.nama_kamar}`;
+            
+            key = matchedName.toUpperCase(); // Update key menggunakan data baku master kamar
+            hName = matchedName; // Update nama untuk tampilan
         }
 
-        if (!stats[hName]) {
-            stats[hName] = { halaqohName: hName, totalSantri: new Set(), totalKasus: 0, spAktif: 0 };
+        if (!stats[key]) {
+            stats[key] = { halaqohName: hName, totalSantri: new Set(), totalKasus: 0, spAktif: 0 };
         }
 
-        // Gunakan santri_id atau nama agar akurat menghitung total santri unik
-        stats[hName].totalSantri.add(p.santri_id || p.nama); 
-        stats[hName].totalKasus += 1;
-        if (p.sp && p.sp !== 'Tanpa SP') stats[hName].spAktif += 1;
+        stats[key].totalSantri.add(p.santri_id || p.nama); 
+        stats[key].totalKasus += 1;
+        if (p.sp && p.sp !== 'Tanpa SP') stats[key].spAktif += 1;
     });
 
     let result = Object.values(stats).map(data => ({
@@ -1906,7 +1920,6 @@ const rekapHalaqohData = useMemo(() => {
         spAktif: data.spAktif
     }));
 
-    // Logika Sortir (Terbanyak / Abjad)
     if (sortHalaqoh === 'terbanyak') {
         result.sort((a, b) => b.totalKasus - a.totalKasus);
     } else {
@@ -4248,21 +4261,15 @@ const rekapSantriData = useMemo(() => {
                                       </tr>
                                   )}
                                   {/* 2. KONTEN REKAP HALAQOH */}
-                                  {laporanPelanggaranSubTab === 'halaqoh' && rekapHalaqohData.map((h, i) => (
-                                      <tr key={i} className="hover:bg-slate-50">
-                                          <td className="px-5 py-4">{i + 1}</td>
-                                          <td className="px-5 py-4 font-bold text-slate-800">{h.halaqoh}</td>
-                                          <td className="px-5 py-4">{h.totalSantri} Santri</td>
-                                          <td className="px-5 py-4">
-                                              <span className={`font-bold px-3 py-1 rounded-lg text-[11px] ${h.totalKasus > 0 ? 'border border-amber-300 text-amber-600 bg-amber-50' : 'bg-slate-100 text-slate-400'}`}>
-                                                  {h.totalKasus} Kasus
-                                              </span>
-                                          </td>
-                                          <td className="px-5 py-4 font-bold">
-                                              {h.spAktif > 0 ? <span className="text-rose-600">{h.spAktif} SP</span> : <span className="text-slate-300">-</span>}
-                                          </td>
+                                  {laporanPelanggaranSubTab === 'halaqoh' && (
+                                      <tr>
+                                          <th className="px-5 py-4">NO</th>
+                                          <th className="px-5 py-4">HALAQOH</th>
+                                          <th className="px-5 py-4">TOTAL SANTRI</th>
+                                          <th className="px-5 py-4">TOTAL PELANGGARAN</th>
+                                          <th className="px-5 py-4">JUMLAH SP AKTIF</th>
                                       </tr>
-                                  ))}
+                                  )}
                                   {laporanPelanggaranSubTab === 'santri' && (
                                       <tr>
                                           <th className="px-5 py-4">NO</th>
