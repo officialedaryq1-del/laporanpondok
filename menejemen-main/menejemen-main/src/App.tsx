@@ -401,6 +401,52 @@ const filteredDashboardPelanggaran = useMemo(() => {
     });
 }, [pelanggaranList, dashPlgMulai, dashPlgSampai]);
 
+  // --- TAMBAHKAN KODE INI DI BAWAH filteredDashboardPelanggaran ---
+const dashboardStatsPlg = useMemo(() => {
+    const totalSantri = santriList.length;
+    const totalKasus = filteredDashboardPelanggaran.length;
+    const totalSPAktif = filteredDashboardPelanggaran.filter(p => p.sp && p.sp !== 'Tanpa SP').length;
+    const totalSP3Terakhir = filteredDashboardPelanggaran.filter(p => p.sp === 'SP Terakhir' || p.sp === 'SP 3').length;
+    const totalDikeluarkan = filteredDashboardPelanggaran.filter(p => p.sp === 'Dikeluarkan').length;
+
+    const spColors: Record<string, string> = {
+        'Tanpa SP': '#94a3b8', 'Surat Pernyataan': '#38bdf8', 'SP 1': '#fbbf24', 
+        'SP 2': '#f97316', 'SP 3': '#ef4444', 'SP Terakhir': '#9f1239', 'Dikeluarkan': '#450a0a' 
+    };
+    const spCounts: Record<string, number> = {
+        'Tanpa SP': 0, 'Surat Pernyataan': 0, 'SP 1': 0, 'SP 2': 0, 'SP 3': 0, 'SP Terakhir': 0, 'Dikeluarkan': 0
+    };
+    
+    filteredDashboardPelanggaran.forEach(p => {
+        if (spCounts[p.sp] !== undefined) spCounts[p.sp]++;
+        else spCounts['Tanpa SP']++;
+    });
+
+    const totalSPForChart = totalKasus || 1; 
+    let accumulatedPct = 0;
+    const gradientStops = Object.entries(spCounts).map(([key, count]) => {
+        const pct = (count / totalSPForChart) * 100;
+        const start = accumulatedPct;
+        accumulatedPct += pct;
+        return `${spColors[key]} ${start}% ${accumulatedPct}%`;
+    }).join(', ');
+    
+    const donutStyle = { background: `conic-gradient(${gradientStops})` };
+
+    const halaqohStats: Record<string, number> = {};
+    filteredDashboardPelanggaran.forEach(p => {
+        const h = p.halaqoh || 'Lainnya';
+        halaqohStats[h] = (halaqohStats[h] || 0) + 1;
+    });
+    const halaqohChartData = Object.entries(halaqohStats).map(([halaqoh, total]) => ({ halaqoh, total }));
+    const maxHalaqohChart = Math.max(...halaqohChartData.map(d => d.total), 5);
+
+    return {
+        totalSantri, totalKasus, totalSPAktif, totalSP3Terakhir, totalDikeluarkan,
+        donutStyle, spColors, halaqohChartData, maxHalaqohChart
+    };
+}, [filteredDashboardPelanggaran, santriList]);
+
   // State untuk Modal Detail Pelanggaran per Halaqoh
 const [detailHalaqohModal, setDetailHalaqohModal] = useState<{ustadz: string, kamar: string, riwayat: any[]} | null>(null);
 const [searchDetailHalaqoh, setSearchDetailHalaqoh] = useState('');
