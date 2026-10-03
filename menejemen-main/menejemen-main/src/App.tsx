@@ -371,6 +371,36 @@ const [filterPlgStatusSP, setFilterPlgStatusSP] = useState('Semua Status');
 const [filterPlgMulai, setFilterPlgMulai] = useState('');
 const [filterPlgSampai, setFilterPlgSampai] = useState('');
 
+  // State Khusus Filter Dashboard Pelanggaran (Default Bulan Ini)
+const [dashPlgMulai, setDashPlgMulai] = useState<string>(() => {
+    const date = new Date();
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    // Format YYYY-MM-DD menyesuaikan input date HTML
+    const year = firstDay.getFullYear();
+    const month = String(firstDay.getMonth() + 1).padStart(2, '0');
+    const day = String(firstDay.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+});
+
+const [dashPlgSampai, setDashPlgSampai] = useState<string>(() => {
+    const date = new Date();
+    const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0); // Angka 0 otomatis menunjuk ke hari terakhir bulan tersebut
+    const year = lastDay.getFullYear();
+    const month = String(lastDay.getMonth() + 1).padStart(2, '0');
+    const day = String(lastDay.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+});
+
+// Logika Filter Data Dashboard
+const filteredDashboardPelanggaran = useMemo(() => {
+    return pelanggaranList.filter(p => {
+        const pDate = new Date(p.tanggal);
+        const matchMulai = !dashPlgMulai || pDate >= new Date(dashPlgMulai);
+        const matchSampai = !dashPlgSampai || pDate <= new Date(dashPlgSampai);
+        return matchMulai && matchSampai;
+    });
+}, [pelanggaranList, dashPlgMulai, dashPlgSampai]);
+
   // State untuk Modal Detail Pelanggaran per Halaqoh
 const [detailHalaqohModal, setDetailHalaqohModal] = useState<{ustadz: string, kamar: string, riwayat: any[]} | null>(null);
 const [searchDetailHalaqoh, setSearchDetailHalaqoh] = useState('');
@@ -3878,9 +3908,44 @@ const rekapSantriData = useMemo(() => {
 
               {/* KONTEN 0: DASHBOARD PELANGGARAN */}
               {pelanggaranSubTab === 'dashboard' && (() => {
+              <div className="space-y-4">
+        
+                {/* --- FILTER RENTANG WAKTU DASHBOARD --- */}
+                <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center">
+                            <History className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Filter Waktu</h4>
+                            <p className="text-[10px] text-slate-500">Rentang data dashboard</p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex flex-1 gap-3 w-full md:w-auto mt-2 md:mt-0">
+                        <div className="flex-1 md:max-w-[200px]">
+                            <label className="block text-[10px] font-bold text-slate-500 mb-1">Mulai Tanggal</label>
+                            <input type="date" value={dashPlgMulai} onChange={(e) => setDashPlgMulai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-teal-600 cursor-pointer" />
+                        </div>
+                        <div className="flex-1 md:max-w-[200px]">
+                            <label className="block text-[10px] font-bold text-slate-500 mb-1">Sampai Tanggal</label>
+                            <input type="date" value={dashPlgSampai} onChange={(e) => setDashPlgSampai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-teal-600 cursor-pointer" />
+                        </div>
+                    </div>
+        
+                    <button onClick={() => {
+                        const date = new Date();
+                        const f = new Date(date.getFullYear(), date.getMonth(), 1);
+                        const l = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                        setDashPlgMulai(`${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`);
+                        setDashPlgSampai(`${l.getFullYear()}-${String(l.getMonth() + 1).padStart(2, '0')}-${String(l.getDate()).padStart(2, '0')}`);
+                    }} className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition-colors w-full md:w-auto">
+                        Reset ke Bulan Ini
+                    </button>
+                </div>
                 // 1. Kalkulasi Data Kartu
                 const totalSantri = santriList.length;
-                const totalKasus = pelanggaranList.length;
+                const totalKasus = filteredDashboardPelanggaran.length;
                 const totalSPAktif = pelanggaranList.filter(p => p.sp && p.sp !== 'Tanpa SP').length;
                 const totalSP3Terakhir = pelanggaranList.filter(p => p.sp === 'SP Terakhir' || p.sp === 'SP 3').length;
                 const totalDikeluarkan = pelanggaranList.filter(p => p.sp === 'Dikeluarkan').length;
