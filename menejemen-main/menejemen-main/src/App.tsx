@@ -766,7 +766,7 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
         fetch(`${SUPABASE_URL}/rest/v1/daftar_guru?select=*&order=nama_guru.asc`, { headers: reqHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/daftar_mapel?select=*&order=nama_mapel.asc`, { headers: reqHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/wali_kelas?select=*&order=kelas.asc`, { headers: reqHeaders }),
-        fetch(`${SUPABASE_URL}/rest/v1/santri?select=*&limit=1000`, { headers: reqHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/data_santri?select=*&limit=3000`, { headers: reqHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/presensi_siswa?select=*&order=tanggal.desc&limit=800`, { headers: reqHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/data_kamar?select=*`, { headers: reqHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/laporan_kebersihan?select=*&order=tanggal.desc`, { headers: reqHeaders }),
@@ -822,26 +822,29 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
         const data = await waliRes.value.json();
         if (Array.isArray(data)) setWaliKelasList(data);
       }
-      if (santriRes.status === 'fulfilled') {
-        if (santriRes.value.ok) {
-          const data = await santriRes.value.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setSantriList(data);
-          } else {
-            // Fallback bila tabel santri kosong, coba data_santri
-            const fallback = await fetch(`${SUPABASE_URL}/rest/v1/data_santri?select=*&limit=1000`, { headers: reqHeaders });
-            if (fallback.ok) {
-              const fbData = await fallback.json();
-              if (Array.isArray(fbData)) setSantriList(fbData);
+      if (santriRes.status === 'fulfilled' && santriRes.value.ok) {
+            const data = await santriRes.value.json();
+            if (Array.isArray(data)) {
+                // Urutkan berdasarkan Kamar dulu, baru Abjad Nama
+                data.sort((a, b) => {
+                    // Ambil data kamar (gunakan a.kamar atau a.halaqoh sesuai kolom database Anda)
+                    const kamarA = (a.kamar || a.halaqoh || '').toString();
+                    const kamarB = (b.kamar || b.halaqoh || '').toString();
+
+                    // Urutkan kamar (numeric: true memastikan angka diurutkan dengan benar, misal 9 sebelum 10)
+                    const compareKamar = kamarA.localeCompare(kamarB, undefined, { numeric: true });
+
+                    // Jika kamarnya berbeda, urutkan berdasarkan kamar
+                    if (compareKamar !== 0) {
+                        return compareKamar;
+                    }
+
+                    // Jika kamarnya sama, urutkan berdasarkan nama
+                    return (a.nama || '').localeCompare(b.nama || '');
+                });
+                
+                setSantriList(data);
             }
-          }
-        } else {
-          // Bila tabel santri 404, ambil dari data_santri
-          const fallback = await fetch(`${SUPABASE_URL}/rest/v1/data_santri?select=*&limit=1000`, { headers: reqHeaders });
-          if (fallback.ok) {
-            const fbData = await fallback.json();
-            if (Array.isArray(fbData)) setSantriList(fbData);
-          }
         }
       }
 
