@@ -1846,13 +1846,15 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
   
   const isSidebarExpanded = isSidebarPinned || isSidebarHovered;
 
-  // 1. Filter Data Master Pelanggaran
+  // Tambahkan state ini di area deklarasi state (Hapus filterPlgJenjang jika masih ada)
+const [sortHalaqoh, setSortHalaqoh] = useState<'terbanyak' | 'abjad'>('terbanyak');
+
+// 1. Update Filter (Hapus logika Jenjang)
 const filteredPelanggaran = useMemo(() => {
     return pelanggaranList.filter(p => {
         const matchKataKunci = p.nama?.toLowerCase().includes(filterPlgKataKunci.toLowerCase()) || 
                                p.sanksi?.toLowerCase().includes(filterPlgKataKunci.toLowerCase()) || 
                                p.pelanggaran?.toLowerCase().includes(filterPlgKataKunci.toLowerCase());
-        const matchJenjang = filterPlgJenjang === 'Semua Jenjang' || p.jenjang === filterPlgJenjang;
         const matchKelas = filterPlgKelas === 'Semua Kelas' || p.kelas === filterPlgKelas;
         const matchStatus = filterPlgStatusSP === 'Semua Status' || p.sp === filterPlgStatusSP;
 
@@ -1860,37 +1862,70 @@ const filteredPelanggaran = useMemo(() => {
         const matchMulai = !filterPlgMulai || pDate >= new Date(filterPlgMulai);
         const matchSampai = !filterPlgSampai || pDate <= new Date(filterPlgSampai);
 
-        return matchKataKunci && matchJenjang && matchKelas && matchStatus && matchMulai && matchSampai;
+        return matchKataKunci && matchKelas && matchStatus && matchMulai && matchSampai;
     });
-}, [pelanggaranList, filterPlgKataKunci, filterPlgJenjang, filterPlgKelas, filterPlgStatusSP, filterPlgMulai, filterPlgSampai]);
+}, [pelanggaranList, filterPlgKataKunci, filterPlgKelas, filterPlgStatusSP, filterPlgMulai, filterPlgSampai]);
 
-// 2. Olah Data untuk Rekap Halaqoh
+// 2. Update Rekap Halaqoh (Semua Ustadz Tampil, Format Nama/Kamar & Sortir)
 const rekapHalaqohData = useMemo(() => {
-    const stats: Record<string, { totalSantri: Set<string>, totalKasus: number, spAktif: number }> = {};
-    filteredPelanggaran.forEach(p => {
-        const h = p.halaqoh || 'Lainnya';
-        if (!stats[h]) stats[h] = { totalSantri: new Set(), totalKasus: 0, spAktif: 0 };
-        
-        stats[h].totalSantri.add(p.santri_id);
-        stats[h].totalKasus += 1;
-        if (p.sp && p.sp !== 'Tanpa SP') stats[h].spAktif += 1;
+    const stats: Record<string, { halaqohName: string, totalSantri: Set<string>, totalKasus: number, spAktif: number }> = {};
+
+    // Inisialisasi SEMUA ustadz/kamar dari kamarList agar tampil walau 0 kasus
+    kamarList.forEach(k => {
+        const hName = k.wali_halaqoh && k.wali_halaqoh !== '-' 
+            ? `${k.wali_halaqoh} / ${k.nama_kamar}` 
+            : `${k.nama_kamar}`;
+        stats[hName] = { halaqohName: hName, totalSantri: new Set(), totalKasus: 0, spAktif: 0 };
     });
-    
-    return Object.entries(stats).map(([halaqoh, data]) => ({
-        halaqoh,
+
+    filteredPelanggaran.forEach(p => {
+        let hName = p.halaqoh || 'Lainnya';
+        // Mencari kecocokan ustadz dengan daftar kamar
+        const kMatch = kamarList.find(k => k.nama_kamar === p.halaqoh || k.wali_halaqoh === p.halaqoh || k.nama_kamar === p.kamar);
+        
+        if (kMatch) {
+            hName = kMatch.wali_halaqoh && kMatch.wali_halaqoh !== '-' 
+                ? `${kMatch.wali_halaqoh} / ${kMatch.nama_kamar}` 
+                : `${kMatch.nama_kamar}`;
+        }
+
+        if (!stats[hName]) {
+            stats[hName] = { halaqohName: hName, totalSantri: new Set(), totalKasus: 0, spAktif: 0 };
+        }
+
+        // Gunakan santri_id atau nama agar akurat menghitung total santri unik
+        stats[hName].totalSantri.add(p.santri_id || p.nama); 
+        stats[hName].totalKasus += 1;
+        if (p.sp && p.sp !== 'Tanpa SP') stats[hName].spAktif += 1;
+    });
+
+    let result = Object.values(stats).map(data => ({
+        halaqoh: data.halaqohName,
         totalSantri: data.totalSantri.size,
         totalKasus: data.totalKasus,
         spAktif: data.spAktif
-    })).sort((a, b) => b.totalKasus - a.totalKasus);
-}, [filteredPelanggaran]);
+    }));
 
-// 3. Olah Data untuk Rekap Santri
+    // Logika Sortir (Terbanyak / Abjad)
+    if (sortHalaqoh === 'terbanyak') {
+        result.sort((a, b) => b.totalKasus - a.totalKasus);
+    } else {
+        result.sort((a, b) => a.halaqoh.localeCompare(b.halaqoh));
+    }
+
+    return result;
+}, [filteredPelanggaran, kamarList, sortHalaqoh]);
+
+// 3. Update Rekap Santri (Perbaikan Bug Riwayat Tercampur)
 const rekapSantriData = useMemo(() => {
     const stats: Record<string, { nama: string, jenjang: string, kelas: string, halaqoh: string, totalKasus: number, spTertinggi: string, riwayat: any[] }> = {};
     const spHierarchy = ['Tanpa SP', 'Surat Pernyataan', 'SP 1', 'SP 2', 'SP 3', 'SP Terakhir', 'Dikeluarkan'];
 
     filteredPelanggaran.forEach(p => {
-        const id = p.santri_id;
+        // PERBAIKAN: Jika santri_id kosong, gunakan 'nama' sebagai pemisah agar tidak nyampur!
+        const id = p.santri_id || p.nama; 
+        if (!id) return;
+
         if (!stats[id]) {
             stats[id] = { nama: p.nama, jenjang: p.jenjang, kelas: p.kelas, halaqoh: p.halaqoh, totalKasus: 0, spTertinggi: 'Tanpa SP', riwayat: [] };
         }
@@ -1905,7 +1940,7 @@ const rekapSantriData = useMemo(() => {
     });
     
     return Object.values(stats).sort((a, b) => b.totalKasus - a.totalKasus);
-}, [filteredPelanggaran]);
+}, [filteredPelanggaran]);;
   
   return (
     <div className="h-screen w-full flex overflow-hidden bg-slate-50 font-sans text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
@@ -4144,50 +4179,55 @@ const rekapSantriData = useMemo(() => {
                   </div>
           
                   {/* --- FILTER BAR --- */}
-                  <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                          <div>
-                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Cari Nama/Sanksi</label>
-                              <input type="text" value={filterPlgKataKunci} onChange={(e) => setFilterPlgKataKunci(e.target.value)} placeholder="Kata kunci..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
-                          </div>
-                          <div>
-                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter Jenjang</label>
-                              <select value={filterPlgJenjang} onChange={(e) => setFilterPlgJenjang(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                                  <option>Semua Jenjang</option>
-                                  <option>SMP</option>
-                                  <option>SMA</option>
-                              </select>
-                          </div>
-                          <div>
-                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter Kelas</label>
-                              <select value={filterPlgKelas} onChange={(e) => setFilterPlgKelas(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                                  <option>Semua Kelas</option>
-                                  {/* Tambahkan opsi kelas lainnya */}
-                              </select>
-                          </div>
-                          <div>
-                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter Status SP</label>
-                              <select value={filterPlgStatusSP} onChange={(e) => setFilterPlgStatusSP(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                                  <option>Semua Status</option>
-                                  <option>Tanpa SP</option>
-                                  <option>SP 1</option>
-                                  <option>SP 2</option>
-                                  <option>SP 3</option>
-                                  <option>Dikeluarkan</option>
-                              </select>
-                          </div>
-                          <div className="flex gap-2">
-                              <div className="flex-1">
-                                  <label className="block text-[10px] font-bold text-slate-500 mb-1">Rentang Tanggal</label>
-                                  <input type="date" value={filterPlgMulai} onChange={(e) => setFilterPlgMulai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
-                              </div>
-                              <div className="flex-1">
-                                  <label className="block text-[10px] font-bold text-slate-500 mb-1">&nbsp;</label>
-                                  <input type="date" value={filterPlgSampai} onChange={(e) => setFilterPlgSampai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
-                              </div>
-                          </div>
-                      </div>
+          <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-1">Cari Nama/Sanksi</label>
+                      <input type="text" value={filterPlgKataKunci} onChange={(e) => setFilterPlgKataKunci(e.target.value)} placeholder="Kata kunci..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
                   </div>
+  
+                  {/* Dinamis: Tampil Sortir jika tab Halaqoh, tampil Kelas jika tab lain */}
+                  {laporanPelanggaranSubTab === 'halaqoh' ? (
+                      <div>
+                          <label className="block text-[10px] font-bold text-slate-500 mb-1">Sortir Halaqoh</label>
+                          <select value={sortHalaqoh} onChange={(e) => setSortHalaqoh(e.target.value as 'terbanyak' | 'abjad')} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs cursor-pointer">
+                              <option value="terbanyak">Kasus Terbanyak</option>
+                              <option value="abjad">Berdasarkan Abjad Ustadz (A-Z)</option>
+                          </select>
+                      </div>
+                  ) : (
+                      <div>
+                          <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter Kelas</label>
+                          <select value={filterPlgKelas} onChange={(e) => setFilterPlgKelas(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                              <option>Semua Kelas</option>
+                              {/* Tambahkan opsi kelas lainnya jika perlu */}
+                          </select>
+                      </div>
+                  )}
+
+                <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter Status SP</label>
+                    <select value={filterPlgStatusSP} onChange={(e) => setFilterPlgStatusSP(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                        <option>Semua Status</option>
+                        <option>Tanpa SP</option>
+                        <option>SP 1</option>
+                        <option>SP 2</option>
+                        <option>SP 3</option>
+                        <option>Dikeluarkan</option>
+                    </select>
+                </div>
+                <div className="flex gap-2">
+                    <div className="flex-1">
+                        <label className="block text-[10px] font-bold text-slate-500 mb-1">Rentang Tanggal</label>
+                        <input type="date" value={filterPlgMulai} onChange={(e) => setFilterPlgMulai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+                    </div>
+                    <div className="flex-1">
+                        <label className="block text-[10px] font-bold text-slate-500 mb-1">&nbsp;</label>
+                        <input type="date" value={filterPlgSampai} onChange={(e) => setFilterPlgSampai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+                    </div>
+                </div>
+            </div>
+        </div>
           
                   {/* --- TABEL KONTEN --- */}
                   <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
@@ -4207,15 +4247,22 @@ const rekapSantriData = useMemo(() => {
                                           <th className="px-5 py-4">AKSI</th>
                                       </tr>
                                   )}
-                                  {laporanPelanggaranSubTab === 'halaqoh' && (
-                                      <tr>
-                                          <th className="px-5 py-4">NO</th>
-                                          <th className="px-5 py-4">HALAQOH</th>
-                                          <th className="px-5 py-4">TOTAL SANTRI</th>
-                                          <th className="px-5 py-4">TOTAL PELANGGARAN</th>
-                                          <th className="px-5 py-4">JUMLAH SP AKTIF</th>
+                                  {/* 2. KONTEN REKAP HALAQOH */}
+                                  {laporanPelanggaranSubTab === 'halaqoh' && rekapHalaqohData.map((h, i) => (
+                                      <tr key={i} className="hover:bg-slate-50">
+                                          <td className="px-5 py-4">{i + 1}</td>
+                                          <td className="px-5 py-4 font-bold text-slate-800">{h.halaqoh}</td>
+                                          <td className="px-5 py-4">{h.totalSantri} Santri</td>
+                                          <td className="px-5 py-4">
+                                              <span className={`font-bold px-3 py-1 rounded-lg text-[11px] ${h.totalKasus > 0 ? 'border border-amber-300 text-amber-600 bg-amber-50' : 'bg-slate-100 text-slate-400'}`}>
+                                                  {h.totalKasus} Kasus
+                                              </span>
+                                          </td>
+                                          <td className="px-5 py-4 font-bold">
+                                              {h.spAktif > 0 ? <span className="text-rose-600">{h.spAktif} SP</span> : <span className="text-slate-300">-</span>}
+                                          </td>
                                       </tr>
-                                  )}
+                                  ))}
                                   {laporanPelanggaranSubTab === 'santri' && (
                                       <tr>
                                           <th className="px-5 py-4">NO</th>
