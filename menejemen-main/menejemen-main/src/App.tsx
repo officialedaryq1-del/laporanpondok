@@ -1806,37 +1806,67 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
   };
 
   const handleOpenSubmissionDetail = async (sub: Submission) => {
-    setSelectedSubmissionForDetail(sub);
-    setDetailItemsLoading(true);
-    try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/submission_details?submission_id=eq.${sub.id}&select=*`,
-        { headers: reqHeaders }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          const enriched = data.map((d: { id: number; item_id: number; answer_value: string }) => {
-            const matchedItem = items.find(it => it.id === d.item_id);
-            return {
-              ...d,
-              item_text: matchedItem ? matchedItem.item_text : `Indikator #${d.item_id}`
-            };
-          });
-          setSubmissionDetailList(enriched);
-        } else {
-          setSubmissionDetailList([]);
-        }
+  setSelectedSubmissionForDetail(sub);
+  setDetailItemsLoading(true);
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/submission_details?submission_id=eq.${sub.id}&select=*`, {
+      headers: reqHeaders
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        // 1. Petakan data dan deteksi apakah jawaban tersebut termasuk kategori "Masalah/Temuan"
+        const enriched = data.map((d: any) => {
+          const matchedItem = items.find(it => it.id === d.item_id);
+          let isProblem = false;
+
+          if (matchedItem) {
+            const matchedSection = sections.find(s => s.id === matchedItem.section_id);
+            // Cek apakah kategori indikator ini Tipe Positif atau Tipe Negatif
+            const isPositif = matchedSection ? ((sectionTypeMap[matchedSection.id] || (matchedSection as any).section_type) === 'positif') : false;
+
+            // Logika Penentuan Temuan:
+            if (!matchedItem.input_type || matchedItem.input_type === 'checkbox') {
+              if (isPositif && d.answer_value === 'false') {
+                isProblem = true; // Kategori Positif tapi TIDAK dicentang (Berarti Masalah)
+              } else if (!isPositif && d.answer_value === 'true') {
+                isProblem = true; // Kategori Negatif dan DICENTANG (Berarti Masalah)
+              }
+            } else {
+              // Untuk input text/dropdown, jadikan temuan jika ada teks/isiannya
+              if (d.answer_value && d.answer_value.trim() !== '' && d.answer_value !== 'false') {
+                isProblem = true;
+              }
+            }
+          }
+
+          return {
+            ...d,
+            item_text: matchedItem ? matchedItem.item_text : `Indikator #${d.item_id}`,
+            is_problem: isProblem
+          };
+        });
+
+        // 2. FILTER DATA: Hanya ambil data yang terdeteksi sebagai `isProblem = true`
+        const onlyProblems = enriched.filter(item => item.is_problem);
+        
+        // 3. Masukkan ke dalam State (sehingga UI otomatis menyesuaikan jumlah dan listnya)
+        setSubmissionDetailList(onlyProblems);
+
       } else {
         setSubmissionDetailList([]);
       }
-    } catch (err) {
-      console.error('Error fetching submission details:', err);
+    } else {
       setSubmissionDetailList([]);
-    } finally {
-      setDetailItemsLoading(false);
     }
-  };
+  } catch (err) {
+    console.error('Error fetching submission details:', err);
+    setSubmissionDetailList([]);
+  } finally {
+    setDetailItemsLoading(false);
+  }
+};
 // LETAKKAN FUNGSI handleSubmitKebersihan DI SINI
   const handleSubmitKebersihan = async (e: React.FormEvent) => {
     e.preventDefault();
