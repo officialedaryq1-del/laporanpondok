@@ -1656,9 +1656,48 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
 
       if (res.ok) {
         const created = await res.json();
-        if (Array.isArray(created) && created[0]) {
-          setSubmissions(prev => [created[0], ...prev]);
+        const newSubmission = (Array.isArray(created) && created.length > 0) ? created[0] : null;
+
+        // --- TAMBAHAN KODE: Simpan detail item (Rincian Indikator) ke database ---
+        if (newSubmission) {
+          const detailRecords: any[] = [];
+
+          // Kumpulkan semua jawaban dari form yang tampil
+          templateSections.forEach(sec => {
+            const secItems = getSectionItems(sec.id);
+            secItems.forEach(it => {
+              let answerValue = '';
+              
+              // Cek tipe input, jika checkbox simpan true/false, selain itu simpan teksnya
+              if (!it.input_type || it.input_type === 'checkbox') {
+                answerValue = checkedItems[it.id] ? 'true' : 'false';
+              } else {
+                answerValue = formAnswers[it.id] || '';
+              }
+
+              // Masukkan ke array penampung
+              detailRecords.push({
+                submission_id: newSubmission.id,
+                item_id: it.id,
+                answer_value: answerValue
+              });
+            });
+          });
+
+          // Eksekusi API Post ke tabel submission_details
+          if (detailRecords.length > 0) {
+            await fetch(`${SUPABASE_URL}/rest/v1/submission_details`, {
+              method: 'POST',
+              headers: reqHeaders,
+              body: JSON.stringify(detailRecords)
+            }).catch(err => console.warn('Gagal menyimpan detail laporan:', err));
+          }
+
+          // Update State UI
+          setSubmissions(prev => [newSubmission, ...prev]);
         }
+        // -----------------------------------------------------------------------
+
         showToast('Laporan monitoring berhasil disimpan!');
         setCheckedItems({});
         setFormAnswers({});
