@@ -928,7 +928,7 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
             setPengawasConfigMap(prev => ({ ...prev, ...dbConfigMap }));
           }
         }
-      }
+      
       if (secRes.status === 'fulfilled' && secRes.value.ok) {
         const data = await secRes.value.json();
         if (Array.isArray(data)) setSections(data);
@@ -2158,7 +2158,7 @@ const rekapSantriData = useMemo(() => {
     });
     
     return Object.values(stats).sort((a, b) => b.totalKasus - a.totalKasus);
-}, [filteredPelanggaran]);;
+}, [filteredPelanggaran]);
   
   return (
     <div className="h-screen w-full flex overflow-hidden bg-slate-50 font-sans text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
