@@ -5165,12 +5165,21 @@ const rekapSantriData = useMemo(() => {
                                 <td className="py-2.5 sm:py-3 px-3 text-center">
                                   <button
                                     onClick={() => {
+                                      // 1. Set Divisi yang sesuai
                                       setActiveDivisionId(tpl.division_id);
-                                      setSelectedTemplateId(tpl.id);
-                                      setActiveTimeframe('Harian');
-                                      setNavTab('ceklis');
-                                      setActiveSubTab(isInputted ? 'riwayat' : 'input');
-                                    }}
+                                        
+                                      // 2. Set Timeframe (Harian/Mingguan/Bulanan) sesuai kegiatan yang di-klik
+                                      setActiveTimeframe(tpl.timeframe as TimeframeCategory); 
+                                        
+                                       // 3. Set Dropdown ke ID kegiatan yang tepat
+                                      setSelectedTemplateId(tpl.id); 
+                                        
+                                      // 4. Arahkan langsung ke form input (Opsional, agar tidak nyangkut di riwayat)
+                                       setActiveSubTab('input'); 
+                                        
+                                      // 5. Pindah ke halaman form ceklis
+                                       setNavTab('ceklis'); 
+                                     }}
                                     className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 font-bold text-[11px] transition shadow-2xs"
                                   >
                                     {isInputted ? 'Lihat' : 'Isi'}
