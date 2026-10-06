@@ -243,6 +243,35 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError:
   }
 }
 
+ type InputType = 'dropdown' | 'text';
+  interface FieldDetail {
+    label: string;
+    type: InputType;
+    options: string;
+  }
+  type ExtendedFieldConfig = Record<PengawasFieldKey, FieldDetail>;
+  
+  const DEFAULT_FIELD_DETAILS: ExtendedFieldConfig = {
+    pj: { label: 'Petugas (PJ)', type: 'dropdown', options: '' },
+    guru: { label: 'Guru Pengampu', type: 'text', options: '' },
+    mapel: { label: 'Mata Pelajaran', type: 'text', options: '' },
+    kelas: { label: 'Kelas', type: 'dropdown', options: 'VII A, VII B, VIII A, VIII B' },
+    jam: { label: 'Jam Pembelajaran', type: 'text', options: '' },
+    absen: { label: 'Santri Absen', type: 'text', options: '' }
+  };
+  
+  type PengawasFieldKey = 'pj' | 'guru' | 'mapel' | 'kelas' | 'jam' | 'absen';
+  type PengawasConfig = Record<PengawasFieldKey, boolean>;
+
+  const DEFAULT_PENGAWAS_CONFIG: PengawasConfig = {
+    pj: true,
+    guru: true,
+    mapel: true,
+    kelas: true,
+    jam: true,
+    absen: true
+  };
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -569,34 +598,6 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
     target_teks: '100%'
   });
 
-  type InputType = 'dropdown' | 'text';
-  interface FieldDetail {
-    label: string;
-    type: InputType;
-    options: string;
-  }
-  type ExtendedFieldConfig = Record<PengawasFieldKey, FieldDetail>;
-  
-  const DEFAULT_FIELD_DETAILS: ExtendedFieldConfig = {
-    pj: { label: 'Petugas (PJ)', type: 'dropdown', options: '' },
-    guru: { label: 'Guru Pengampu', type: 'text', options: '' },
-    mapel: { label: 'Mata Pelajaran', type: 'text', options: '' },
-    kelas: { label: 'Kelas', type: 'dropdown', options: 'VII A, VII B, VIII A, VIII B' },
-    jam: { label: 'Jam Pembelajaran', type: 'text', options: '' },
-    absen: { label: 'Santri Absen', type: 'text', options: '' }
-  };
-  
-  type PengawasFieldKey = 'pj' | 'guru' | 'mapel' | 'kelas' | 'jam' | 'absen';
-  type PengawasConfig = Record<PengawasFieldKey, boolean>;
-
-  const DEFAULT_PENGAWAS_CONFIG: PengawasConfig = {
-    pj: true,
-    guru: true,
-    mapel: true,
-    kelas: true,
-    jam: true,
-    absen: true
-  };
 
   const [pengawasConfigMap, setPengawasConfigMap] = useState<Record<number, PengawasConfig>>(() => {
     try {
