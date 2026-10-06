@@ -131,7 +131,8 @@ interface ChecklistTemplate {
   target_teks?: string;
   iku_id?: number | null;
   is_active?: boolean;
-  pengawas_field_details?: Record<string, FieldDetail>; // Tambahkan baris ini
+  pengawas_field_details?: Record<string, FieldDetail>;
+  pengawas_config?: any; // <--- TAMBAHKAN BARIS INI
 }
 
 interface ChecklistSection {
@@ -923,12 +924,13 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
               }
             });
             setFieldDetailsMap(loadedDetailsMap);
-          }
-          if (Object.keys(dbConfigMap).length > 0) {
-            setPengawasConfigMap(prev => ({ ...prev, ...dbConfigMap }));
-          }
-        }
       
+            if (Object.keys(dbConfigMap).length > 0) {
+              setPengawasConfigMap(prev => ({ ...prev, ...dbConfigMap }));
+            }
+          } // <--- KURUNG TUTUPNYA PINDAH KE SINI
+        }
+          
       if (secRes.status === 'fulfilled' && secRes.value.ok) {
         const data = await secRes.value.json();
         if (Array.isArray(data)) setSections(data);
@@ -6966,25 +6968,27 @@ const rekapSantriData = useMemo(() => {
                   [editFieldKey]: editFieldForm 
                 };
             
-                // 2. Simpan permanen ke Supabase
-                const { error } = await supabase
-                  .from('checklist_templates')
-                  .update({ pengawas_field_details: updatedTemplateConfig })
-                  .eq('id', selectedTemplateId);
+                // 2. Simpan permanen ke Supabase menggunakan fetch
+                try {
+                  const res = await fetch(`${SUPABASE_URL}/rest/v1/checklist_templates?id=eq.${selectedTemplateId}`, {
+                    method: 'PATCH',
+                    headers: reqHeaders,
+                    body: JSON.stringify({ pengawas_field_details: updatedTemplateConfig })
+                  });
             
-                if (error) {
-                  showToast('Gagal menyimpan ke database: ' + error.message, 'error');
-                  return;
+                  if (!res.ok) throw new Error('Gagal memperbarui data');
+            
+                  // 3. Update state lokal
+                  setFieldDetailsMap(prev => ({
+                    ...prev,
+                    [selectedTemplateId]: updatedTemplateConfig
+                  }));
+                  
+                  setEditFieldKey(null);
+                  showToast('Konfigurasi kolom berhasil disimpan permanen!', 'success');
+                } catch (error: any) {
+                  showToast('Gagal menyimpan ke database', 'error');
                 }
-            
-                // 3. Update state lokal agar UI langsung berubah tanpa perlu refresh
-                setFieldDetailsMap(prev => ({
-                  ...prev,
-                  [selectedTemplateId]: updatedTemplateConfig
-                }));
-                
-                setEditFieldKey(null);
-                showToast('Konfigurasi kolom berhasil disimpan permanen!', 'success');
               }}
               className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition"
             >
