@@ -281,6 +281,98 @@ function MainAppContent() {
   const [inputCatatanTeks, setInputCatatanTeks] = useState<string>('');
   const [isSavingCatatan, setIsSavingCatatan] = useState<boolean>(false);
 
+  // State untuk menyimpan konfigurasi custom field
+  const [fieldDetailsMap, setFieldDetailsMap] = useState<Record<number, ExtendedFieldConfig>>(() => {
+    try {
+      const saved = localStorage.getItem('pengawas_field_details');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  {editFieldKey && selectedTemplateId && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div className="p-5 border-b border-slate-100">
+        <h3 className="font-black text-slate-800">Edit Konfigurasi Kolom Form</h3>
+        <p className="text-[11px] text-slate-500 mt-1">Sesuaikan nama label, jenis inputan (Dropdown / Teks Singkat), serta daftar opsi pilihannya.</p>
+      </div>
+      
+      <div className="p-5 space-y-4">
+        <div>
+          <label className="block text-xs font-bold text-slate-700 mb-1.5">Judul / Label Kolom:</label>
+          <input 
+            type="text" 
+            value={editFieldForm.label} 
+            onChange={e => setEditFieldForm({...editFieldForm, label: e.target.value})}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-xs font-bold text-slate-700 mb-1.5">Jenis Inputan:</label>
+          <select 
+            value={editFieldForm.type} 
+            onChange={e => setEditFieldForm({...editFieldForm, type: e.target.value as InputType})}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
+          >
+            <option value="dropdown">Dropdown (Pilihan Menu)</option>
+            <option value="text">Teks Singkat (Input Bebas)</option>
+          </select>
+        </div>
+
+        {editFieldForm.type === 'dropdown' && (
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">Daftar Opsi Pilihan:</label>
+            <textarea 
+              rows={3}
+              value={editFieldForm.options} 
+              onChange={e => setEditFieldForm({...editFieldForm, options: e.target.value})}
+              placeholder="Contoh: Opsi 1, Opsi 2, Opsi 3"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+            <p className="text-[10px] text-slate-400 mt-1 italic">Ketik pilihan opsi dipisahkan tanda koma ( , ).</p>
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+        <button 
+          onClick={() => setEditFieldKey(null)}
+          className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 transition"
+        >
+          Batal
+        </button>
+        <button 
+          onClick={() => {
+            setFieldDetailsMap(prev => {
+              const updatedTemplateConfig = { ...prev[selectedTemplateId], [editFieldKey]: editFieldForm };
+              const updatedData = { ...prev, [selectedTemplateId]: updatedTemplateConfig };
+              localStorage.setItem('pengawas_field_details', JSON.stringify(updatedData));
+              return updatedData;
+            });
+            setEditFieldKey(null);
+            showToast('Konfigurasi kolom berhasil disimpan!', 'success');
+          }}
+          className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition"
+        >
+          Simpan Perubahan
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+  
+  // State untuk Modal Edit
+  const [editFieldKey, setEditFieldKey] = useState<PengawasFieldKey | null>(null);
+  const [editFieldForm, setEditFieldForm] = useState<FieldDetail>({ label: '', type: 'dropdown', options: '' });
+  
+  const currentFieldDetails: ExtendedFieldConfig = useMemo(() => {
+    if (!selectedTemplateId) return DEFAULT_FIELD_DETAILS;
+    return fieldDetailsMap[selectedTemplateId] || DEFAULT_FIELD_DETAILS;
+  }, [selectedTemplateId, fieldDetailsMap]);
+
   // State modul Presensi Siswa
   const [presensiSiswaList, setPresensiSiswaList] = useState<PresensiRecord[]>([]);
   const [absensiSubTab, setAbsensiSubTab] = useState<'input' | 'harian' | 'detail' | 'rekap' | 'import'>('input');
@@ -550,6 +642,23 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
     target_teks: '100%'
   });
 
+  type InputType = 'dropdown' | 'text';
+  interface FieldDetail {
+    label: string;
+    type: InputType;
+    options: string;
+  }
+  type ExtendedFieldConfig = Record<PengawasFieldKey, FieldDetail>;
+  
+  const DEFAULT_FIELD_DETAILS: ExtendedFieldConfig = {
+    pj: { label: 'Petugas (PJ)', type: 'dropdown', options: '' },
+    guru: { label: 'Guru Pengampu', type: 'text', options: '' },
+    mapel: { label: 'Mata Pelajaran', type: 'text', options: '' },
+    kelas: { label: 'Kelas', type: 'dropdown', options: 'VII A, VII B, VIII A, VIII B' },
+    jam: { label: 'Jam Pembelajaran', type: 'text', options: '' },
+    absen: { label: 'Santri Absen', type: 'text', options: '' }
+  };
+  
   type PengawasFieldKey = 'pj' | 'guru' | 'mapel' | 'kelas' | 'jam' | 'absen';
   type PengawasConfig = Record<PengawasFieldKey, boolean>;
 
@@ -2521,31 +2630,40 @@ const rekapSantriData = useMemo(() => {
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             {}
-                            {currentPengawasConfig.pj && (
-                              <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                                  Petugas Pemantau (PJ):
-                                </label>
-                                <select
-                                  value={formPetugas}
-                                  onChange={(e) => setFormPetugas(e.target.value)}
-                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                                >
-                                  {activeDivision.coordinator_name && (
-                                    <option value={activeDivision.coordinator_name}>
-                                      {activeDivision.coordinator_name} (Koordinator {activeDivision.name})
-                                    </option>
+                            {currentPengawasConfig.pj && (() => {
+                              const detail = currentFieldDetails.pj;
+                              return (
+                                <div>
+                                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                                    {detail.label}:
+                                  </label>
+                                  {detail.type === 'dropdown' ? (
+                                    <select 
+                                      value={formPetugas} 
+                                      onChange={(e) => setFormPetugas(e.target.value)} 
+                                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                    >
+                                      <option value="">-- Pilih --</option>
+                                      {safeParseOptions(detail.options).map(opt => (
+                                        <option key={opt} value={opt}>{opt}</option>
+                                      ))}
+                                      {/* Opsi default fallback guru */}
+                                      {detail.options.length === 0 && guruList.map(g => (
+                                        <option key={g.id} value={g.nama_guru}>{g.nama_guru}</option>
+                                      ))}
+                                    </select>
+                                  ) : (
+                                    <input 
+                                      type="text" 
+                                      value={formPetugas} 
+                                      onChange={(e) => setFormPetugas(e.target.value)} 
+                                      placeholder={`Masukkan ${detail.label}...`}
+                                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                    />
                                   )}
-                                  {guruList
-                                    .filter(g => g.nama_guru?.trim() !== activeDivision.coordinator_name?.trim())
-                                    .map(g => (
-                                      <option key={g.id} value={g.nama_guru}>
-                                        {g.nama_guru}
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
-                            )}
+                                </div>
+                              );
+                            })()}
 
                             {currentPengawasConfig.guru && (
                               <div>
@@ -3012,32 +3130,42 @@ const rekapSantriData = useMemo(() => {
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-1">
-                          {[
-                            { key: 'pj', label: 'Petugas (PJ)' },
-                            { key: 'guru', label: 'Guru Pengampu' },
-                            { key: 'mapel', label: 'Mata Pelajaran' },
-                            { key: 'kelas', label: 'Kelas' },
-                            { key: 'jam', label: 'Jam Pembelajaran' },
-                            { key: 'absen', label: 'Santri Absen' }
-                          ].map(f => {
-                            const isChecked = currentPengawasConfig[f.key as PengawasFieldKey];
+                         {[{ key: 'pj', defaultLabel: 'Petugas (PJ)' }, { key: 'guru', defaultLabel: 'Guru Pengampu' }, { key: 'mapel', defaultLabel: 'Mata Pelajaran' }, { key: 'kelas', defaultLabel: 'Kelas' }, { key: 'jam', defaultLabel: 'Jam Pembelajaran' }, { key: 'absen', defaultLabel: 'Santri Absen' }].map(f => {
+                            const fieldKey = f.key as PengawasFieldKey;
+                            const isChecked = currentPengawasConfig[fieldKey];
+                            const fieldDetail = currentFieldDetails[fieldKey] || DEFAULT_FIELD_DETAILS[fieldKey];
+                          
                             return (
-                              <label
-                                key={f.key}
-                                className={`p-2 rounded-xl border flex items-center gap-2 text-xs font-semibold cursor-pointer select-none transition ${
-                                  isChecked
-                                    ? 'bg-white border-blue-400 text-blue-900 shadow-2xs'
-                                    : 'bg-slate-100/60 border-slate-200 text-slate-400 hover:bg-white'
-                                }`}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={isChecked}
-                                  onChange={() => togglePengawasField(selectedTemplate.id, f.key as PengawasFieldKey)}
-                                  className="rounded text-blue-600 focus:ring-blue-500"
-                                />
-                                <span className="truncate">{f.label}</span>
-                              </label>
+                              <div key={f.key} className={`relative flex items-center justify-between p-3 rounded-xl border transition ${isChecked ? 'bg-white border-blue-400 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-70'}`}>
+                                <label className="flex items-center gap-3 cursor-pointer select-none flex-1">
+                                  <input 
+                                    type="checkbox" 
+                                    checked={isChecked} 
+                                    onChange={() => togglePengawasField(selectedTemplate!.id, fieldKey)} 
+                                    className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4" 
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className={`text-xs font-bold ${isChecked ? 'text-blue-900' : 'text-slate-500'}`}>{fieldDetail.label || f.defaultLabel}</span>
+                                    {isChecked && (
+                                      <span className="text-[10px] text-slate-400 mt-0.5">Tipe: {fieldDetail.type === 'dropdown' ? 'Dropdown Pilihan' : 'Teks Singkat'}</span>
+                                    )}
+                                  </div>
+                                </label>
+                                
+                                {/* Tombol Edit (Hanya aktif jika dicentang) */}
+                                {isChecked && (
+                                  <button 
+                                    type="button"
+                                    onClick={() => {
+                                      setEditFieldKey(fieldKey);
+                                      setEditFieldForm(fieldDetail);
+                                    }}
+                                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
                             );
                           })}
                         </div>
