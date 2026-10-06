@@ -131,7 +131,7 @@ interface ChecklistTemplate {
   target_teks?: string;
   iku_id?: number | null;
   is_active?: boolean;
-  pengawas_config?: Record<string, boolean> | null;
+  pengawas_field_details?: Record<string, FieldDetail>; // Tambahkan baris ini
 }
 
 interface ChecklistSection {
@@ -311,14 +311,7 @@ function MainAppContent() {
   const [isSavingCatatan, setIsSavingCatatan] = useState<boolean>(false);
 
   // State untuk menyimpan konfigurasi custom field
-  const [fieldDetailsMap, setFieldDetailsMap] = useState<Record<number, ExtendedFieldConfig>>(() => {
-    try {
-      const saved = localStorage.getItem('pengawas_field_details');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
+ const [fieldDetailsMap, setFieldDetailsMap] = useState<Record<number, ExtendedFieldConfig>>({});
   
   // State untuk Modal Edit
   const [editFieldKey, setEditFieldKey] = useState<PengawasFieldKey | null>(null);
@@ -922,6 +915,15 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
               dbConfigMap[t.id] = t.pengawas_config as PengawasConfig;
             }
           });
+          // Tambahkan kode ini untuk memasukkan JSONB ke state:
+            const loadedDetailsMap: Record<number, ExtendedFieldConfig> = {};
+            data.forEach(template => {
+              if (template.pengawas_field_details) {
+                loadedDetailsMap[template.id] = template.pengawas_field_details;
+              }
+            });
+            setFieldDetailsMap(loadedDetailsMap);
+          }
           if (Object.keys(dbConfigMap).length > 0) {
             setPengawasConfigMap(prev => ({ ...prev, ...dbConfigMap }));
           }
@@ -6955,16 +6957,34 @@ const rekapSantriData = useMemo(() => {
             >
               Batal
             </button>
-            <button 
-              onClick={() => {
-                setFieldDetailsMap(prev => {
-                  const updatedTemplateConfig = { ...prev[selectedTemplateId], [editFieldKey]: editFieldForm };
-                  const updatedData = { ...prev, [selectedTemplateId]: updatedTemplateConfig };
-                  localStorage.setItem('pengawas_field_details', JSON.stringify(updatedData));
-                  return updatedData;
-                });
+           <button 
+              onClick={async () => {
+                // 1. Gabungkan data detail yang lama dengan yang baru diedit
+                const currentConfig = fieldDetailsMap[selectedTemplateId] || {};
+                const updatedTemplateConfig = { 
+                  ...currentConfig, 
+                  [editFieldKey]: editFieldForm 
+                };
+            
+                // 2. Simpan permanen ke Supabase
+                const { error } = await supabase
+                  .from('checklist_templates')
+                  .update({ pengawas_field_details: updatedTemplateConfig })
+                  .eq('id', selectedTemplateId);
+            
+                if (error) {
+                  showToast('Gagal menyimpan ke database: ' + error.message, 'error');
+                  return;
+                }
+            
+                // 3. Update state lokal agar UI langsung berubah tanpa perlu refresh
+                setFieldDetailsMap(prev => ({
+                  ...prev,
+                  [selectedTemplateId]: updatedTemplateConfig
+                }));
+                
                 setEditFieldKey(null);
-                showToast('Konfigurasi kolom berhasil disimpan!', 'success');
+                showToast('Konfigurasi kolom berhasil disimpan permanen!', 'success');
               }}
               className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition"
             >
