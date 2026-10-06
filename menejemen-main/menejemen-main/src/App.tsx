@@ -290,79 +290,6 @@ function MainAppContent() {
       return {};
     }
   });
-
-  {editFieldKey && selectedTemplateId && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-      <div className="p-5 border-b border-slate-100">
-        <h3 className="font-black text-slate-800">Edit Konfigurasi Kolom Form</h3>
-        <p className="text-[11px] text-slate-500 mt-1">Sesuaikan nama label, jenis inputan (Dropdown / Teks Singkat), serta daftar opsi pilihannya.</p>
-      </div>
-      
-      <div className="p-5 space-y-4">
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">Judul / Label Kolom:</label>
-          <input 
-            type="text" 
-            value={editFieldForm.label} 
-            onChange={e => setEditFieldForm({...editFieldForm, label: e.target.value})}
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">Jenis Inputan:</label>
-          <select 
-            value={editFieldForm.type} 
-            onChange={e => setEditFieldForm({...editFieldForm, type: e.target.value as InputType})}
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
-          >
-            <option value="dropdown">Dropdown (Pilihan Menu)</option>
-            <option value="text">Teks Singkat (Input Bebas)</option>
-          </select>
-        </div>
-
-        {editFieldForm.type === 'dropdown' && (
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">Daftar Opsi Pilihan:</label>
-            <textarea 
-              rows={3}
-              value={editFieldForm.options} 
-              onChange={e => setEditFieldForm({...editFieldForm, options: e.target.value})}
-              placeholder="Contoh: Opsi 1, Opsi 2, Opsi 3"
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-            <p className="text-[10px] text-slate-400 mt-1 italic">Ketik pilihan opsi dipisahkan tanda koma ( , ).</p>
-          </div>
-        )}
-      </div>
-
-      <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-        <button 
-          onClick={() => setEditFieldKey(null)}
-          className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 transition"
-        >
-          Batal
-        </button>
-        <button 
-          onClick={() => {
-            setFieldDetailsMap(prev => {
-              const updatedTemplateConfig = { ...prev[selectedTemplateId], [editFieldKey]: editFieldForm };
-              const updatedData = { ...prev, [selectedTemplateId]: updatedTemplateConfig };
-              localStorage.setItem('pengawas_field_details', JSON.stringify(updatedData));
-              return updatedData;
-            });
-            setEditFieldKey(null);
-            showToast('Konfigurasi kolom berhasil disimpan!', 'success');
-          }}
-          className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition"
-        >
-          Simpan Perubahan
-        </button>
-      </div>
-    </div>
-  </div>
-)}
   
   // State untuk Modal Edit
   const [editFieldKey, setEditFieldKey] = useState<PengawasFieldKey | null>(null);
@@ -6973,7 +6900,80 @@ const rekapSantriData = useMemo(() => {
         </div>
       </div>
     )}
-  
+
+      {editFieldKey && selectedTemplateId && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="p-5 border-b border-slate-100">
+            <h3 className="font-black text-slate-800">Edit Konfigurasi Kolom Form</h3>
+            <p className="text-[11px] text-slate-500 mt-1">Sesuaikan nama label, jenis inputan (Dropdown / Teks Singkat), serta daftar opsi pilihannya.</p>
+          </div>
+          
+          <div className="p-5 space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">Judul / Label Kolom:</label>
+              <input 
+                type="text" 
+                value={editFieldForm.label} 
+                onChange={e => setEditFieldForm({...editFieldForm, label: e.target.value})}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">Jenis Inputan:</label>
+              <select 
+                value={editFieldForm.type} 
+                onChange={e => setEditFieldForm({...editFieldForm, type: e.target.value as InputType})}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
+              >
+                <option value="dropdown">Dropdown (Pilihan Menu)</option>
+                <option value="text">Teks Singkat (Input Bebas)</option>
+              </select>
+            </div>
+    
+            {editFieldForm.type === 'dropdown' && (
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Daftar Opsi Pilihan:</label>
+                <textarea 
+                  rows={3}
+                  value={editFieldForm.options} 
+                  onChange={e => setEditFieldForm({...editFieldForm, options: e.target.value})}
+                  placeholder="Contoh: Opsi 1, Opsi 2, Opsi 3"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+                <p className="text-[10px] text-slate-400 mt-1 italic">Ketik pilihan opsi dipisahkan tanda koma ( , ).</p>
+              </div>
+            )}
+          </div>
+    
+          <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+            <button 
+              onClick={() => setEditFieldKey(null)}
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 transition"
+            >
+              Batal
+            </button>
+            <button 
+              onClick={() => {
+                setFieldDetailsMap(prev => {
+                  const updatedTemplateConfig = { ...prev[selectedTemplateId], [editFieldKey]: editFieldForm };
+                  const updatedData = { ...prev, [selectedTemplateId]: updatedTemplateConfig };
+                  localStorage.setItem('pengawas_field_details', JSON.stringify(updatedData));
+                  return updatedData;
+                });
+                setEditFieldKey(null);
+                showToast('Konfigurasi kolom berhasil disimpan!', 'success');
+              }}
+              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition"
+            >
+              Simpan Perubahan
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+      
   </div>
   );
 }
