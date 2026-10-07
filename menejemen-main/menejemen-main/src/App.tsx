@@ -245,7 +245,7 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError:
   }
 }
 
- type InputType = 'dropdown' | 'text';
+ type InputType = 'dropdown' | 'text' | 'date';
   interface FieldDetail {
     label: string;
     type: InputType;
@@ -301,7 +301,7 @@ function MainAppContent() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
 
   const [guruList, setGuruList] = useState<Guru[]>([]);
-  const [mapelList, setMapelList] = useState<Mapel[]>([]);
+  const [, setMapelList] = useState<Mapel[]>([]);
   const [, setWaliKelasList] = useState<WaliKelas[]>([]);
   const [santriList, setSantriList] = useState<Santri[]>([]);
 
