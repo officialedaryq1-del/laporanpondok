@@ -255,11 +255,11 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError:
   
   const DEFAULT_FIELD_DETAILS: ExtendedFieldConfig = {
     pj: { label: 'Petugas (PJ)', type: 'dropdown', options: '' },
-    guru: { label: 'Guru Pengampu', type: 'text', options: '' },
-    mapel: { label: 'Mata Pelajaran', type: 'text', options: '' },
-    kelas: { label: 'Kelas', type: 'dropdown', options: 'VII A, VII B, VIII A, VIII B' },
-    jam: { label: 'Jam Pembelajaran', type: 'text', options: '' },
-    absen: { label: 'Santri Absen', type: 'text', options: '' }
+    guru: { label: 'Ustadz', type: 'text', options: '' },
+    mapel: { label: 'Tempat', type: 'text', options: '' },
+    kelas: { label: 'Tanggal', type: 'date', options: '' }, // Type diubah jadi date
+    jam: { label: 'Pemimpin', type: 'text', options: '' },
+    absen: { label: 'Keterangan', type: 'text', options: '' }
   };
   
   type PengawasFieldKey = 'pj' | 'guru' | 'mapel' | 'kelas' | 'jam' | 'absen';
@@ -2697,90 +2697,46 @@ const rekapSantriData = useMemo(() => {
                             {currentPengawasConfig.guru && (
                               <div>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                                  Ustadzah / Guru Pengampu:
+                                  {currentFieldDetails.guru?.label || 'Ustadz'}:
                                 </label>
-                                <input
-                                  type="text"
-                                  list="list-guru"
-                                  value={formGuru}
-                                  onChange={(e) => setFormGuru(e.target.value)}
-                                  placeholder="Ketik atau pilih nama guru..."
-                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                                <datalist id="list-guru">
-                                  {guruList.map(g => (
-                                    <option key={g.id} value={g.nama_guru} />
-                                  ))}
-                                </datalist>
+                                <input type="text" value={formGuru} onChange={(e) => setFormGuru(e.target.value)} placeholder="Masukkan nama ustadz..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                               </div>
                             )}
-
+                            
                             {currentPengawasConfig.mapel && (
                               <div>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                                  Mata Pelajaran:
+                                  {currentFieldDetails.mapel?.label || 'Tempat'}:
                                 </label>
-                                <input
-                                  type="text"
-                                  list="list-mapel"
-                                  value={formMapel}
-                                  onChange={(e) => setFormMapel(e.target.value)}
-                                  placeholder="Ketik atau pilih mapel..."
-                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                                <datalist id="list-mapel">
-                                  {mapelList.map(m => (
-                                    <option key={m.id} value={m.nama_mapel} />
-                                  ))}
-                                </datalist>
+                                <input type="text" value={formMapel} onChange={(e) => setFormMapel(e.target.value)} placeholder="Masukkan tempat..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                               </div>
                             )}
-
+                            
                             {currentPengawasConfig.kelas && (
                               <div>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                                  Kelas:
+                                  {currentFieldDetails.kelas?.label || 'Tanggal'}:
                                 </label>
-                                <select
-                                  value={formKelas}
-                                  onChange={(e) => setFormKelas(e.target.value)}
-                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                  <option value="">Pilih Kelas</option>
-                                  {['VII A', 'VII B', 'VII C', 'VII D', 'VII E', 'VIII A', 'VIII B', 'VIII C', 'VIII D', 'IX A', 'IX B'].map(k => (
-                                    <option key={k} value={k}>{k}</option>
-                                  ))}
-                                </select>
+                                {/* Input type diubah menjadi date agar muncul kalender */}
+                                <input type="date" value={formKelas} onChange={(e) => setFormKelas(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer" />
                               </div>
                             )}
-
+                            
                             {currentPengawasConfig.jam && (
                               <div>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                                  Jam Pembelajaran:
+                                  {currentFieldDetails.jam?.label || 'Pemimpin'}:
                                 </label>
-                                <input
-                                  type="text"
-                                  value={formJam}
-                                  onChange={(e) => setFormJam(e.target.value)}
-                                  placeholder="Contoh: 1-2, 5-6"
-                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
+                                <input type="text" value={formJam} onChange={(e) => setFormJam(e.target.value)} placeholder="Masukkan nama pemimpin..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                               </div>
                             )}
-
+                            
                             {currentPengawasConfig.absen && (
                               <div>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                                  Santri Tidak Hadir:
+                                  {currentFieldDetails.absen?.label || 'Keterangan'}:
                                 </label>
-                                <input
-                                  type="text"
-                                  value={formSiswaAbsen}
-                                  onChange={(e) => setFormSiswaAbsen(e.target.value)}
-                                  placeholder="Nama santri atau 'Nihil'"
-                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
+                                <input type="text" value={formSiswaAbsen} onChange={(e) => setFormSiswaAbsen(e.target.value)} placeholder="Tambahkan keterangan..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                               </div>
                             )}
                           </div>
@@ -3198,7 +3154,15 @@ const rekapSantriData = useMemo(() => {
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-1">
-                         {[{ key: 'pj', defaultLabel: 'Petugas (PJ)' }, { key: 'guru', defaultLabel: 'Guru Pengampu' }, { key: 'mapel', defaultLabel: 'Mata Pelajaran' }, { key: 'kelas', defaultLabel: 'Kelas' }, { key: 'jam', defaultLabel: 'Jam Pembelajaran' }, { key: 'absen', defaultLabel: 'Santri Absen' }].map(f => {
+                        {[
+                          { key: 'pj', defaultLabel: 'Petugas (PJ)' },
+                          { key: 'guru', defaultLabel: 'Ustadz' },
+                          { key: 'mapel', defaultLabel: 'Tempat' },
+                          { key: 'kelas', defaultLabel: 'Tanggal' },
+                          { key: 'jam', defaultLabel: 'Pemimpin' },
+                          { key: 'absen', defaultLabel: 'Keterangan' }
+                        ].map(f => {
+                          
                             const fieldKey = f.key as PengawasFieldKey;
                             const isChecked = currentPengawasConfig[fieldKey];
                             const fieldDetail = currentFieldDetails[fieldKey] || DEFAULT_FIELD_DETAILS[fieldKey];
