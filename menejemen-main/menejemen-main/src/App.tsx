@@ -6522,8 +6522,12 @@ const rekapSantriData = useMemo(() => {
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
                     {currentFieldDetails.kelas?.label?.toUpperCase() || 'TANGGAL'} & {currentFieldDetails.jam?.label?.toUpperCase() || 'PEMIMPIN'}
                   </p>
-                  <h4 className="text-sm font-bold text-slate-800 line-clamp-1">{selectedSubmissionForDetail.target_class || '-'}</h4>
-                  <p className="text-[10px] text-slate-500 mt-0.5 truncate">{currentFieldDetails.jam?.label || 'Pemimpin'}: {selectedSubmissionForDetail.target_time_slot || '-'}</p>
+                  <h4 className="text-sm font-bold text-slate-800 line-clamp-1">
+                    {selectedSubmissionForDetail.target_class || '-'}
+                  </h4>
+                  <p className="text-[10px] text-slate-500 mt-0.5 truncate">
+                    {currentFieldDetails.jam?.label || 'Pemimpin'}: {!selectedSubmissionForDetail.target_time_slot || selectedSubmissionForDetail.target_time_slot === '1-2' ? '-' : selectedSubmissionForDetail.target_time_slot}
+                  </p>
                 </div>
               
                 {/* Kartu 3: Guru / Sasaran -> Ustadz / Tempat */}
@@ -6531,8 +6535,12 @@ const rekapSantriData = useMemo(() => {
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
                     {currentFieldDetails.guru?.label?.toUpperCase() || 'USTADZ'} / {currentFieldDetails.mapel?.label?.toUpperCase() || 'TEMPAT'}
                   </p>
-                  <h4 className="text-sm font-bold text-slate-800 line-clamp-1">{selectedSubmissionForDetail.target_person || '-'}</h4>
-                  <p className="text-[10px] text-slate-500 mt-0.5 truncate">{selectedSubmissionForDetail.target_subject || '-'}</p>
+                  <h4 className="text-sm font-bold text-slate-800 line-clamp-1">
+                    {selectedSubmissionForDetail.target_person || '-'}
+                  </h4>
+                  <p className="text-[10px] text-slate-500 mt-0.5 truncate">
+                    {selectedSubmissionForDetail.target_subject || '-'}
+                  </p>
                 </div>
               
                 {/* Kartu 4: Siswa Tidak Hadir -> Keterangan */}
@@ -6540,8 +6548,13 @@ const rekapSantriData = useMemo(() => {
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
                     {currentFieldDetails.absen?.label?.toUpperCase() || 'KETERANGAN'}
                   </p>
-                  <h4 className="text-sm font-bold text-rose-600 line-clamp-1">{selectedSubmissionForDetail.absent_students || 'Nihil'}</h4>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Laporan Presensi</p>
+                  <h4 className="text-sm font-bold text-rose-600 line-clamp-1">
+                    {!selectedSubmissionForDetail.absent_students || selectedSubmissionForDetail.absent_students === 'Nihil' ? '-' : selectedSubmissionForDetail.absent_students}
+                  </h4>
+                  {/* Teks statis 'Laporan Presensi' diubah menjadi '-' jika tidak ada isian */}
+                  <p className="text-[10px] text-slate-500 mt-0.5">
+                    {!selectedSubmissionForDetail.absent_students || selectedSubmissionForDetail.absent_students === 'Nihil' ? '-' : 'Catatan'}
+                  </p>
                 </div>
               </div>
               
