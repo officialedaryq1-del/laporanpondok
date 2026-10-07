@@ -3159,14 +3159,6 @@ const rekapSantriData = useMemo(() => {
                           <option value="persentase">Persentase (%)</option>
                           <option value="count">Count (Hitungan Berapa Kali Diisi)</option>
                           </select>
-                          <select 
-                            value={targetFormat} 
-                            onChange={(e) => setTargetFormat(e.target.value as 'persentase' | 'count')}
-                            className="w-full sm:w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                          >
-                            <option value="persentase">Persentase (%)</option>
-                            <option value="count">Count (Hitungan Berapa Kali Diisi)</option>
-                          </select>
                         </div>
                       </div>
                       {/* ========================================================= */}
