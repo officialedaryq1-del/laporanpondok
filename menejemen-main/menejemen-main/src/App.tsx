@@ -2984,18 +2984,43 @@ const rekapSantriData = useMemo(() => {
                         <div className="overflow-x-auto">
                           <table className="w-full text-left text-xs border-collapse">
                             {/* ===== HEADER TABEL DINAMIS ===== */}
+                            {/* ===== HEADER TABEL DINAMIS ===== */}
                             <thead>
                               <tr className="bg-slate-50/80 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
                                 <th className="py-3 px-4 w-12 text-center">NO</th>
                                 <th className="py-3 px-4 min-w-[130px]">WAKTU</th>
-                                <th className="py-3 px-4 min-w-[150px]">{currentFieldDetails.pj?.label?.toUpperCase() || 'PETUGAS (PJ)'}</th>
-                                {/* --- KOLOM BARU: PROGRAM --- */}
+                                
+                                {/* Kolom PJ (Muncul jika dicentang) */}
+                                {currentPengawasConfig.pj && (
+                                  <th className="py-3 px-4 min-w-[150px]">{currentFieldDetails.pj?.label?.toUpperCase() || 'PETUGAS (PJ)'}</th>
+                                )}
+                                
                                 <th className="py-3 px-4 min-w-[200px]">PROGRAM</th>
-                                <th className="py-3 px-4 min-w-[150px]">{currentFieldDetails.guru?.label?.toUpperCase() || 'USTADZ'}</th>
-                                {/* Kolom tambahan untuk Pemimpin */}
-                                <th className="py-3 px-4 min-w-[130px]">{currentFieldDetails.jam?.label?.toUpperCase() || 'PEMIMPIN'}</th>
-                                <th className="py-3 px-4 min-w-[160px]">{currentFieldDetails.mapel?.label?.toUpperCase() || 'TEMPAT'} & {currentFieldDetails.kelas?.label?.toUpperCase() || 'TANGGAL'}</th>
-                                <th className="py-3 px-4 min-w-[140px]">{currentFieldDetails.absen?.label?.toUpperCase() || 'KETERANGAN'}</th>
+                                
+                                {/* Kolom Ustadz (Muncul jika dicentang) */}
+                                {currentPengawasConfig.guru && (
+                                  <th className="py-3 px-4 min-w-[150px]">{currentFieldDetails.guru?.label?.toUpperCase() || 'USTADZ'}</th>
+                                )}
+                                
+                                {/* Kolom Pemimpin (Muncul jika dicentang) */}
+                                {currentPengawasConfig.jam && (
+                                  <th className="py-3 px-4 min-w-[130px]">{currentFieldDetails.jam?.label?.toUpperCase() || 'PEMIMPIN'}</th>
+                                )}
+                                
+                                {/* Kolom Tempat & Tanggal (Muncul jika salah satu atau keduanya dicentang) */}
+                                {(currentPengawasConfig.mapel || currentPengawasConfig.kelas) && (
+                                  <th className="py-3 px-4 min-w-[160px]">
+                                    {currentPengawasConfig.mapel ? (currentFieldDetails.mapel?.label?.toUpperCase() || 'TEMPAT') : ''}
+                                    {currentPengawasConfig.mapel && currentPengawasConfig.kelas ? ' & ' : ''}
+                                    {currentPengawasConfig.kelas ? (currentFieldDetails.kelas?.label?.toUpperCase() || 'TANGGAL') : ''}
+                                  </th>
+                                )}
+                                
+                                {/* Kolom Keterangan (Muncul jika dicentang) */}
+                                {currentPengawasConfig.absen && (
+                                  <th className="py-3 px-4 min-w-[140px]">{currentFieldDetails.absen?.label?.toUpperCase() || 'KETERANGAN'}</th>
+                                )}
+                                
                                 <th className="py-3 px-4 text-center min-w-[90px]">SKOR</th>
                                 <th className="py-3 px-5 min-w-[200px]">CATATAN</th>
                                 <th className="py-3 px-4 text-center min-w-[80px]">AKSI</th>
@@ -3010,25 +3035,47 @@ const rekapSantriData = useMemo(() => {
                                   <td className="py-3 px-4 font-mono text-slate-600 text-[11px]">
                                     {String(sub.submission_date || sub.created_at || '').slice(0, 16)}
                                   </td>
-                                  <td className="py-3 px-4 font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                                    {sub.pj_name}
-                                  </td>
-                                  {/* --- KOLOM BARU: PROGRAM --- */}
+                                  
+                                  {/* Isi Kolom PJ */}
+                                  {currentPengawasConfig.pj && (
+                                    <td className="py-3 px-4 font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                                      {sub.pj_name}
+                                    </td>
+                                  )}
+                                  
                                   <td className="py-3 px-4 text-slate-800 font-medium">
                                     <div className="line-clamp-2 text-[11px]" title={selectedTemplate?.title}>
                                       {selectedTemplate?.title || '-'}
                                     </div>
                                   </td>
-                                  <td className="py-3 px-4 text-slate-700">{sub.target_person || '-'}</td>
-                                  {/* Data tambahan untuk Pemimpin (diambil dari target_time_slot) */}
-                                  <td className="py-3 px-4 text-slate-700">{sub.target_time_slot || '-'}</td>
-                                  <td className="py-3 px-4 font-medium text-slate-800">
-                                    {/* Membersihkan data lama agar nama program tidak muncul lagi di kolom tempat */}
-                                    {(!sub.target_subject || sub.target_subject === selectedTemplate?.title) ? '-' : sub.target_subject} ({sub.target_class || '-'})
-                                  </td>
-                                  <td className="py-3 px-4 text-rose-600 font-semibold">
-                                    {String(sub.absent_students ?? 'Nihil')}
-                                  </td>
+                                  
+                                  {/* Isi Kolom Ustadz */}
+                                  {currentPengawasConfig.guru && (
+                                    <td className="py-3 px-4 text-slate-700">{sub.target_person || '-'}</td>
+                                  )}
+                                  
+                                  {/* Isi Kolom Pemimpin */}
+                                  {currentPengawasConfig.jam && (
+                                    <td className="py-3 px-4 text-slate-700">{sub.target_time_slot || '-'}</td>
+                                  )}
+                                  
+                                  {/* Isi Kolom Tempat & Tanggal */}
+                                  {(currentPengawasConfig.mapel || currentPengawasConfig.kelas) && (
+                                    <td className="py-3 px-4 font-medium text-slate-800">
+                                      {currentPengawasConfig.mapel ? ((!sub.target_subject || sub.target_subject === selectedTemplate?.title) ? '-' : sub.target_subject) : ''}
+                                      {currentPengawasConfig.mapel && currentPengawasConfig.kelas ? ' (' : ''}
+                                      {currentPengawasConfig.kelas ? (sub.target_class || '-') : ''}
+                                      {currentPengawasConfig.mapel && currentPengawasConfig.kelas ? ')' : ''}
+                                    </td>
+                                  )}
+                                  
+                                  {/* Isi Kolom Keterangan */}
+                                  {currentPengawasConfig.absen && (
+                                    <td className="py-3 px-4 text-rose-600 font-semibold">
+                                      {String(sub.absent_students ?? 'Nihil')}
+                                    </td>
+                                  )}
+                                  
                                   <td className="py-3 px-4 text-center">
                                     <span className="font-mono font-bold text-xs px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
                                       {getSubmissionPercentage(sub)}%
