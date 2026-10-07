@@ -2983,26 +2983,27 @@ const rekapSantriData = useMemo(() => {
                       ) : (
                         <div className="overflow-x-auto">
                           <table className="w-full text-left text-xs border-collapse">
+                            {/* ===== HEADER TABEL DINAMIS ===== */}
                             <thead>
                               <tr className="bg-slate-50/80 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
                                 <th className="py-3 px-4 w-12 text-center">NO</th>
                                 <th className="py-3 px-4 min-w-[130px]">WAKTU</th>
-                                <th className="py-3 px-4 min-w-[150px]">PETUGAS (PJ)</th>
-                                <th className="py-3 px-4 min-w-[160px]">GURU / TARGET</th>
-                                <th className="py-3 px-4 min-w-[140px]">MAPEL & KELAS</th>
-                                <th className="py-3 px-4 min-w-[140px]">SISWA ABSEN</th>
+                                <th className="py-3 px-4 min-w-[150px]">{currentFieldDetails.pj?.label?.toUpperCase() || 'PETUGAS (PJ)'}</th>
+                                <th className="py-3 px-4 min-w-[150px]">{currentFieldDetails.guru?.label?.toUpperCase() || 'USTADZ'}</th>
+                                {/* Kolom tambahan untuk Pemimpin */}
+                                <th className="py-3 px-4 min-w-[130px]">{currentFieldDetails.jam?.label?.toUpperCase() || 'PEMIMPIN'}</th>
+                                <th className="py-3 px-4 min-w-[160px]">{currentFieldDetails.mapel?.label?.toUpperCase() || 'TEMPAT'} & {currentFieldDetails.kelas?.label?.toUpperCase() || 'TANGGAL'}</th>
+                                <th className="py-3 px-4 min-w-[140px]">{currentFieldDetails.absen?.label?.toUpperCase() || 'KETERANGAN'}</th>
                                 <th className="py-3 px-4 text-center min-w-[90px]">SKOR</th>
                                 <th className="py-3 px-5 min-w-[200px]">CATATAN</th>
                                 <th className="py-3 px-4 text-center min-w-[80px]">AKSI</th>
                               </tr>
                             </thead>
+                            
+                            {/* ===== ISI TABEL (DATA) ===== */}
                             <tbody className="divide-y divide-slate-100 text-slate-700">
                               {programSubmissions.map((sub, idx) => (
-                                <tr
-                                  key={sub.id}
-                                  onClick={() => handleOpenSubmissionDetail(sub)}
-                                  className="hover:bg-blue-50/60 transition-colors cursor-pointer group"
-                                >
+                                <tr key={sub.id} onClick={() => handleOpenSubmissionDetail(sub)} className="hover:bg-blue-50/60 transition-colors cursor-pointer group" >
                                   <td className="py-3 px-4 text-center font-mono text-slate-400">{idx + 1}</td>
                                   <td className="py-3 px-4 font-mono text-slate-600 text-[11px]">
                                     {String(sub.submission_date || sub.created_at || '').slice(0, 16)}
@@ -3011,6 +3012,8 @@ const rekapSantriData = useMemo(() => {
                                     {sub.pj_name}
                                   </td>
                                   <td className="py-3 px-4 text-slate-700">{sub.target_person || '-'}</td>
+                                  {/* Data tambahan untuk Pemimpin (diambil dari target_time_slot) */}
+                                  <td className="py-3 px-4 text-slate-700">{sub.target_time_slot || '-'}</td>
                                   <td className="py-3 px-4 font-medium text-slate-800">
                                     {sub.target_subject || '-'} ({sub.target_class || '-'})
                                   </td>
@@ -3026,11 +3029,7 @@ const rekapSantriData = useMemo(() => {
                                     {sub.general_notes || '-'}
                                   </td>
                                   <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
-                                    <button
-                                      onClick={() => handleOpenSubmissionDetail(sub)}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-bold text-[11px] transition shadow-2xs"
-                                      title="Lihat Detail Hasil Pengawasan"
-                                    >
+                                    <button onClick={() => handleOpenSubmissionDetail(sub)} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-bold text-[11px] transition shadow-2xs" title="Lihat Detail Hasil Pengawasan" >
                                       <Eye className="w-3.5 h-3.5" />
                                       <span>Detail</span>
                                     </button>
