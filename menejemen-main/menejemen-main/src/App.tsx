@@ -615,25 +615,21 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
     return Object.values(currentPengawasConfig).some(Boolean);
   }, [currentPengawasConfig]);
 
-  const updateTargetFormat = async (templateId: string, newFormat: 'persentase' | 'count') => {
-  // 1. Update state lokal terlebih dahulu agar UI terasa cepat (Optimistic Update)
+ const updateTargetFormat = async (templateId: number, newFormat: 'persentase' | 'count') => {
+  // 1. Update state lokal terlebih dahulu agar UI terasa cepat
   setTargetFormat(newFormat); 
-  
-  // Jika Anda menyimpan data template lengkap di state, update juga state tersebut
-  // Contoh jika ada state selectedTemplate:
-  // setSelectedTemplate(prev => prev ? { ...prev, target_format: newFormat } : prev);
 
-  // 2. Update data ke database Supabase
+  // 2. Update data ke database Supabase menggunakan fetch (sesuai struktur kode Anda)
   try {
-    const { error } = await supabase
-      .from('checklist_templates')
-      .update({ target_format: newFormat })
-      .eq('id', templateId);
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/checklist_templates?id=eq.${templateId}`, {
+      method: 'PATCH',
+      headers: reqHeaders,
+      body: JSON.stringify({ target_format: newFormat })
+    });
 
-    if (error) {
-      console.error('Error updating target format:', error);
+    if (!res.ok) {
+      console.error('Error updating target format');
       alert('Gagal menyimpan perubahan bentuk target realisasi.');
-      // Opsional: Kembalikan nilai state ke awal jika error
     }
   } catch (error) {
     console.error('Error:', error);
