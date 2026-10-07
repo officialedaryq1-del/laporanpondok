@@ -6564,64 +6564,91 @@ const rekapSantriData = useMemo(() => {
 
             <div className="p-6 overflow-y-auto space-y-5 text-xs">
               
-              {/* 4 KARTU INFORMASI UTAMA */}
+             {/* 4 KARTU INFORMASI UTAMA (DINAMIS SESUAI CENTANGAN) */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                {/* Kartu 1: Skor */}
+                {/* Kartu 1: Skor (Selalu Tampil) */}
                 <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">SKOR KEPATUHAN</p>
                   <h4 className="text-xl font-black text-blue-600">{getSubmissionPercentage(selectedSubmissionForDetail)}%</h4>
                   <p className="text-[10px] text-slate-500 mt-0.5">Skala: {selectedSubmissionForDetail.rata_rata || '3.0'} / 3.0</p>
                 </div>
               
-                {/* Kartu 2: Kelas & Jam -> Tanggal & Pemimpin */}
-                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
-                    {currentFieldDetails.kelas?.label?.toUpperCase() || 'TANGGAL'} & {currentFieldDetails.jam?.label?.toUpperCase() || 'PEMIMPIN'}
-                  </p>
-                  <h4 className="text-sm font-bold text-slate-800 line-clamp-1">
-                    {selectedSubmissionForDetail.target_class || '-'}
-                  </h4>
-                  <p className="text-[10px] text-slate-500 mt-0.5 truncate">
-                    {currentFieldDetails.jam?.label || 'Pemimpin'}: {!selectedSubmissionForDetail.target_time_slot || selectedSubmissionForDetail.target_time_slot === '1-2' ? '-' : selectedSubmissionForDetail.target_time_slot}
-                  </p>
-                </div>
+                {/* Kartu 2: Tanggal & Pemimpin */}
+                {(currentPengawasConfig.kelas || currentPengawasConfig.jam) && (
+                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
+                      {currentPengawasConfig.kelas ? (currentFieldDetails.kelas?.label?.toUpperCase() || 'TANGGAL') : ''}
+                      {currentPengawasConfig.kelas && currentPengawasConfig.jam ? ' & ' : ''}
+                      {currentPengawasConfig.jam ? (currentFieldDetails.jam?.label?.toUpperCase() || 'PEMIMPIN') : ''}
+                    </p>
+                    
+                    {currentPengawasConfig.kelas && (
+                      <h4 className="text-sm font-bold text-slate-800 line-clamp-1">
+                        {selectedSubmissionForDetail.target_class || '-'}
+                      </h4>
+                    )}
+                    
+                    {currentPengawasConfig.jam && (
+                      <p className="text-[10px] text-slate-500 mt-0.5 truncate">
+                        {currentFieldDetails.jam?.label || 'Pemimpin'}: {!selectedSubmissionForDetail.target_time_slot || selectedSubmissionForDetail.target_time_slot === '1-2' ? '-' : selectedSubmissionForDetail.target_time_slot}
+                      </p>
+                    )}
+                  </div>
+                )}
               
-                {/* Kartu 3: Guru / Sasaran -> Ustadz / Tempat */}
-                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
-                    {currentFieldDetails.guru?.label?.toUpperCase() || 'USTADZ'} / {currentFieldDetails.mapel?.label?.toUpperCase() || 'TEMPAT'}
-                  </p>
-                  <h4 className="text-sm font-bold text-slate-800 line-clamp-1">
-                    {selectedSubmissionForDetail.target_person || '-'}
-                  </h4>
-                  <p className="text-[10px] text-slate-500 mt-0.5 truncate">
-                    {selectedSubmissionForDetail.target_subject || '-'}
-                  </p>
-                </div>
+                {/* Kartu 3: Ustadz & Tempat */}
+                {(currentPengawasConfig.guru || currentPengawasConfig.mapel) && (
+                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
+                      {currentPengawasConfig.guru ? (currentFieldDetails.guru?.label?.toUpperCase() || 'USTADZ') : ''}
+                      {currentPengawasConfig.guru && currentPengawasConfig.mapel ? ' / ' : ''}
+                      {currentPengawasConfig.mapel ? (currentFieldDetails.mapel?.label?.toUpperCase() || 'TEMPAT') : ''}
+                    </p>
+                    
+                    {currentPengawasConfig.guru && (
+                      <h4 className="text-sm font-bold text-slate-800 line-clamp-1">
+                        {selectedSubmissionForDetail.target_person || '-'}
+                      </h4>
+                    )}
+                    
+                    {currentPengawasConfig.mapel && (
+                      <p className="text-[10px] text-slate-500 mt-0.5 truncate">
+                        {(!selectedSubmissionForDetail.target_subject || selectedSubmissionForDetail.target_subject === selectedTemplate?.title) ? '-' : selectedSubmissionForDetail.target_subject}
+                      </p>
+                    )}
+                  </div>
+                )}
               
-                {/* Kartu 4: Siswa Tidak Hadir -> Keterangan */}
-                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
-                    {currentFieldDetails.absen?.label?.toUpperCase() || 'KETERANGAN'}
-                  </p>
-                  <h4 className="text-sm font-bold text-rose-600 line-clamp-1">
-                    {!selectedSubmissionForDetail.absent_students || selectedSubmissionForDetail.absent_students === 'Nihil' ? '-' : selectedSubmissionForDetail.absent_students}
-                  </h4>
-                  {/* Teks statis 'Laporan Presensi' diubah menjadi '-' jika tidak ada isian */}
-                  <p className="text-[10px] text-slate-500 mt-0.5">
-                    {!selectedSubmissionForDetail.absent_students || selectedSubmissionForDetail.absent_students === 'Nihil' ? '-' : 'Catatan'}
-                  </p>
-                </div>
+                {/* Kartu 4: Keterangan */}
+                {currentPengawasConfig.absen && (
+                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
+                      {currentFieldDetails.absen?.label?.toUpperCase() || 'KETERANGAN'}
+                    </p>
+                    <h4 className="text-sm font-bold text-rose-600 line-clamp-1">
+                      {!selectedSubmissionForDetail.absent_students || selectedSubmissionForDetail.absent_students === 'Nihil' ? '-' : selectedSubmissionForDetail.absent_students}
+                    </h4>
+                    <p className="text-[10px] text-slate-500 mt-0.5">
+                      {!selectedSubmissionForDetail.absent_students || selectedSubmissionForDetail.absent_students === 'Nihil' ? '-' : 'Catatan'}
+                    </p>
+                  </div>
+                )}
               </div>
               
               {/* NAMA PETUGAS (PJ) & WAKTU */}
               <div className="flex items-center justify-between text-[11px] bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 mb-6">
                 <div>
-                  <span className="text-slate-500">{currentFieldDetails.pj?.label || 'Petugas Pemantau (PJ)'}: </span>
-                  <span className="font-bold text-slate-900">{selectedSubmissionForDetail.pj_name}</span>
+                  {currentPengawasConfig.pj ? (
+                    <>
+                      <span className="text-slate-500">{currentFieldDetails.pj?.label || 'Petugas Pemantau (PJ)'}: </span>
+                      <span className="font-bold text-slate-900">{selectedSubmissionForDetail.pj_name}</span>
+                    </>
+                  ) : (
+                    <span className="text-slate-500 font-bold">Log Laporan Pengawasan</span>
+                  )}
                 </div>
                 <div className="text-slate-500 font-mono hidden sm:block">
-                  Waktu: {String(selectedSubmissionForDetail.submission_date || selectedSubmissionForDetail.created_at || '').slice(0, 16).replace('T', ' ')}
+                  {currentPengawasConfig.pj ? 'Waktu: ' : ''}{String(selectedSubmissionForDetail.submission_date || selectedSubmissionForDetail.created_at || '').slice(0, 16).replace('T', ' ')}
                 </div>
               </div>
 
