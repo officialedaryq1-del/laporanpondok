@@ -1663,7 +1663,7 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
       pj_name: formPetugas,
       submission_date: new Date().toISOString(),
       target_person: formGuru || null,
-      target_subject: formMapel || selectedTemplate?.title || null,
+      target_subject: formMapel || null,
       target_class: formKelas || null,
       target_time_slot: formJam || null,
       absent_students: formSiswaAbsen || 'Nihil',
@@ -2989,6 +2989,8 @@ const rekapSantriData = useMemo(() => {
                                 <th className="py-3 px-4 w-12 text-center">NO</th>
                                 <th className="py-3 px-4 min-w-[130px]">WAKTU</th>
                                 <th className="py-3 px-4 min-w-[150px]">{currentFieldDetails.pj?.label?.toUpperCase() || 'PETUGAS (PJ)'}</th>
+                                {/* --- KOLOM BARU: PROGRAM --- */}
+                                <th className="py-3 px-4 min-w-[200px]">PROGRAM</th>
                                 <th className="py-3 px-4 min-w-[150px]">{currentFieldDetails.guru?.label?.toUpperCase() || 'USTADZ'}</th>
                                 {/* Kolom tambahan untuk Pemimpin */}
                                 <th className="py-3 px-4 min-w-[130px]">{currentFieldDetails.jam?.label?.toUpperCase() || 'PEMIMPIN'}</th>
@@ -3011,11 +3013,18 @@ const rekapSantriData = useMemo(() => {
                                   <td className="py-3 px-4 font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                                     {sub.pj_name}
                                   </td>
+                                  {/* --- KOLOM BARU: PROGRAM --- */}
+                                  <td className="py-3 px-4 text-slate-800 font-medium">
+                                    <div className="line-clamp-2 text-[11px]" title={selectedTemplate?.title}>
+                                      {selectedTemplate?.title || '-'}
+                                    </div>
+                                  </td>
                                   <td className="py-3 px-4 text-slate-700">{sub.target_person || '-'}</td>
                                   {/* Data tambahan untuk Pemimpin (diambil dari target_time_slot) */}
                                   <td className="py-3 px-4 text-slate-700">{sub.target_time_slot || '-'}</td>
                                   <td className="py-3 px-4 font-medium text-slate-800">
-                                    {sub.target_subject || '-'} ({sub.target_class || '-'})
+                                    {/* Membersihkan data lama agar nama program tidak muncul lagi di kolom tempat */}
+                                    {(!sub.target_subject || sub.target_subject === selectedTemplate?.title) ? '-' : sub.target_subject} ({sub.target_class || '-'})
                                   </td>
                                   <td className="py-3 px-4 text-rose-600 font-semibold">
                                     {String(sub.absent_students ?? 'Nihil')}
