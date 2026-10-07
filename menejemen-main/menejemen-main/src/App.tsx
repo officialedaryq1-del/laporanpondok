@@ -2725,7 +2725,7 @@ const rekapSantriData = useMemo(() => {
                             {currentPengawasConfig.jam && (
                               <div>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                                  {currentFieldDetails.jam?.label || 'Pemimpin'}:
+                                  {currentFieldDetails.jam?.label || 'Pengampu/Pemimpin'}:
                                 </label>
                                 <input type="text" value={formJam} onChange={(e) => setFormJam(e.target.value)} placeholder="Masukkan nama pemimpin..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                               </div>
@@ -3004,7 +3004,7 @@ const rekapSantriData = useMemo(() => {
                                 
                                 {/* Kolom Pemimpin (Muncul jika dicentang) */}
                                 {currentPengawasConfig.jam && (
-                                  <th className="py-3 px-4 min-w-[130px]">{currentFieldDetails.jam?.label?.toUpperCase() || 'PEMIMPIN'}</th>
+                                  <th className="py-3 px-4 min-w-[130px]">{currentFieldDetails.jam?.label?.toUpperCase() || 'PENGAMPU/PEMIMPIN'}</th>
                                 )}
                                 
                                 {/* Kolom Tempat & Tanggal (Muncul jika salah satu atau keduanya dicentang) */}
@@ -6579,7 +6579,7 @@ const rekapSantriData = useMemo(() => {
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
                       {currentPengawasConfig.kelas ? (currentFieldDetails.kelas?.label?.toUpperCase() || 'TANGGAL') : ''}
                       {currentPengawasConfig.kelas && currentPengawasConfig.jam ? ' & ' : ''}
-                      {currentPengawasConfig.jam ? (currentFieldDetails.jam?.label?.toUpperCase() || 'PEMIMPIN') : ''}
+                      {currentPengawasConfig.jam ? (currentFieldDetails.jam?.label?.toUpperCase() || 'PENGAMPU/PEMIMPIN') : ''}
                     </p>
                     
                     {currentPengawasConfig.kelas && (
@@ -6590,7 +6590,7 @@ const rekapSantriData = useMemo(() => {
                     
                     {currentPengawasConfig.jam && (
                       <p className="text-[10px] text-slate-500 mt-0.5 truncate">
-                        {currentFieldDetails.jam?.label || 'Pemimpin'}: {!selectedSubmissionForDetail.target_time_slot || selectedSubmissionForDetail.target_time_slot === '1-2' ? '-' : selectedSubmissionForDetail.target_time_slot}
+                        {currentFieldDetails.jam?.label || 'Pengampu/Pemimpin'}: {!selectedSubmissionForDetail.target_time_slot || selectedSubmissionForDetail.target_time_slot === '1-2' ? '-' : selectedSubmissionForDetail.target_time_slot}
                       </p>
                     )}
                   </div>
