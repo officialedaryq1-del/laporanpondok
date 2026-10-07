@@ -6508,53 +6508,51 @@ const rekapSantriData = useMemo(() => {
 
             <div className="p-6 overflow-y-auto space-y-5 text-xs">
               
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">SKOR KEPATUHAN</span>
-                  <span className="text-lg font-black font-mono text-blue-600 mt-0.5 block">
-                    {getSubmissionPercentage(selectedSubmissionForDetail)}%
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-semibold">
-                    Skala: {selectedSubmissionForDetail.rata_rata ?? '-'} / 3.0
-                  </span>
+              {/* 4 KARTU INFORMASI UTAMA */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                {/* Kartu 1: Skor */}
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">SKOR KEPATUHAN</p>
+                  <h4 className="text-xl font-black text-blue-600">{getSubmissionPercentage(selectedSubmissionForDetail)}%</h4>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Skala: {selectedSubmissionForDetail.rata_rata || '3.0'} / 3.0</p>
                 </div>
-
-                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">KELAS & JAM</span>
-                  <span className="text-sm font-bold text-slate-900 mt-0.5 block">
-                    Kelas {selectedSubmissionForDetail.target_class || '-'}
-                  </span>
-                  <span className="text-[10px] text-slate-500">
-                    Jam: {selectedSubmissionForDetail.target_time_slot || '-'}
-                  </span>
+              
+                {/* Kartu 2: Kelas & Jam -> Tanggal & Pemimpin */}
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
+                    {currentFieldDetails.kelas?.label?.toUpperCase() || 'TANGGAL'} & {currentFieldDetails.jam?.label?.toUpperCase() || 'PEMIMPIN'}
+                  </p>
+                  <h4 className="text-sm font-bold text-slate-800 line-clamp-1">{selectedSubmissionForDetail.target_class || '-'}</h4>
+                  <p className="text-[10px] text-slate-500 mt-0.5 truncate">{currentFieldDetails.jam?.label || 'Pemimpin'}: {selectedSubmissionForDetail.target_time_slot || '-'}</p>
                 </div>
-
-                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">GURU / SASARAN</span>
-                  <span className="text-xs font-bold text-slate-900 mt-0.5 block truncate">
-                    {selectedSubmissionForDetail.target_person || '-'}
-                  </span>
-                  <span className="text-[10px] text-slate-500 truncate block">
-                    {selectedSubmissionForDetail.target_subject || '-'}
-                  </span>
+              
+                {/* Kartu 3: Guru / Sasaran -> Ustadz / Tempat */}
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
+                    {currentFieldDetails.guru?.label?.toUpperCase() || 'USTADZ'} / {currentFieldDetails.mapel?.label?.toUpperCase() || 'TEMPAT'}
+                  </p>
+                  <h4 className="text-sm font-bold text-slate-800 line-clamp-1">{selectedSubmissionForDetail.target_person || '-'}</h4>
+                  <p className="text-[10px] text-slate-500 mt-0.5 truncate">{selectedSubmissionForDetail.target_subject || '-'}</p>
                 </div>
-
-                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">SISWA TIDAK HADIR</span>
-                  <span className="text-xs font-bold text-rose-600 mt-0.5 block truncate">
-                    {String(selectedSubmissionForDetail.absent_students ?? 'Nihil')}
-                  </span>
-                  <span className="text-[10px] text-slate-400">Presensi KBM</span>
+              
+                {/* Kartu 4: Siswa Tidak Hadir -> Keterangan */}
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
+                    {currentFieldDetails.absen?.label?.toUpperCase() || 'KETERANGAN'}
+                  </p>
+                  <h4 className="text-sm font-bold text-rose-600 line-clamp-1">{selectedSubmissionForDetail.absent_students || 'Nihil'}</h4>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Laporan Presensi</p>
                 </div>
               </div>
-
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row justify-between sm:items-center gap-2 text-[11px]">
+              
+              {/* NAMA PETUGAS (PJ) & WAKTU */}
+              <div className="flex items-center justify-between text-[11px] bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 mb-6">
                 <div>
-                  <span className="text-slate-400 font-semibold">Petugas Pemantau (PJ): </span>
-                  <strong className="text-slate-800">{selectedSubmissionForDetail.pj_name || 'Koordinator'}</strong>
+                  <span className="text-slate-500">{currentFieldDetails.pj?.label || 'Petugas Pemantau (PJ)'}: </span>
+                  <span className="font-bold text-slate-900">{selectedSubmissionForDetail.pj_name}</span>
                 </div>
-                <div className="font-mono text-slate-500">
-                  Waktu: {String(selectedSubmissionForDetail.submission_date || selectedSubmissionForDetail.created_at || '').slice(0, 16)}
+                <div className="text-slate-500 font-mono hidden sm:block">
+                  Waktu: {String(selectedSubmissionForDetail.submission_date || selectedSubmissionForDetail.created_at || '').slice(0, 16).replace('T', ' ')}
                 </div>
               </div>
 
