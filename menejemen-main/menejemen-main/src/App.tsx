@@ -133,6 +133,7 @@ interface ChecklistTemplate {
   is_active?: boolean;
   pengawas_field_details?: Record<string, FieldDetail>;
   pengawas_config?: any; // <--- TAMBAHKAN BARIS INI
+  target_format?: 'persentase' | 'count'; // Tambahkan baris ini
 }
 
 interface ChecklistSection {
@@ -578,6 +579,9 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
   const [activeMasterTab, setActiveMasterTab] = useState<'divisi' | 'iku' | 'program'>('divisi');
   const [filterMasterDivisi, setFilterMasterDivisi] = useState<number | 'all'>('all');
 
+  // Tambahkan di deretan deklarasi state (misal di bawah state terkait customize)
+  const [targetFormat, setTargetFormat] = useState<'persentase' | 'count'>('persentase');
+  
   // Modal State untuk Master Data
   const [masterModalType, setMasterModalType] = useState<'divisi' | 'iku' | 'program' | null>(null);
   const [editingMasterId, setEditingMasterId] = useState<number | null>(null);
@@ -611,6 +615,31 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
     return Object.values(currentPengawasConfig).some(Boolean);
   }, [currentPengawasConfig]);
 
+  const updateTargetFormat = async (templateId: string, newFormat: 'persentase' | 'count') => {
+  // 1. Update state lokal terlebih dahulu agar UI terasa cepat (Optimistic Update)
+  setTargetFormat(newFormat); 
+  
+  // Jika Anda menyimpan data template lengkap di state, update juga state tersebut
+  // Contoh jika ada state selectedTemplate:
+  // setSelectedTemplate(prev => prev ? { ...prev, target_format: newFormat } : prev);
+
+  // 2. Update data ke database Supabase
+  try {
+    const { error } = await supabase
+      .from('checklist_templates')
+      .update({ target_format: newFormat })
+      .eq('id', templateId);
+
+    if (error) {
+      console.error('Error updating target format:', error);
+      alert('Gagal menyimpan perubahan bentuk target realisasi.');
+      // Opsional: Kembalikan nilai state ke awal jika error
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+  
   const togglePengawasField = (templateId: number, fieldKey: PengawasFieldKey) => {
     setPengawasConfigMap(prev => {
       const current = prev[templateId] || { ...DEFAULT_PENGAWAS_CONFIG };
@@ -3098,6 +3127,53 @@ const rekapSantriData = useMemo(() => {
                   {/* TAB 4: CUSTOMIZE FORM */}
                   {activeSubTab === 'customize' && (
                     <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-6">
+
+                      {/* ===== KODE BARU: PENGATURAN BENTUK TARGET REALISASI ===== */}
+                      <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
+                        <div>
+                          <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            {/* Anda bisa mengganti ikon ini dengan ikon chart/bar yang sesuai */}
+                            <TrendingUp className="w-4 h-4 text-blue-600" />
+                            Pengaturan Bentuk Target Realisasi
+                          </h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            Pilih apakah hasil akhir target realisasi pada program ini ditampilkan dalam bentuk Persentase (%) atau Count (Hitungan Frekuensi Pengisian).
+                          </p>
+                        </div>
+                        
+                        <div className="pt-2">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                            Pilih Bentuk Target Realisasi:
+                          </label>
+                          <select 
+                          // Gunakan nilai dari database jika ada, jika tidak gunakan state fallback
+                          value={selectedTemplate?.target_format || targetFormat} 
+                          onChange={(e) => {
+                            const newValue = e.target.value as 'persentase' | 'count';
+                            // Panggil fungsi update yang sudah kita buat jika ada template yang sedang dipilih
+                            if (selectedTemplate?.id) {
+                              updateTargetFormat(selectedTemplate.id, newValue);
+                            } else {
+                              // Jika karena suatu hal tidak ada id, sekadar update state lokal
+                              setTargetFormat(newValue);
+                            }
+                          }}
+                          className="w-full sm:w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                        >
+                          <option value="persentase">Persentase (%)</option>
+                          <option value="count">Count (Hitungan Berapa Kali Diisi)</option>
+                          </select>
+                          <select 
+                            value={targetFormat} 
+                            onChange={(e) => setTargetFormat(e.target.value as 'persentase' | 'count')}
+                            className="w-full sm:w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                          >
+                            <option value="persentase">Persentase (%)</option>
+                            <option value="count">Count (Hitungan Berapa Kali Diisi)</option>
+                          </select>
+                        </div>
+                      </div>
+                      {/* ========================================================= */}
                       
                       {/* Panel Centangan Modul Informasi Pengawasan */}
                       <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-200/80 space-y-3">
