@@ -258,7 +258,7 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError:
     guru: { label: 'Ustadz', type: 'text', options: '' },
     mapel: { label: 'Tempat', type: 'text', options: '' },
     kelas: { label: 'Tanggal', type: 'date', options: '' }, // Type diubah jadi date
-    jam: { label: 'Pemimpin', type: 'text', options: '' },
+    jam: { label: 'Pengampu/Pemimpin', type: 'text', options: '' },
     absen: { label: 'Keterangan', type: 'text', options: '' }
   };
   
@@ -3214,7 +3214,7 @@ const rekapSantriData = useMemo(() => {
                           { key: 'guru', defaultLabel: 'Ustadz' },
                           { key: 'mapel', defaultLabel: 'Tempat' },
                           { key: 'kelas', defaultLabel: 'Tanggal' },
-                          { key: 'jam', defaultLabel: 'Pemimpin' },
+                          { key: 'jam', defaultLabel: 'Pengampu/Pemimpin' },
                           { key: 'absen', defaultLabel: 'Keterangan' }
                         ].map(f => {
                           
