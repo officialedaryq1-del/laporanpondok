@@ -616,10 +616,13 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
   }, [currentPengawasConfig]);
 
  const updateTargetFormat = async (templateId: number, newFormat: 'persentase' | 'count') => {
-  // 1. Update state lokal terlebih dahulu agar UI terasa cepat
+  // 1. Update state lokal
   setTargetFormat(newFormat); 
+  
+  // 2. UPDATE STATE TEMPLATES AGAR UI LANGSUNG BERUBAH (Tambahkan baris ini)
+  setTemplates(prev => prev.map(t => t.id === templateId ? { ...t, target_format: newFormat } : t));
 
-  // 2. Update data ke database Supabase menggunakan fetch (sesuai struktur kode Anda)
+  // 3. Update data ke database Supabase
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/checklist_templates?id=eq.${templateId}`, {
       method: 'PATCH',
