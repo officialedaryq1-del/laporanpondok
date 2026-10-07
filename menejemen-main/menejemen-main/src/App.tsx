@@ -3511,57 +3511,57 @@ const rekapSantriData = useMemo(() => {
                 </div>
               </div>
 
-              {/* === KONTEN 1: DASHBOARD === */}
-              {kebersihanSubTab === 'dashboard' && (
-                <div className="space-y-4">
-                  {/* Filter Analytics Sesuai Desain Pelanggaran */}
-                  <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xs border border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
-                        <History className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-slate-800 text-xs uppercase">Filter Waktu</h4>
-                        <p className="text-[10px] text-slate-400">Rentang data dashboard</p>
-                      </div>
+             {/* === KONTEN 1: DASHBOARD === */}
+            {kebersihanSubTab === 'dashboard' && (
+              <div className="space-y-4">
+                {/* Filter Analytics Sesuai Desain Pelanggaran */}
+                <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xs border border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                      <History className="w-5 h-5" />
                     </div>
-                  
-                    <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 lg:max-w-2xl">
-                      <div className="flex-1 w-full">
-                        <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Mulai Tanggal</label>
-                        <input type="date" value={kebersihanStartDate} onChange={(e) => setKebersihanStartDate(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
-                      </div>
-                      <div className="flex-1 w-full">
-                        <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Sampai Tanggal</label>
-                        <input type="date" value={kebersihanEndDate} onChange={(e) => setKebersihanEndDate(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
-                      </div>
-                    </div>
-                  
-                    <button
-                      onClick={() => {
-                        const date = new Date();
-                        const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-                        const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-                        setKebersihanStartDate(`${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-${String(firstDay.getDate()).padStart(2, '0')}`);
-                        setKebersihanEndDate(`${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`);
-                      }}
-                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition whitespace-nowrap self-start sm:self-auto"
-                    >
-                      Reset ke Bulan Ini
-                    </button>
-                  </div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Sampai Tanggal</label>
-                        <input 
-                          type="date" 
-                          value={kebersihanEndDate}
-                          onChange={(e) => setKebersihanEndDate(e.target.value)}
-                          className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" 
-                        />
-                      </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-xs uppercase">Filter Waktu</h4>
+                      <p className="text-[10px] text-slate-400">Rentang data dashboard</p>
                     </div>
                   </div>
+                
+                  <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 lg:max-w-2xl">
+                    <div className="flex-1 w-full">
+                      <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Mulai Tanggal</label>
+                      <input 
+                        type="date" 
+                        value={kebersihanStartDate} 
+                        onChange={(e) => setKebersihanStartDate(e.target.value)} 
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" 
+                      />
+                    </div>
+                    <div className="flex-1 w-full">
+                      <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Sampai Tanggal</label>
+                      <input 
+                        type="date" 
+                        value={kebersihanEndDate} 
+                        onChange={(e) => setKebersihanEndDate(e.target.value)} 
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" 
+                      />
+                    </div>
+                  </div>
+                
+                  <button
+                    onClick={() => {
+                      const date = new Date();
+                      const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+                      const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                      setKebersihanStartDate(`${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-${String(firstDay.getDate()).padStart(2, '0')}`);
+                      setKebersihanEndDate(`${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`);
+                    }}
+                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition whitespace-nowrap self-start sm:self-auto cursor-pointer"
+                  >
+                    Reset ke Bulan Ini
+                  </button>
+                </div>
 
-                 {/* Stat Cards (Sesuai Desain UI Baru) */}
+                    {/* Stat Cards (Sesuai Desain UI Baru) */}
 {(() => {
   // Hitung jumlah pelanggaran per kamar
   const kamarStats: Record<string, number> = {};
