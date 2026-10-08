@@ -572,18 +572,37 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
     }
   });
 
-  const updateSectionType = (sectionId: number, type: 'positif' | 'negatif') => {
-    setSectionTypeMap(prev => {
-      const updated = { ...prev, [sectionId]: type };
-      try {
-        localStorage.setItem('section_types_config', JSON.stringify(updated));
-      } catch (e) {
-        console.warn('Gagal menyimpan tipe kategori:', e);
-      }
-      return updated;
-    });
-  };
+  const updateSectionType = async (sectionId: number, type: 'positif' | 'negatif') => {
+  // 1. Update State Lokal (UI)
+  setSectionTypeMap(prev => {
+    const updated = { ...prev, [sectionId]: type };
+    try {
+      localStorage.setItem('section_types_config', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Gagal menyimpan tipe kategori ke lokal:', e);
+    }
+    return updated;
+  });
 
+  // 2. Simpan Permanen ke Database Supabase
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/checklist_sections?id=eq.${sectionId}`, {
+      method: 'PATCH',
+      headers: reqHeaders,
+      body: JSON.stringify({ section_type: type })
+    });
+
+    if (!res.ok) {
+      console.error('Gagal menyimpan tipe kategori ke Supabase');
+      showToast('Gagal menyinkronkan tipe kategori ke server', 'error');
+    } else {
+      showToast('Tipe indikator berhasil diubah dan disimpan!');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('Terjadi kesalahan koneksi saat menyimpan', 'error');
+  }
+};
   const [activeMasterTab, setActiveMasterTab] = useState<'divisi' | 'iku' | 'program'>('divisi');
   const [filterMasterDivisi, setFilterMasterDivisi] = useState<number | 'all'>('all');
 
