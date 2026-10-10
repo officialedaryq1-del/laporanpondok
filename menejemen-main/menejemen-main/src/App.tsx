@@ -1437,11 +1437,10 @@ const handleSavePresensiAsatidz = async () => {
   }
 };
 
-// === 3 FUNGSI IMPORT SEKARANG SUDAH DI LUAR ===
-
+// --- 1. FUNGSI DOWNLOAD TEMPLATE ---
 const handleDownloadTemplateAsatidz = () => {
   const headers = ['Tanggal (YYYY-MM-DD)', 'Waktu Sholat (Asar/Magrib/Isya/Subuh)', 'Nama Guru', 'Status (H/A/I/P/T)'];
-  // Menggunakan pemisah titik koma (;) agar otomatis rapi di Excel format Indonesia
+  // Paksa pemisah titik koma (;) agar rapi di Excel Indonesia
   const sampleData = guruList.map(g => `${new Date().toISOString().slice(0, 10)};Asar;"${g.nama_guru}";H`);
   
   const csvContent = '\uFEFF' + [headers.join(';'), ...sampleData].join('\n');
@@ -1454,6 +1453,8 @@ const handleDownloadTemplateAsatidz = () => {
   link.click();
   document.body.removeChild(link);
 };
+
+// --- 2. FUNGSI PEMBACA FILE CSV (Lebih Cerdas Anti-Error) ---
 const handleFileImportAsatidz = (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0];
   if (!file) return;
@@ -1467,15 +1468,26 @@ const handleFileImportAsatidz = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (lines.length > 1) {
           const parsed: PresensiJamaahRecord[] = [];
           for (let i = 1; i < lines.length; i++) {
-            // Ubah pemisah di sini menjadi titik koma (;)
-            const cols = lines[i].split(';').map(c => c.replace(/^"|"$/g, '').trim());
+            // Deteksi otomatis apakah file menggunakan koma (,) atau titik koma (;)
+            const separator = lines[i].includes(';') ? ';' : ',';
+            const cols = lines[i].split(separator).map(c => c.replace(/^"|"$/g, '').trim());
+
             if (cols.length >= 4) {
-              const tgl = cols[0];
+              let tgl = cols[0];
+              if (!tgl || tgl.length < 8) continue; // Lewati baris kosong atau rusak
+
+              // Otomatis perbaiki format jika Excel mengubahnya menjadi DD/MM/YYYY
+              if (tgl.includes('/')) {
+                const parts = tgl.split('/');
+                if (parts.length === 3 && parts[2].length === 4) {
+                  tgl = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                }
+              }
+
               const wkt = ['Asar', 'Magrib', 'Isya', 'Subuh'].includes(cols[1]) ? cols[1] : 'Asar';
               const nama = cols[2];
               const stat = ['H', 'A', 'I', 'P', 'T'].includes(cols[3].toUpperCase()) ? cols[3].toUpperCase() : 'H';
               
-              // Cocokkan nama dengan ID guru di database
               const matchedGuru = guruList.find(g => g.nama_guru.toLowerCase() === nama.toLowerCase());
               const guru_id = matchedGuru ? String(matchedGuru.id || matchedGuru.nama_guru) : nama;
 
@@ -1489,7 +1501,7 @@ const handleFileImportAsatidz = (e: React.ChangeEvent<HTMLInputElement>) => {
             }
           }
           setImportAsatidzPreview(parsed);
-          showToast(`${parsed.length} baris data berhasil dibaca!`, 'success');
+          showToast(`${parsed.length} baris data siap diimpor!`, 'success');
         }
       }
     } catch (err) {
@@ -1499,27 +1511,45 @@ const handleFileImportAsatidz = (e: React.ChangeEvent<HTMLInputElement>) => {
   reader.readAsText(file);
 };
 
+// --- 3. FUNGSI PENYIMPAN KE SUPABASE (Cegah Duplikat) ---
 const handleSaveImportAsatidz = async () => {
   if (importAsatidzPreview.length === 0) return showToast('Belum ada data untuk diimpor', 'error');
   setIsImportingAsatidz(true);
   
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz`, {
-      method: 'POST',
-      headers: reqHeaders,
-      body: JSON.stringify(importAsatidzPreview)
-    });
+    // Langkah 1: Hapus data lama yang tanggal & waktunya sama persis (agar tidak tumpang tindih/duplikat)
+    const uniqueKeys = Array.from(new Set(importAsatidzPreview.map(p => `${p.tanggal}|${p.waktu_sholat}`)));
+    for (const key of uniqueKeys) {
+      const [tgl, wkt] = key.split('|');
+      await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz?tanggal=eq.${tgl}&waktu_sholat=eq.${wkt}`, {
+        method: 'DELETE',
+        headers: reqHeaders
+      }).catch(() => {});
+    }
 
-    if (res.ok) {
+    // Langkah 2: Kirim data baru menggunakan metode batching (mencegah error jika data terlalu banyak)
+    const batchSize = 100;
+    let isSuccess = true;
+    for (let i = 0; i < importAsatidzPreview.length; i += batchSize) {
+      const chunk = importAsatidzPreview.slice(i, i + batchSize);
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz`, {
+        method: 'POST',
+        headers: reqHeaders,
+        body: JSON.stringify(chunk)
+      });
+      if (!res.ok) isSuccess = false;
+    }
+
+    if (isSuccess) {
       showToast(`Berhasil mengimpor ${importAsatidzPreview.length} data presensi!`, 'success');
       setImportAsatidzPreview([]);
-      fetchSupabaseData(); // Refresh data utama
+      await fetchSupabaseData(); // Tunggu data selesai di-refresh
       setPresensiSubTab('ledger'); // Arahkan kembali ke buku besar
     } else {
-      showToast('Gagal menyimpan data import ke server', 'error');
+      showToast('Sebagian data gagal disimpan. Periksa kembali isi file Anda!', 'error');
     }
   } catch (err) {
-    showToast('Terjadi kesalahan jaringan', 'error');
+    showToast('Terjadi kesalahan jaringan saat impor', 'error');
   } finally {
     setIsImportingAsatidz(false);
   }
