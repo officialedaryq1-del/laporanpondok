@@ -1252,14 +1252,24 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
   };
 
 
-  const getProgramRealisasi = (tpl: ChecklistTemplate): string => {
-    const matchedSubs = submissions.filter(s => s.template_id === tpl.id);
+   const getProgramRealisasi = (tpl: ChecklistTemplate, filterBulan?: string): string => {
+    // 1. Ambil semua data submission untuk template ini
+    let matchedSubs = submissions.filter(s => s.template_id === tpl.id);
+  
+    // 2. Jika parameter filterBulan diberikan, filter datanya sesuai bulan tersebut
+    if (filterBulan) {
+      matchedSubs = matchedSubs.filter(s => {
+        const dStr = String(s.submission_date || s.created_at || '');
+        return dStr.startsWith(filterBulan); // Mencocokkan format "YYYY-MM"
+      });
+    }
+  
+    // 3. Hitung rata-rata
     if (matchedSubs.length === 0) return '-';
     const totalScore = matchedSubs.reduce((acc, curr) => acc + getSubmissionPercentage(curr), 0);
     const avgScore = Math.round(totalScore / matchedSubs.length);
     return `${avgScore}%`;
   };
-
   const getMonthlySubmissionNotes = (templateId: number, bulan: string): string[] => {
     const matchedSubs = submissions.filter(s => {
       if (Number(s.template_id) !== Number(templateId)) return false;
@@ -5413,7 +5423,7 @@ const rekapSantriData = useMemo(() => {
                           const itemCount = grp.items.length;
 
                           return grp.items.map((tpl, itemIdx) => {
-                            const realisasiVal = getProgramRealisasi(tpl);
+                            const realisasiVal = getProgramRealisasi(tpl, laporanBulan);
                             const isFirstRowOfGroup = itemIdx === 0;
                             const catatanTpl = laporanCatatanMap[tpl.id] || '';
 
