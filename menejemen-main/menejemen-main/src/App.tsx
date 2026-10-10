@@ -291,6 +291,7 @@ function MainAppContent() {
   const [divisions, setDivisions] = useState<Division[]>(INITIAL_DIVISIONS);
   const [activeDivisionId, setActiveDivisionId] = useState<number>(1);
   const [activeTimeframe, setActiveTimeframe] = useState<TimeframeCategory>('Harian');
+  const [inputAbsensiTanggal, setInputAbsensiTanggal] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<'input' | 'riwayat' | 'hasil' | 'customize'>('input');
 
@@ -325,7 +326,7 @@ function MainAppContent() {
   }, [selectedTemplateId, fieldDetailsMap]);
 
   // State Modul Presensi Jamaah Asatidz
-const [presensiGuruList, setPresensiGuruList] = useState<PresensiJamaahRecord[]>([]);
+const [presensiGuruList,] = useState<PresensiJamaahRecord[]>([]);
 const [presensiBulan, setPresensiBulan] = useState<string>(() => new Date().toISOString().slice(0, 7)); // Default bulan ini YYYY-MM
 const [presensiWaktuFilter, setPresensiWaktuFilter] = useState<'Semua' | 'Asar' | 'Magrib' | 'Isya' | 'Subuh'>('Semua');
  
@@ -567,9 +568,6 @@ const [formPlgSanksiChecked, setFormPlgSanksiChecked] = useState<string[]>([]);
 const [formPlgSanksiCustom, setFormPlgSanksiCustom] = useState<string>('');
 const [searchSantriPlg, setSearchSantriPlg] = useState<string>('');
 const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
-  
-  // State Lazy Loading untuk mempercepat Initial Load
-  const [hasFetchedFullPresensi, setHasFetchedFullPresensi] = useState<boolean>(false);
 
   // State modal detail rombel rekap nilai
   const [selectedRombelDetail, setSelectedRombelDetail] = useState<{
@@ -5101,7 +5099,6 @@ const rekapSantriData = useMemo(() => {
                             });
 
                             const isInputted = subsForTplDate.length > 0;
-                            const latestSub = subsForTplDate[0];
 
                             let scoreText = '-';
                             if (isInputted) {
