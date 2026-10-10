@@ -1410,92 +1410,121 @@ const handleSavePresensiAsatidz = async () => {
       status: inputAsatidzStatus[String(g.id || g.nama_guru)] || 'H'
     }));
 
-    const handleDownloadTemplateAsatidz = () => {
-    const headers = ['Tanggal (YYYY-MM-DD)', 'Waktu Sholat (Asar/Magrib/Isya/Subuh)', 'Nama Guru', 'Status (H/A/I/P/T)'];
-    // Buat contoh data berdasarkan data guru yang ada, default absen Asar
-    const sampleData = guruList.map(g => `${new Date().toISOString().slice(0, 10)},Asar,"${g.nama_guru}",H`);
-    
-    const csvContent = '\uFEFF' + [headers.join(','), ...sampleData].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'Template_Import_Presensi_Asatidz.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+    const encDate = encodeURIComponent(inputAsatidzTanggal);
+    const encWaktu = encodeURIComponent(inputAsatidzWaktu);
+
+    // 1. Hapus data presensi lama di waktu & tanggal yang sama (mencegah duplikat)
+    await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz?tanggal=eq.${encDate}&waktu_sholat=eq.${encWaktu}`, {
+      method: 'DELETE', headers: reqHeaders
+    }).catch(() => {});
+
+    // 2. Simpan data baru
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz`, {
+      method: 'POST', headers: reqHeaders, body: JSON.stringify(recordsToInsert)
+    });
+
+    if (res.ok) {
+      showToast('Presensi Asatidz berhasil disimpan!', 'success');
+      fetchSupabaseData(); // Refresh data dari server
+      setPresensiSubTab('ledger'); // Balik ke halaman buku besar
+    } else {
+      showToast('Gagal! Pastikan tabel "presensi_asatidz" sudah dibuat di Supabase', 'error');
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan jaringan', 'error');
+  } finally {
+    setIsSavingAsatidz(false);
+  }
+};
+
+// === 3 FUNGSI IMPORT SEKARANG SUDAH DI LUAR ===
+
+const handleDownloadTemplateAsatidz = () => {
+  const headers = ['Tanggal (YYYY-MM-DD)', 'Waktu Sholat (Asar/Magrib/Isya/Subuh)', 'Nama Guru', 'Status (H/A/I/P/T)'];
+  // Buat contoh data berdasarkan data guru yang ada, default absen Asar
+  const sampleData = guruList.map(g => `${new Date().toISOString().slice(0, 10)},Asar,"${g.nama_guru}",H`);
   
-  const handleFileImportAsatidz = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-  
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      try {
-        const content = evt.target?.result;
-        if (typeof content === 'string') {
-          const lines = content.split('\n').filter(l => l.trim());
-          if (lines.length > 1) {
-            const parsed: PresensiJamaahRecord[] = [];
-            for (let i = 1; i < lines.length; i++) {
-              // Pisahkan berdasarkan koma dan hilangkan tanda kutip
-              const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
-              if (cols.length >= 4) {
-                const tgl = cols[0];
-                const wkt = ['Asar', 'Magrib', 'Isya', 'Subuh'].includes(cols[1]) ? cols[1] : 'Asar';
-                const nama = cols[2];
-                const stat = ['H', 'A', 'I', 'P', 'T'].includes(cols[3].toUpperCase()) ? cols[3].toUpperCase() : 'H';
-                
-                // Cocokkan nama dengan ID guru di database
-                const matchedGuru = guruList.find(g => g.nama_guru.toLowerCase() === nama.toLowerCase());
-                const guru_id = matchedGuru ? String(matchedGuru.id || matchedGuru.nama_guru) : nama;
-  
-                parsed.push({
-                  tanggal: tgl,
-                  waktu_sholat: wkt as any,
-                  guru_id: guru_id,
-                  nama_guru: nama,
-                  status: stat as any
-                });
-              }
-            }
-            setImportAsatidzPreview(parsed);
-            showToast(`${parsed.length} baris data berhasil dibaca!`, 'success');
-          }
-        }
-      } catch (err) {
-        showToast('Gagal memproses file CSV.', 'error');
-      }
-    };
-    reader.readAsText(file);
-  };
-  
-  const handleSaveImportAsatidz = async () => {
-    if (importAsatidzPreview.length === 0) return showToast('Belum ada data untuk diimpor', 'error');
-    setIsImportingAsatidz(true);
-    
+  const csvContent = '\uFEFF' + [headers.join(','), ...sampleData].join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'Template_Import_Presensi_Asatidz.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const handleFileImportAsatidz = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (evt) => {
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz`, {
-        method: 'POST',
-        headers: reqHeaders,
-        body: JSON.stringify(importAsatidzPreview)
-      });
-  
-      if (res.ok) {
-        showToast(`Berhasil mengimpor ${importAsatidzPreview.length} data presensi!`, 'success');
-        setImportAsatidzPreview([]);
-        fetchSupabaseData(); // Refresh data utama
-        setPresensiSubTab('ledger'); // Arahkan kembali ke buku besar
-      } else {
-        showToast('Gagal menyimpan data import ke server', 'error');
+      const content = evt.target?.result;
+      if (typeof content === 'string') {
+        const lines = content.split('\n').filter(l => l.trim());
+        if (lines.length > 1) {
+          const parsed: PresensiJamaahRecord[] = [];
+          for (let i = 1; i < lines.length; i++) {
+            // Pisahkan berdasarkan koma dan hilangkan tanda kutip
+            const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+            if (cols.length >= 4) {
+              const tgl = cols[0];
+              const wkt = ['Asar', 'Magrib', 'Isya', 'Subuh'].includes(cols[1]) ? cols[1] : 'Asar';
+              const nama = cols[2];
+              const stat = ['H', 'A', 'I', 'P', 'T'].includes(cols[3].toUpperCase()) ? cols[3].toUpperCase() : 'H';
+              
+              // Cocokkan nama dengan ID guru di database
+              const matchedGuru = guruList.find(g => g.nama_guru.toLowerCase() === nama.toLowerCase());
+              const guru_id = matchedGuru ? String(matchedGuru.id || matchedGuru.nama_guru) : nama;
+
+              parsed.push({
+                tanggal: tgl,
+                waktu_sholat: wkt as any,
+                guru_id: guru_id,
+                nama_guru: nama,
+                status: stat as any
+              });
+            }
+          }
+          setImportAsatidzPreview(parsed);
+          showToast(`${parsed.length} baris data berhasil dibaca!`, 'success');
+        }
       }
     } catch (err) {
-      showToast('Terjadi kesalahan jaringan', 'error');
-    } finally {
-      setIsImportingAsatidz(false);
+      showToast('Gagal memproses file CSV.', 'error');
     }
   };
+  reader.readAsText(file);
+};
+
+const handleSaveImportAsatidz = async () => {
+  if (importAsatidzPreview.length === 0) return showToast('Belum ada data untuk diimpor', 'error');
+  setIsImportingAsatidz(true);
+  
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz`, {
+      method: 'POST',
+      headers: reqHeaders,
+      body: JSON.stringify(importAsatidzPreview)
+    });
+
+    if (res.ok) {
+      showToast(`Berhasil mengimpor ${importAsatidzPreview.length} data presensi!`, 'success');
+      setImportAsatidzPreview([]);
+      fetchSupabaseData(); // Refresh data utama
+      setPresensiSubTab('ledger'); // Arahkan kembali ke buku besar
+    } else {
+      showToast('Gagal menyimpan data import ke server', 'error');
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan jaringan', 'error');
+  } finally {
+    setIsImportingAsatidz(false);
+  }
+};
       
     const encDate = encodeURIComponent(inputAsatidzTanggal);
     const encWaktu = encodeURIComponent(inputAsatidzWaktu);
