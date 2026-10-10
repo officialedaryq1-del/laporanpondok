@@ -5364,8 +5364,8 @@ const rekapSantriData = useMemo(() => {
                   
                   {/* Kartu Kasus Kebersihan */}
                   <div 
-                    onClick={() => {
-                      setNavTab('kebersihan');
+                   onClick={() => {
+                      setNavTab('monitoring_kebersihan');
                       setKebersihanSubTab('dashboard');
                     }}
                     className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-emerald-300 hover:shadow-md transition-all group"
@@ -5390,10 +5390,9 @@ const rekapSantriData = useMemo(() => {
                   {/* Kartu Kasus Pelanggaran */}
                   <div 
                     onClick={() => {
-                    setNavTab('setPelanggaranSubTab');
-                    // Pastikan Anda menyesuaikan nama state sub-tab pelanggaran jika ada (misal: setPelanggaranSubTab)
-                    // Jika error tidak terjadi di kartu ini, Anda cukup membiarkannya setNavTab('pelanggaran') saja.
-                  }}
+                      setNavTab('pelanggaran');
+                      setPelanggaranSubTab('dashboard');
+                    }}
                     className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-rose-300 hover:shadow-md transition-all group"
                   >
                     <div>
