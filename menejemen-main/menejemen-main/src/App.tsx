@@ -1320,7 +1320,7 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
     return notesList;
   };
 
-  // --- LOGIKA REKAP PRESENSI ASATIDZ (LEDGER 1-31) ---
+ // --- LOGIKA REKAP PRESENSI ASATIDZ (LEDGER 1-31) ---
 const presensiAsatidzLedger = useMemo(() => {
   const [year, month] = presensiBulan.split('-');
   const daysInMonth = new Date(Number(year), Number(month), 0).getDate();
@@ -1331,30 +1331,44 @@ const presensiAsatidzLedger = useMemo(() => {
     ? presensiGuruList
     : presensiGuruList.filter(p => p.waktu_sholat === presensiWaktuFilter);
 
-  // Lakukan mapping ke daftar guru (diambil dari state guruList yang sudah ada)
   return guruList.map((guru, index) => {
-    // Cari absen milik guru ini saja
     const guruRecords = filteredList.filter(p => String(p.guru_id) === String(guru.id || guru.nama_guru));
 
-    const dailyStatus: Record<number, string> = {};
+    const dailyStatus: Record<number, Record<string, string>> = {};
     let h = 0, a = 0, i = 0, p_stat = 0, t = 0;
 
     daysArray.forEach(day => {
       const dateStr = `${year}-${month}-${String(day).padStart(2, '0')}`;
       const recordsForDay = guruRecords.filter(r => r.tanggal === dateStr);
+      
+      // Deteksi hari: 0 = Minggu, 1 = Senin, ..., 6 = Sabtu
+      const dayOfWeek = new Date(Number(year), Number(month) - 1, day).getDay(); 
+      
+      let slotsForDay = ['Asar', 'Magrib', 'Isya', 'Subuh'];
+      if (dayOfWeek === 6) slotsForDay = ['Subuh']; // Khusus Sabtu
+      if (dayOfWeek === 0) slotsForDay = ['Magrib', 'Isya']; // Khusus Minggu
 
-      let displayStatus = '-';
-      if (recordsForDay.length > 0) {
-        // Jika filter 'Semua', ambil data pertama yang ditemukan hari itu
-        const st = recordsForDay[0].status;
-        displayStatus = st;
+      const daySlotsStatus: Record<string, string> = {};
+
+      slotsForDay.forEach(slot => {
+        // Jika filter sedang aktif dan BUKAN slot ini, lewati pengecekan
+        if (presensiWaktuFilter !== 'Semua' && presensiWaktuFilter !== slot) {
+          daySlotsStatus[slot] = '-';
+          return;
+        }
+
+        const record = recordsForDay.find(r => r.waktu_sholat === slot);
+        const st = record ? record.status : '-';
+        daySlotsStatus[slot] = st;
+
         if (st === 'H') h++;
         else if (st === 'A') a++;
         else if (st === 'I') i++;
         else if (st === 'P') p_stat++;
         else if (st === 'T') t++;
-      }
-      dailyStatus[day] = displayStatus;
+      });
+
+      dailyStatus[day] = daySlotsStatus;
     });
 
     const total = h + a + i + p_stat + t;
@@ -5483,48 +5497,94 @@ const rekapSantriData = useMemo(() => {
                 <div className="overflow-x-auto pb-4 custom-scrollbar">
                   <table className="w-full text-left border-collapse min-w-max">
                     <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 text-[10px] uppercase font-bold text-center">
+                      {/* Baris Header ke-1: Tanggal & Total */}
                       <tr>
-                        <th className="py-3 px-3 sticky left-0 bg-slate-50 z-10 border-r border-slate-200">No</th>
-                        <th className="py-3 px-4 sticky left-[42px] sm:left-[45px] bg-slate-50 z-10 border-r border-slate-200 text-left min-w-[200px]">Nama Guru</th>
-                        {daysArray.map(d => <th key={d} className="py-3 px-1 border-r border-slate-200 w-8">{d}</th>)}
-                        <th className="py-3 px-2 border-r border-slate-200 bg-emerald-50 text-emerald-700">H</th>
-                        <th className="py-3 px-2 border-r border-slate-200 bg-rose-50 text-rose-700">A</th>
-                        <th className="py-3 px-2 border-r border-slate-200 bg-amber-50 text-amber-700">I</th>
-                        <th className="py-3 px-2 border-r border-slate-200 bg-purple-50 text-purple-700">P</th>
-                        <th className="py-3 px-2 border-r border-slate-200 bg-orange-50 text-orange-700">T</th>
-                        <th className="py-3 px-3 bg-blue-50 text-blue-700">%</th>
+                        <th rowSpan={2} className="py-3 px-3 sticky left-0 top-0 bg-slate-50 z-20 border-r border-b border-slate-200 align-middle">No</th>
+                        <th rowSpan={2} className="py-3 px-4 sticky left-[42px] sm:left-[45px] top-0 bg-slate-50 z-20 border-r border-b border-slate-200 text-left min-w-[200px] align-middle">Nama Guru</th>
+                        
+                        {daysArray.map(d => {
+                          const dayOfWeek = new Date(Number(year), Number(month) - 1, d).getDay();
+                          let colSpan = 4;
+                          if (dayOfWeek === 6) colSpan = 1; // Sabtu
+                          if (dayOfWeek === 0) colSpan = 2; // Minggu
+                          
+                          return (
+                            <th key={d} colSpan={colSpan} className={`py-1.5 px-1 border-r border-b border-slate-200 ${dayOfWeek === 0 ? 'bg-rose-50 text-rose-600' : ''}`}>
+                              {d}
+                            </th>
+                          );
+                        })}
+                        
+                        <th rowSpan={2} className="py-3 px-2 border-r border-b border-slate-200 bg-emerald-50 text-emerald-700 align-middle">H</th>
+                        <th rowSpan={2} className="py-3 px-2 border-r border-b border-slate-200 bg-rose-50 text-rose-700 align-middle">A</th>
+                        <th rowSpan={2} className="py-3 px-2 border-r border-b border-slate-200 bg-amber-50 text-amber-700 align-middle">I</th>
+                        <th rowSpan={2} className="py-3 px-2 border-r border-b border-slate-200 bg-purple-50 text-purple-700 align-middle">P</th>
+                        <th rowSpan={2} className="py-3 px-2 border-r border-b border-slate-200 bg-orange-50 text-orange-700 align-middle">T</th>
+                        <th rowSpan={2} className="py-3 px-3 bg-blue-50 text-blue-700 border-b border-slate-200 align-middle">%</th>
+                      </tr>
+                      {/* Baris Header ke-2: Kode Waktu (A, M, I, S) */}
+                      <tr>
+                        {daysArray.map(d => {
+                          const dayOfWeek = new Date(Number(year), Number(month) - 1, d).getDay();
+                          let slots = ['A', 'M', 'I', 'S'];
+                          if (dayOfWeek === 6) slots = ['S']; // Sabtu
+                          if (dayOfWeek === 0) slots = ['M', 'I']; // Minggu
+                          
+                          return slots.map((s, idx) => (
+                            <th key={`${d}-${s}-${idx}`} className={`py-1 px-1 border-r border-b border-slate-200 min-w-[20px] text-[8px] ${dayOfWeek === 0 ? 'bg-rose-50 text-rose-600' : 'text-slate-400'}`}>
+                              {s}
+                            </th>
+                          ));
+                        })}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-xs font-medium text-center">
+                    <tbody className="divide-y divide-slate-100 text-[10px] font-medium text-center">
                       {presensiAsatidzLedger.map((row) => (
                         <tr key={row.no} className="hover:bg-slate-50 transition-colors">
-                          <td className="py-2 px-3 sticky left-0 bg-white group-hover:bg-slate-50 z-10 border-r border-slate-100 text-slate-400">{row.no}</td>
-                          <td className="py-2 px-4 sticky left-[42px] sm:left-[45px] bg-white group-hover:bg-slate-50 z-10 border-r border-slate-100 text-left font-bold text-slate-700">{row.nama}</td>
+                          <td className="py-1 px-3 sticky left-0 bg-white group-hover:bg-slate-50 z-10 border-r border-slate-100 text-slate-400 shadow-[1px_0_0_0_#f1f5f9]">{row.no}</td>
+                          <td className="py-1 px-4 sticky left-[42px] sm:left-[45px] bg-white group-hover:bg-slate-50 z-10 border-r border-slate-100 text-left font-bold text-slate-700 shadow-[1px_0_0_0_#f1f5f9] text-xs">{row.nama}</td>
+                          
+                          {/* Sel Tanggal & Waktu */}
                           {daysArray.map(d => {
-                            const st = row.dailyStatus[d];
-                            let colorClass = "text-slate-300";
-                            if (st === 'H') colorClass = "bg-emerald-100 text-emerald-700 font-bold";
-                            else if (st === 'A') colorClass = "bg-rose-100 text-rose-700 font-bold";
-                            else if (st === 'I') colorClass = "bg-amber-100 text-amber-700 font-bold";
-                            else if (st === 'P') colorClass = "bg-purple-100 text-purple-700 font-bold";
-                            else if (st === 'T') colorClass = "bg-orange-100 text-orange-700 font-bold";
-    
-                            return (
-                              <td key={d} className="py-1.5 px-1 border-r border-slate-100">
-                                <div className={`w-6 h-6 mx-auto rounded-md flex items-center justify-center text-[10px] ${colorClass}`}>{st}</div>
-                              </td>
-                            )
+                            const dayOfWeek = new Date(Number(year), Number(month) - 1, d).getDay();
+                            let slots = ['Asar', 'Magrib', 'Isya', 'Subuh'];
+                            if (dayOfWeek === 6) slots = ['Subuh'];
+                            if (dayOfWeek === 0) slots = ['Magrib', 'Isya'];
+                  
+                            return slots.map((slot, idx) => {
+                              const st = row.dailyStatus[d][slot];
+                              let colorClass = "text-slate-200 bg-transparent"; // Strip default
+                              if (st === 'H') colorClass = "bg-emerald-100 text-emerald-700 font-bold shadow-xs";
+                              else if (st === 'A') colorClass = "bg-rose-100 text-rose-700 font-bold shadow-xs";
+                              else if (st === 'I') colorClass = "bg-amber-100 text-amber-700 font-bold shadow-xs";
+                              else if (st === 'P') colorClass = "bg-purple-100 text-purple-700 font-bold shadow-xs";
+                              else if (st === 'T') colorClass = "bg-orange-100 text-orange-700 font-bold shadow-xs";
+                  
+                              return (
+                                <td key={`${d}-${slot}-${idx}`} className={`py-1 px-0.5 border-r border-slate-100 ${dayOfWeek === 0 ? 'bg-rose-50/30' : ''}`}>
+                                  <div className={`w-4 h-4 mx-auto rounded flex items-center justify-center text-[8px] ${colorClass}`}>
+                                    {st}
+                                  </div>
+                                </td>
+                              );
+                            });
                           })}
-                          <td className="py-2 px-2 border-r border-slate-100 text-emerald-600 font-bold">{row.h}</td>
-                          <td className="py-2 px-2 border-r border-slate-100 text-rose-600 font-bold">{row.a}</td>
-                          <td className="py-2 px-2 border-r border-slate-100 text-amber-600 font-bold">{row.i}</td>
-                          <td className="py-2 px-2 border-r border-slate-100 text-purple-600 font-bold">{row.p}</td>
-                          <td className="py-2 px-2 border-r border-slate-100 text-orange-600 font-bold">{row.t}</td>
-                          <td className="py-2 px-3 text-blue-600 font-black">{row.pct}%</td>
+                  
+                          {/* Sel Rekap Total */}
+                          <td className="py-1.5 px-2 border-r border-slate-100 text-emerald-600 font-bold text-xs">{row.h}</td>
+                          <td className="py-1.5 px-2 border-r border-slate-100 text-rose-600 font-bold text-xs">{row.a}</td>
+                          <td className="py-1.5 px-2 border-r border-slate-100 text-amber-600 font-bold text-xs">{row.i}</td>
+                          <td className="py-1.5 px-2 border-r border-slate-100 text-purple-600 font-bold text-xs">{row.p}</td>
+                          <td className="py-1.5 px-2 border-r border-slate-100 text-orange-600 font-bold text-xs">{row.t}</td>
+                          <td className="py-1.5 px-3 text-blue-600 font-black text-xs">{row.pct}%</td>
                         </tr>
                       ))}
+                      
+                      {/* Jika data guru kosong */}
                       {presensiAsatidzLedger.length === 0 && (
-                        <tr><td colSpan={39} className="py-8 text-slate-400 italic text-center">Data guru tidak ditemukan.</td></tr>
+                         <tr>
+                            <td colSpan={130} className="py-8 text-slate-400 italic text-center text-xs">Data guru tidak ditemukan.</td>
+                         </tr>
                       )}
                     </tbody>
                   </table>
