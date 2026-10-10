@@ -5470,8 +5470,13 @@ const rekapSantriData = useMemo(() => {
                               scoreText = `${Math.round(totalScore / subsForTplDate.length)}%`;
                             }
 
-                            const catatanTpl = latestSub?.general_notes || laporanCatatanMap[tpl.id] || '-';
-
+                            // Ambil catatan (general_notes) HANYA dari laporan hari tersebut
+                            const catatanHarian = subsForTplDate
+                              .map(s => String(s.general_notes || '').trim())
+                              .filter(note => note && note !== '-' && note.toLowerCase() !== 'nihil')
+                              .join(' • ');
+                            
+                            const catatanTpl = catatanHarian || '-';
                             return (
                               <tr key={tpl.id} className="hover:bg-slate-50/80 transition-colors text-xs">
                                 <td className="py-2.5 sm:py-3 px-3 text-center font-mono text-slate-400">{idx + 1}</td>
