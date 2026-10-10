@@ -3744,19 +3744,27 @@ const rekapSantriData = useMemo(() => {
         </div>
       </div>
 
-      {/* Kartu 2: Kamar Paling Sering */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
-          <AlertCircle className="w-6 h-6 stroke-[2.5]" />
-        </div>
-        <div>
-          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1.5">Kamar Paling Sering</p>
-          <div className="flex flex-col items-start gap-1.5">
-            <h3 className="text-xl font-black text-slate-800 leading-none">{maxKamar}</h3>
-            <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md">{maxPelanggaran} Pelanggaran</span>
-          </div>
+     {/* Kartu 2: Kamar Paling Sering */}
+    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+      <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+        <AlertCircle className="w-6 h-6 stroke-[2.5]" />
+      </div>
+      <div>
+        <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1.5">Kamar Paling Sering</p>
+        <div className="flex flex-col items-start gap-1.5">
+          <h3 className="text-xl font-black text-slate-800 leading-none flex items-end gap-1.5">
+            <span>{maxKamar}</span>
+            {/* Memunculkan nama Wali Halaqoh jika ada kamar yang kotor */}
+            {maxKamar !== '-' && (
+              <span className="text-xs font-semibold text-slate-500 pb-0.5">
+                ({kamarList.find(k => k.nama_kamar === maxKamar)?.wali_halaqoh || 'Belum diatur'})
+              </span>
+            )}
+          </h3>
+          <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md">{maxPelanggaran} Pelanggaran</span>
         </div>
       </div>
+    </div>
 
       {/* Kartu 3: Kamar Terbersih */}
       <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
