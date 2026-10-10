@@ -457,7 +457,10 @@ const [filterPlgMulai, setFilterPlgMulai] = useState('');
 const [filterPlgSampai, setFilterPlgSampai] = useState('');
 
   // State Khusus Filter Dashboard Pelanggaran (Default Bulan Ini)
-const [dashPlgMulai, setDashPlgMulai] = useState<string>(() => {
+  const [dashPlgFilterMode, setDashPlgFilterMode] = useState<'bulan' | 'rentang'>('bulan');
+  const [dashPlgBulanTahun, setDashPlgBulanTahun] = useState<string>(() => new Date().toISOString().slice(0, 7));
+
+  const [dashPlgMulai, setDashPlgMulai] = useState<string>(() => {
     const date = new Date();
     const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
     // Format YYYY-MM-DD menyesuaikan input date HTML
@@ -476,6 +479,18 @@ const [dashPlgSampai, setDashPlgSampai] = useState<string>(() => {
     return `${year}-${month}-${day}`;
 });
 
+  // Logika otomatis mengatur tanggal berdasarkan mode filter pelanggaran
+useEffect(() => {
+  if (dashPlgFilterMode === 'bulan') {
+    const [year, month] = dashPlgBulanTahun.split('-');
+    const firstDay = new Date(Number(year), Number(month) - 1, 1);
+    const lastDay = new Date(Number(year), Number(month), 0);
+    
+    setDashPlgMulai(`${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-01`);
+    setDashPlgSampai(`${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`);
+  }
+}, [dashPlgFilterMode, dashPlgBulanTahun]);
+  
 // Logika Filter Data Dashboard
 const filteredDashboardPelanggaran = useMemo(() => {
     return pelanggaranList.filter(p => {
@@ -4322,38 +4337,68 @@ const rekapSantriData = useMemo(() => {
              {/* === KONTEN 0: DASHBOARD PELANGGARAN === */}
               {pelanggaranSubTab === 'dashboard' && (
                   <div className="space-y-6">
-                    {/* --- FILTER RENTANG WAKTU DASHBOARD --- */}
-                    <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center">
-                                <History className="w-4 h-4" />
-                            </div>
-                            <div>
-                                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Filter Waktu</h4>
-                                <p className="text-[10px] text-slate-500">Rentang data dashboard</p>
-                            </div>
+                    {/* Filter Analytics Pelanggaran (Bulan & Rentang) */}
+                    <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xs border border-slate-200 flex flex-col lg:flex-row lg:items-center gap-4">
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                          <History className="w-5 h-5" />
                         </div>
-                        
-                        <div className="flex flex-1 gap-3 w-full md:w-auto mt-2 md:mt-0">
-                            <div className="flex-1 md:max-w-[200px]">
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Mulai Tanggal</label>
-                                <input type="date" value={dashPlgMulai} onChange={(e) => setDashPlgMulai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-teal-600 cursor-pointer" />
-                            </div>
-                            <div className="flex-1 md:max-w-[200px]">
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Sampai Tanggal</label>
-                                <input type="date" value={dashPlgSampai} onChange={(e) => setDashPlgSampai(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-teal-600 cursor-pointer" />
-                            </div>
+                        <div>
+                          <h4 className="font-bold text-slate-800 text-xs uppercase">Filter Waktu</h4>
+                          <p className="text-[10px] text-slate-400">Rentang data dashboard</p>
                         </div>
-            
-                        <button onClick={() => {
-                            const date = new Date();
-                            const f = new Date(date.getFullYear(), date.getMonth(), 1);
-                            const l = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-                            setDashPlgMulai(`${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`);
-                            setDashPlgSampai(`${l.getFullYear()}-${String(l.getMonth() + 1).padStart(2, '0')}-${String(l.getDate()).padStart(2, '0')}`);
-                        }} className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition-colors w-full md:w-auto">
-                            Reset ke Bulan Ini
-                        </button>
+                      </div>
+                    
+                      <div className="flex flex-col sm:flex-row items-center gap-4 flex-1">
+                        {/* Opsi Tab Mode Filter */}
+                        <div className="flex bg-slate-100 p-1 rounded-xl shrink-0 w-full sm:w-auto">
+                          <button
+                            onClick={() => setDashPlgFilterMode('bulan')}
+                            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-[11px] font-bold transition-all ${dashPlgFilterMode === 'bulan' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                          >
+                            Bulan
+                          </button>
+                          <button
+                            onClick={() => setDashPlgFilterMode('rentang')}
+                            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-[11px] font-bold transition-all ${dashPlgFilterMode === 'rentang' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                          >
+                            Rentang Waktu
+                          </button>
+                        </div>
+                    
+                        {/* Input Dinamis Berdasarkan Mode yang Dipilih */}
+                        <div className="flex-1 w-full flex items-center justify-end gap-3">
+                          
+                          {/* Tampilan jika Pemilihan Bulan */}
+                          {dashPlgFilterMode === 'bulan' && (
+                            <input
+                              type="month"
+                              value={dashPlgBulanTahun}
+                              onChange={(e) => setDashPlgBulanTahun(e.target.value)}
+                              className="w-full sm:w-auto px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                            />
+                          )}
+                    
+                          {/* Tampilan jika Rentang Waktu */}
+                          {dashPlgFilterMode === 'rentang' && (
+                            <div className="flex items-center gap-2 w-full">
+                              <input
+                                type="date"
+                                value={dashPlgMulai}
+                                onChange={(e) => setDashPlgMulai(e.target.value)}
+                                className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                              />
+                              <span className="text-slate-400 font-bold">-</span>
+                              <input
+                                type="date"
+                                value={dashPlgSampai}
+                                onChange={(e) => setDashPlgSampai(e.target.value)}
+                                className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     {/* --- BAGIAN KARTU STATISTIK (KPI CARDS) --- */}
