@@ -3909,8 +3909,10 @@ const rekapSantriData = useMemo(() => {
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold cursor-pointer"
                       >
                         <option value="">-- Pilih Kamar --</option>
-                        {kamarList.map(k => (
-                          <option key={k.nama_kamar} value={k.nama_kamar}>{k.nama_kamar} ({k.jenjang})</option>
+                        {kamarList.map((k, idx) => (
+                          <option key={idx} value={k.nama_kamar}>
+                            {k.nama_kamar} ({k.wali_halaqoh && k.wali_halaqoh !== '-' ? k.wali_halaqoh : 'Belum diatur'})
+                          </option>
                         ))}
                       </select>
                     </div>
