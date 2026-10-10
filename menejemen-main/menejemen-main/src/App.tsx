@@ -5326,17 +5326,6 @@ const rekapSantriData = useMemo(() => {
               const dt = String(s.submission_date || s.created_at || '').slice(0, 10);
               return dt === todayStr;
             });
-            const guruJurnalHariIniSet = new Set(subsHariIni.map(s => s.target_person || s.pj_name).filter(Boolean));
-            const countGuruJurnalHariIni = guruJurnalHariIniSet.size;
-
-            const totalGuruCount = guruList.length || 23;
-
-            const countSiswaAbsenHariIni = dailyGlobalStats.sakit + dailyGlobalStats.izin + dailyGlobalStats.alpha;
-
-            const dailyTemplates = templates.filter(t => {
-              const tf = String(t.timeframe || '').toLowerCase();
-              return tf.includes('hari');
-            });
 
             return (
               <div className="space-y-3.5 sm:space-y-6 max-w-7xl mx-auto">
