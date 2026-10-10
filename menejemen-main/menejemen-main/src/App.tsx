@@ -5375,60 +5375,49 @@ const rekapSantriData = useMemo(() => {
                 {/* 3 Kartu Metrik Utama */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-4">
                   
-                  {/* Kartu 1: Jumlah Siswa yang Absen */}
+                  {/* Kartu Kasus Kebersihan */}
                   <div 
-                    onClick={() => {
-                      setNavTab('rekap_absensi');
-                      setAbsensiSubTab('harian');
-                    }}
-                    className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/80 shadow-xs flex items-center justify-between cursor-pointer hover:border-rose-300 hover:shadow-md transition group"
+                    onClick={() => setNavTab('monitoring_kebersihan')}
+                    className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-emerald-300 hover:shadow-md transition-all group"
                   >
-                    <div className="space-y-0.5 sm:space-y-1">
-                      <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 block">
-                        SISWA ABSEN (HARI INI)
-                      </span>
-                      <div className="flex items-baseline gap-1.5 sm:gap-2">
-                        <span className="text-2xl sm:text-3xl font-black text-rose-600 tracking-tight">
-                          {countSiswaAbsenHariIni}
-                        </span>
-                        <span className="text-[11px] sm:text-xs text-slate-400 font-semibold">Santri</span>
-                      </div>
-                      <p className="text-[10px] sm:text-[11px] text-slate-500">
-                        Sakit: {dailyGlobalStats.sakit} • Izin: {dailyGlobalStats.izin} • Alpha: {dailyGlobalStats.alpha}
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 group-hover:text-emerald-600 transition-colors">
+                        Kasus Kamar Kotor
                       </p>
+                      <div className="flex items-end gap-2">
+                       <h3 className="text-3xl font-black text-slate-800 leading-none">
+                          {laporanKebersihanList.filter(k => k.tanggal === inputAbsensiTanggal).length}
+                       </h3>
+                        <span className="text-xs font-semibold text-slate-500 mb-1">Kasus</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1">Berdasarkan filter tanggal dashboard</p>
                     </div>
-                    <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                      <UserCheck className="w-5 h-5 sm:w-7 sm:h-7" />
+                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition-colors">
+                      <ClipboardCheck className="w-6 h-6" />
                     </div>
                   </div>
-
-                  {/* Kartu 2: Jumlah Guru Mengisi Jurnal Hari Ini */}
+                  
+                  {/* Kartu Kasus Pelanggaran */}
                   <div 
-                    onClick={() => {
-                      setNavTab('ceklis');
-                      setActiveSubTab('riwayat');
-                    }}
-                    className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/80 shadow-xs flex items-center justify-between cursor-pointer hover:border-blue-300 hover:shadow-md transition group"
+                    onClick={() => setNavTab('pelanggaran')}
+                    className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-rose-300 hover:shadow-md transition-all group"
                   >
-                    <div className="space-y-0.5 sm:space-y-1">
-                      <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 block">
-                        GURU MENGISI JURNAL (HARI INI)
-                      </span>
-                      <div className="flex items-baseline gap-1.5 sm:gap-2">
-                        <span className="text-2xl sm:text-3xl font-black text-blue-600 tracking-tight">
-                          {countGuruJurnalHariIni}
-                        </span>
-                        <span className="text-[11px] sm:text-xs text-slate-400 font-semibold">dari {totalGuruCount} Guru</span>
-                      </div>
-                      <p className="text-[10px] sm:text-[11px] text-slate-500">
-                        Total {subsHariIni.length} sesi jurnal pembelajaran tercatat
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 group-hover:text-rose-600 transition-colors">
+                        Kasus Pelanggaran
                       </p>
+                      <div className="flex items-end gap-2">
+                        <h3 className="text-3xl font-black text-slate-800 leading-none">
+                          {pelanggaranList.filter(p => p.tanggal === inputAbsensiTanggal).length}
+                        </h3>
+                        <span className="text-xs font-semibold text-slate-500 mb-1">Kasus</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1">Berdasarkan filter tanggal dashboard</p>
                     </div>
-                    <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                      <FileText className="w-5 h-5 sm:w-7 sm:h-7" />
+                    <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:bg-rose-100 transition-colors">
+                      <AlertCircle className="w-6 h-6 stroke-[2.5]" />
                     </div>
                   </div>
-
                 </div>
 
                 {/* Tabel Pantauan Input Kegiatan Harian Semua Divisi */}
