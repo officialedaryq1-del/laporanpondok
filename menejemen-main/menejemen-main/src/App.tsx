@@ -327,10 +327,13 @@ function MainAppContent() {
 
 // State Modul Presensi Jamaah Asatidz
 const [presensiGuruList, setPresensiGuruList] = useState<PresensiJamaahRecord[]>([]);
-const [presensiSubTab, setPresensiSubTab] = useState<'ledger' | 'input'>('ledger');
+const [presensiSubTab, setPresensiSubTab] = useState<'ledger' | 'input' | 'import'>('ledger');
 const [presensiBulan, setPresensiBulan] = useState<string>(() => new Date().toISOString().slice(0, 7));
 const [presensiWaktuFilter, setPresensiWaktuFilter] = useState<'Semua' | 'Asar' | 'Magrib' | 'Isya' | 'Subuh'>('Semua');
 
+// State untuk Fitur Import Presensi Asatidz
+const [importAsatidzPreview, setImportAsatidzPreview] = useState<PresensiJamaahRecord[]>([]);
+const [isImportingAsatidz, setIsImportingAsatidz] = useState(false);
 // State untuk Form Input Presensi Asatidz
 const [inputAsatidzTanggal, setInputAsatidzTanggal] = useState<string>(() => new Date().toISOString().slice(0, 10));
 const [inputAsatidzWaktu, setInputAsatidzWaktu] = useState<'Asar' | 'Magrib' | 'Isya' | 'Subuh'>('Asar');
@@ -1407,6 +1410,93 @@ const handleSavePresensiAsatidz = async () => {
       status: inputAsatidzStatus[String(g.id || g.nama_guru)] || 'H'
     }));
 
+    const handleDownloadTemplateAsatidz = () => {
+    const headers = ['Tanggal (YYYY-MM-DD)', 'Waktu Sholat (Asar/Magrib/Isya/Subuh)', 'Nama Guru', 'Status (H/A/I/P/T)'];
+    // Buat contoh data berdasarkan data guru yang ada, default absen Asar
+    const sampleData = guruList.map(g => `${new Date().toISOString().slice(0, 10)},Asar,"${g.nama_guru}",H`);
+    
+    const csvContent = '\uFEFF' + [headers.join(','), ...sampleData].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'Template_Import_Presensi_Asatidz.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
+  const handleFileImportAsatidz = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+  
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const content = evt.target?.result;
+        if (typeof content === 'string') {
+          const lines = content.split('\n').filter(l => l.trim());
+          if (lines.length > 1) {
+            const parsed: PresensiJamaahRecord[] = [];
+            for (let i = 1; i < lines.length; i++) {
+              // Pisahkan berdasarkan koma dan hilangkan tanda kutip
+              const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+              if (cols.length >= 4) {
+                const tgl = cols[0];
+                const wkt = ['Asar', 'Magrib', 'Isya', 'Subuh'].includes(cols[1]) ? cols[1] : 'Asar';
+                const nama = cols[2];
+                const stat = ['H', 'A', 'I', 'P', 'T'].includes(cols[3].toUpperCase()) ? cols[3].toUpperCase() : 'H';
+                
+                // Cocokkan nama dengan ID guru di database
+                const matchedGuru = guruList.find(g => g.nama_guru.toLowerCase() === nama.toLowerCase());
+                const guru_id = matchedGuru ? String(matchedGuru.id || matchedGuru.nama_guru) : nama;
+  
+                parsed.push({
+                  tanggal: tgl,
+                  waktu_sholat: wkt as any,
+                  guru_id: guru_id,
+                  nama_guru: nama,
+                  status: stat as any
+                });
+              }
+            }
+            setImportAsatidzPreview(parsed);
+            showToast(`${parsed.length} baris data berhasil dibaca!`, 'success');
+          }
+        }
+      } catch (err) {
+        showToast('Gagal memproses file CSV.', 'error');
+      }
+    };
+    reader.readAsText(file);
+  };
+  
+  const handleSaveImportAsatidz = async () => {
+    if (importAsatidzPreview.length === 0) return showToast('Belum ada data untuk diimpor', 'error');
+    setIsImportingAsatidz(true);
+    
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz`, {
+        method: 'POST',
+        headers: reqHeaders,
+        body: JSON.stringify(importAsatidzPreview)
+      });
+  
+      if (res.ok) {
+        showToast(`Berhasil mengimpor ${importAsatidzPreview.length} data presensi!`, 'success');
+        setImportAsatidzPreview([]);
+        fetchSupabaseData(); // Refresh data utama
+        setPresensiSubTab('ledger'); // Arahkan kembali ke buku besar
+      } else {
+        showToast('Gagal menyimpan data import ke server', 'error');
+      }
+    } catch (err) {
+      showToast('Terjadi kesalahan jaringan', 'error');
+    } finally {
+      setIsImportingAsatidz(false);
+    }
+  };
+      
     const encDate = encodeURIComponent(inputAsatidzTanggal);
     const encWaktu = encodeURIComponent(inputAsatidzWaktu);
 
@@ -5464,9 +5554,14 @@ const rekapSantriData = useMemo(() => {
               >
                 Catat Presensi
               </button>
+              <button
+                onClick={() => setPresensiSubTab('import')}
+                className={`px-5 py-2 rounded-xl text-xs font-bold transition-all ${presensiSubTab === 'import' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+              >
+                Import Data
+              </button>
             </div>
-          </div>
-    
+                
           {/* --- HALAMAN BUKU BESAR (LEDGER) --- */}
           {presensiSubTab === 'ledger' && (
             <div className="space-y-4">
@@ -5664,6 +5759,85 @@ const rekapSantriData = useMemo(() => {
               </div>
             </div>
           )}
+            {/* --- HALAMAN IMPORT PRESENSI (CSV) --- */}
+            {presensiSubTab === 'import' && (
+              <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-sm space-y-6">
+                <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
+                  <div>
+                    <h3 className="text-sm font-bold text-blue-900 mb-1">Import Data Presensi via CSV</h3>
+                    <p className="text-xs text-blue-700/70">Unduh template, isi data, dan unggah kembali untuk mencatat presensi secara massal.</p>
+                  </div>
+                  <button
+                    onClick={handleDownloadTemplateAsatidz}
+                    className="px-4 py-2 bg-white border border-blue-200 text-blue-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-2"
+                  >
+                    <FileSpreadsheet className="w-4 h-4" />
+                    Unduh Template CSV
+                  </button>
+                </div>
+            
+                <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50 hover:bg-slate-100 transition relative">
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileImportAsatidz}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <FileText className="w-10 h-10 text-slate-400 mb-3" />
+                  <p className="text-sm font-bold text-slate-700">Klik atau seret file CSV ke sini</p>
+                  <p className="text-xs text-slate-500 mt-1">Pastikan format sesuai dengan template yang diunduh</p>
+                </div>
+            
+                {importAsatidzPreview.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Pratinjau Data ({importAsatidzPreview.length} Baris)</h4>
+                      <button
+                        onClick={handleSaveImportAsatidz}
+                        disabled={isImportingAsatidz}
+                        className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 transition flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {isImportingAsatidz ? <RotateCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        {isImportingAsatidz ? 'Menyimpan...' : 'Simpan Data ke Database'}
+                      </button>
+                    </div>
+                    
+                    <div className="overflow-x-auto border border-slate-200 rounded-xl max-h-[400px] custom-scrollbar">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-bold uppercase">
+                          <tr>
+                            <th className="py-2.5 px-4">Tanggal</th>
+                            <th className="py-2.5 px-4">Waktu</th>
+                            <th className="py-2.5 px-4">Nama Guru</th>
+                            <th className="py-2.5 px-4 text-center">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 bg-white">
+                          {importAsatidzPreview.map((row, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50">
+                              <td className="py-2 px-4 font-mono text-slate-600">{row.tanggal}</td>
+                              <td className="py-2 px-4 font-bold text-blue-600">{row.waktu_sholat}</td>
+                              <td className="py-2 px-4 text-slate-700">{row.nama_guru}</td>
+                              <td className="py-2 px-4 text-center">
+                                <span className={`px-2 py-1 rounded-md font-bold text-[10px] ${
+                                  row.status === 'H' ? 'bg-emerald-100 text-emerald-700' :
+                                  row.status === 'A' ? 'bg-rose-100 text-rose-700' :
+                                  row.status === 'I' ? 'bg-amber-100 text-amber-700' :
+                                  row.status === 'P' ? 'bg-purple-100 text-purple-700' :
+                                  'bg-orange-100 text-orange-700'
+                                }`}>
+                                  {row.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
         </div>
       );
     })()}
