@@ -1,7 +1,7 @@
 {
-"name": "YQBS Menejemen",
-"short_name": "YQBS Menejemen",
-"description": "Sistem Kendali Mutu & Monitoring Sekolah Terpadu YQBS",
+"name": "SiLapor Pondok SMP",
+"short_name": "SiLapor Pondok SMP",
+"description": "Sistem Kendali Mutu & Monitoring Pondok SMP Putra",
 "start_url": "/",
 "display": "standalone",
 "background_color": "#1e2337",
@@ -9,7 +9,7 @@
 "orientation": "any",
 "icons": [
 {
-"src": "https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/icon.png",
+"src": "/favicon.png",
 "sizes": "192x192",
 "type": "image/png",
 "purpose": "any maskable"
