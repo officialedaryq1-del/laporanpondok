@@ -325,10 +325,17 @@ function MainAppContent() {
     return fieldDetailsMap[selectedTemplateId] || DEFAULT_FIELD_DETAILS;
   }, [selectedTemplateId, fieldDetailsMap]);
 
-  // State Modul Presensi Jamaah Asatidz
-const [presensiGuruList,] = useState<PresensiJamaahRecord[]>([]);
-const [presensiBulan, setPresensiBulan] = useState<string>(() => new Date().toISOString().slice(0, 7)); // Default bulan ini YYYY-MM
+// State Modul Presensi Jamaah Asatidz
+const [presensiGuruList, setPresensiGuruList] = useState<PresensiJamaahRecord[]>([]);
+const [presensiSubTab, setPresensiSubTab] = useState<'ledger' | 'input'>('ledger');
+const [presensiBulan, setPresensiBulan] = useState<string>(() => new Date().toISOString().slice(0, 7));
 const [presensiWaktuFilter, setPresensiWaktuFilter] = useState<'Semua' | 'Asar' | 'Magrib' | 'Isya' | 'Subuh'>('Semua');
+
+// State untuk Form Input Presensi Asatidz
+const [inputAsatidzTanggal, setInputAsatidzTanggal] = useState<string>(() => new Date().toISOString().slice(0, 10));
+const [inputAsatidzWaktu, setInputAsatidzWaktu] = useState<'Asar' | 'Magrib' | 'Isya' | 'Subuh'>('Asar');
+const [inputAsatidzStatus, setInputAsatidzStatus] = useState<Record<string, 'H' | 'A' | 'I' | 'P' | 'T'>>({});
+const [isSavingAsatidz, setIsSavingAsatidz] = useState(false);
  
   // State khusus E-Kebersihan
 const [kebersihanSubTab, setKebersihanSubTab] = useState<'dashboard' | 'input' | 'riwayat' | 'rekap'>('dashboard');
@@ -1089,7 +1096,17 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
       } catch (errCat) {
         console.warn('Kendala memuat tabel laporan_iku_catatan:', errCat);
       }
-
+    // Fetch data Presensi Asatidz
+    try {
+      const pRes = await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz?select=*&order=tanggal.desc&limit=2000`, { headers: reqHeaders });
+      if (pRes.ok) {
+        const data = await pRes.json();
+        if (Array.isArray(data)) setPresensiGuruList(data);
+      }
+    } catch (e) {
+      console.warn('Belum ada tabel presensi_asatidz');
+    }
+          
     } catch (error) {
       console.error('Error fetching Supabase data:', error);
       showToast('Gagal memuat beberapa data dari server Supabase', 'error');
@@ -1351,6 +1368,57 @@ const presensiAsatidzLedger = useMemo(() => {
     };
   });
 }, [presensiGuruList, presensiBulan, presensiWaktuFilter, guruList]);
+
+  // --- FUNGSI & LOGIKA PRESENSI ASATIDZ ---
+useEffect(() => {
+  const existing = presensiGuruList.filter(p => p.tanggal === inputAsatidzTanggal && p.waktu_sholat === inputAsatidzWaktu);
+  const initialMap: Record<string, 'H' | 'A' | 'I' | 'P' | 'T'> = {};
+  guruList.forEach(g => {
+    const key = String(g.id || g.nama_guru);
+    const match = existing.find(e => String(e.guru_id) === key);
+    initialMap[key] = match ? match.status : 'H'; // Default Hadir
+  });
+  setInputAsatidzStatus(initialMap);
+}, [inputAsatidzTanggal, inputAsatidzWaktu, guruList, presensiGuruList]);
+
+const handleSavePresensiAsatidz = async () => {
+  if (guruList.length === 0) return showToast('Data guru masih kosong!', 'error');
+  setIsSavingAsatidz(true);
+  try {
+    const recordsToInsert = guruList.map(g => ({
+      tanggal: inputAsatidzTanggal,
+      waktu_sholat: inputAsatidzWaktu,
+      guru_id: String(g.id || g.nama_guru),
+      nama_guru: g.nama_guru,
+      status: inputAsatidzStatus[String(g.id || g.nama_guru)] || 'H'
+    }));
+
+    const encDate = encodeURIComponent(inputAsatidzTanggal);
+    const encWaktu = encodeURIComponent(inputAsatidzWaktu);
+
+    // 1. Hapus data presensi lama di waktu & tanggal yang sama (mencegah duplikat)
+    await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz?tanggal=eq.${encDate}&waktu_sholat=eq.${encWaktu}`, { 
+      method: 'DELETE', headers: reqHeaders 
+    }).catch(() => {});
+
+    // 2. Simpan data baru
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz`, { 
+      method: 'POST', headers: reqHeaders, body: JSON.stringify(recordsToInsert) 
+    });
+
+    if (res.ok) {
+      showToast('Presensi Asatidz berhasil disimpan!', 'success');
+      fetchSupabaseData(); // Refresh data dari server
+      setPresensiSubTab('ledger'); // Balik ke halaman buku besar
+    } else {
+      showToast('Gagal! Pastikan tabel "presensi_asatidz" sudah dibuat di Supabase', 'error');
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan jaringan', 'error');
+  } finally {
+    setIsSavingAsatidz(false);
+  }
+};
   
   const currentFormScore = useMemo(() => {
     let totalItemsCount = 0;
@@ -5353,114 +5421,193 @@ const rekapSantriData = useMemo(() => {
           )}
 
           {}
-        {navTab === 'rekap_absensi' && (() => {
-  const [year, month] = presensiBulan.split('-');
-  const daysInMonth = new Date(Number(year), Number(month), 0).getDate();
-  const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-
-  return (
-    <div className="space-y-4 sm:space-y-6 max-w-[100vw] sm:max-w-7xl mx-auto overflow-hidden">
-      
-      {/* Header & Filter */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg sm:text-xl font-black text-slate-800">Rekapitulasi Kehadiran Jamaah Asatidz</h2>
-          <p className="text-xs text-slate-500">Periode: {presensiBulan}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <select
-            value={presensiWaktuFilter}
-            onChange={(e) => setPresensiWaktuFilter(e.target.value as any)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-          >
-            <option value="Semua">Semua Waktu</option>
-            <option value="Asar">Asar</option>
-            <option value="Magrib">Magrib</option>
-            <option value="Isya">Isya</option>
-            <option value="Subuh">Subuh</option>
-          </select>
-          <input
-            type="month"
-            value={presensiBulan}
-            onChange={(e) => setPresensiBulan(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-          />
-        </div>
-      </div>
-
-      {/* Tabel Ledger 31 Hari */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto pb-4 custom-scrollbar">
-          <table className="w-full text-left border-collapse min-w-max">
-            <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 text-[10px] uppercase font-bold text-center">
-              <tr>
-                <th className="py-3 px-3 sticky left-0 bg-slate-50 z-10 border-r border-slate-200 shadow-[1px_0_0_0_#e2e8f0]">No</th>
-                <th className="py-3 px-4 sticky left-[42px] sm:left-[45px] bg-slate-50 z-10 border-r border-slate-200 text-left min-w-[200px] shadow-[1px_0_0_0_#e2e8f0]">Nama Guru</th>
-                
-                {/* Header Kolom Tanggal 1-31 */}
-                {daysArray.map(d => (
-                  <th key={d} className="py-3 px-1 border-r border-slate-200 w-8">{d}</th>
-                ))}
-                
-                {/* Header Rekap Total */}
-                <th className="py-3 px-2 border-r border-slate-200 bg-emerald-50 text-emerald-700">H</th>
-                <th className="py-3 px-2 border-r border-slate-200 bg-rose-50 text-rose-700">A</th>
-                <th className="py-3 px-2 border-r border-slate-200 bg-amber-50 text-amber-700">I</th>
-                <th className="py-3 px-2 border-r border-slate-200 bg-purple-50 text-purple-700">P</th>
-                <th className="py-3 px-2 border-r border-slate-200 bg-orange-50 text-orange-700">T</th>
-                <th className="py-3 px-3 bg-blue-50 text-blue-700">%</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs font-medium text-center">
-              {presensiAsatidzLedger.map((row) => (
-                <tr key={row.no} className="hover:bg-slate-50 transition-colors">
-                  <td className="py-2 px-3 sticky left-0 bg-white group-hover:bg-slate-50 z-10 border-r border-slate-100 text-slate-400 shadow-[1px_0_0_0_#f1f5f9]">{row.no}</td>
-                  <td className="py-2 px-4 sticky left-[42px] sm:left-[45px] bg-white group-hover:bg-slate-50 z-10 border-r border-slate-100 text-left font-bold text-slate-700 shadow-[1px_0_0_0_#f1f5f9]">{row.nama}</td>
-                  
-                  {/* Sel Tanggal */}
-                  {daysArray.map(d => {
-                    const st = row.dailyStatus[d];
-                    let colorClass = "text-slate-300"; // Strip default
-                    if (st === 'H') colorClass = "bg-emerald-100 text-emerald-700 font-bold";
-                    else if (st === 'A') colorClass = "bg-rose-100 text-rose-700 font-bold";
-                    else if (st === 'I') colorClass = "bg-amber-100 text-amber-700 font-bold";
-                    else if (st === 'P') colorClass = "bg-purple-100 text-purple-700 font-bold";
-                    else if (st === 'T') colorClass = "bg-orange-100 text-orange-700 font-bold";
-
-                    return (
-                      <td key={d} className="py-1.5 px-1 border-r border-slate-100">
-                        <div className={`w-6 h-6 mx-auto rounded-md flex items-center justify-center text-[10px] ${colorClass}`}>
-                          {st}
-                        </div>
-                      </td>
-                    )
-                  })}
-
-                  {/* Sel Rekap Total */}
-                  <td className="py-2 px-2 border-r border-slate-100 text-emerald-600 font-bold">{row.h}</td>
-                  <td className="py-2 px-2 border-r border-slate-100 text-rose-600 font-bold">{row.a}</td>
-                  <td className="py-2 px-2 border-r border-slate-100 text-amber-600 font-bold">{row.i}</td>
-                  <td className="py-2 px-2 border-r border-slate-100 text-purple-600 font-bold">{row.p}</td>
-                  <td className="py-2 px-2 border-r border-slate-100 text-orange-600 font-bold">{row.t}</td>
-                  <td className="py-2 px-3 text-blue-600 font-black">{row.pct}%</td>
-                </tr>
-              ))}
-              
-              {/* Jika data guru kosong */}
-              {presensiAsatidzLedger.length === 0 && (
-                 <tr>
-                    <td colSpan={39} className="py-8 text-slate-400 italic text-center">Data guru tidak ditemukan.</td>
-                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-})()}
-
+       {navTab === 'rekap_absensi' && (() => {
+      const [year, month] = presensiBulan.split('-');
+      const daysInMonth = new Date(Number(year), Number(month), 0).getDate();
+      const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    
+      return (
+        <div className="space-y-4 sm:space-y-6 max-w-[100vw] sm:max-w-7xl mx-auto overflow-hidden">
           
+          {/* Header & Tab Sub-Menu */}
+          <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+                <UserCheck className="w-6 h-6 text-blue-400" /> Presensi Jamaah Asatidz
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">Sistem rekapitulasi sholat jamaah guru dan tendik</p>
+            </div>
+            <div className="flex bg-slate-800 p-1.5 rounded-2xl">
+              <button
+                onClick={() => setPresensiSubTab('ledger')}
+                className={`px-5 py-2 rounded-xl text-xs font-bold transition-all ${presensiSubTab === 'ledger' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+              >
+                Buku Besar
+              </button>
+              <button
+                onClick={() => setPresensiSubTab('input')}
+                className={`px-5 py-2 rounded-xl text-xs font-bold transition-all ${presensiSubTab === 'input' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+              >
+                Catat Presensi
+              </button>
+            </div>
+          </div>
+    
+          {/* --- HALAMAN BUKU BESAR (LEDGER) --- */}
+          {presensiSubTab === 'ledger' && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 className="text-sm font-bold text-slate-700">Laporan Kehadiran Bulanan</h3>
+                <div className="flex items-center gap-3">
+                  <select
+                    value={presensiWaktuFilter}
+                    onChange={(e) => setPresensiWaktuFilter(e.target.value as any)}
+                    className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  >
+                    <option value="Semua">Semua Waktu</option>
+                    <option value="Asar">Asar</option>
+                    <option value="Magrib">Magrib</option>
+                    <option value="Isya">Isya</option>
+                    <option value="Subuh">Subuh</option>
+                  </select>
+                  <input
+                    type="month"
+                    value={presensiBulan}
+                    onChange={(e) => setPresensiBulan(e.target.value)}
+                    className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  />
+                </div>
+              </div>
+    
+              <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div className="overflow-x-auto pb-4 custom-scrollbar">
+                  <table className="w-full text-left border-collapse min-w-max">
+                    <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 text-[10px] uppercase font-bold text-center">
+                      <tr>
+                        <th className="py-3 px-3 sticky left-0 bg-slate-50 z-10 border-r border-slate-200">No</th>
+                        <th className="py-3 px-4 sticky left-[42px] sm:left-[45px] bg-slate-50 z-10 border-r border-slate-200 text-left min-w-[200px]">Nama Guru</th>
+                        {daysArray.map(d => <th key={d} className="py-3 px-1 border-r border-slate-200 w-8">{d}</th>)}
+                        <th className="py-3 px-2 border-r border-slate-200 bg-emerald-50 text-emerald-700">H</th>
+                        <th className="py-3 px-2 border-r border-slate-200 bg-rose-50 text-rose-700">A</th>
+                        <th className="py-3 px-2 border-r border-slate-200 bg-amber-50 text-amber-700">I</th>
+                        <th className="py-3 px-2 border-r border-slate-200 bg-purple-50 text-purple-700">P</th>
+                        <th className="py-3 px-2 border-r border-slate-200 bg-orange-50 text-orange-700">T</th>
+                        <th className="py-3 px-3 bg-blue-50 text-blue-700">%</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-xs font-medium text-center">
+                      {presensiAsatidzLedger.map((row) => (
+                        <tr key={row.no} className="hover:bg-slate-50 transition-colors">
+                          <td className="py-2 px-3 sticky left-0 bg-white group-hover:bg-slate-50 z-10 border-r border-slate-100 text-slate-400">{row.no}</td>
+                          <td className="py-2 px-4 sticky left-[42px] sm:left-[45px] bg-white group-hover:bg-slate-50 z-10 border-r border-slate-100 text-left font-bold text-slate-700">{row.nama}</td>
+                          {daysArray.map(d => {
+                            const st = row.dailyStatus[d];
+                            let colorClass = "text-slate-300";
+                            if (st === 'H') colorClass = "bg-emerald-100 text-emerald-700 font-bold";
+                            else if (st === 'A') colorClass = "bg-rose-100 text-rose-700 font-bold";
+                            else if (st === 'I') colorClass = "bg-amber-100 text-amber-700 font-bold";
+                            else if (st === 'P') colorClass = "bg-purple-100 text-purple-700 font-bold";
+                            else if (st === 'T') colorClass = "bg-orange-100 text-orange-700 font-bold";
+    
+                            return (
+                              <td key={d} className="py-1.5 px-1 border-r border-slate-100">
+                                <div className={`w-6 h-6 mx-auto rounded-md flex items-center justify-center text-[10px] ${colorClass}`}>{st}</div>
+                              </td>
+                            )
+                          })}
+                          <td className="py-2 px-2 border-r border-slate-100 text-emerald-600 font-bold">{row.h}</td>
+                          <td className="py-2 px-2 border-r border-slate-100 text-rose-600 font-bold">{row.a}</td>
+                          <td className="py-2 px-2 border-r border-slate-100 text-amber-600 font-bold">{row.i}</td>
+                          <td className="py-2 px-2 border-r border-slate-100 text-purple-600 font-bold">{row.p}</td>
+                          <td className="py-2 px-2 border-r border-slate-100 text-orange-600 font-bold">{row.t}</td>
+                          <td className="py-2 px-3 text-blue-600 font-black">{row.pct}%</td>
+                        </tr>
+                      ))}
+                      {presensiAsatidzLedger.length === 0 && (
+                        <tr><td colSpan={39} className="py-8 text-slate-400 italic text-center">Data guru tidak ditemukan.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+    
+          {/* --- HALAMAN FORM INPUT PRESENSI --- */}
+          {presensiSubTab === 'input' && (
+            <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div className="flex-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Tanggal Presensi:</label>
+                  <input
+                    type="date"
+                    value={inputAsatidzTanggal}
+                    onChange={(e) => setInputAsatidzTanggal(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Waktu Sholat:</label>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                    {['Asar', 'Magrib', 'Isya', 'Subuh'].map(wkt => (
+                      <button
+                        key={wkt}
+                        onClick={() => setInputAsatidzWaktu(wkt as any)}
+                        className={`px-3 py-2.5 rounded-xl text-xs font-bold transition border ${inputAsatidzWaktu === wkt ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'}`}
+                      >
+                        {wkt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+    
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                {guruList.map((guru) => {
+                  const key = String(guru.id || guru.nama_guru);
+                  const currentStatus = inputAsatidzStatus[key] || 'H';
+                  
+                  return (
+                    <div key={key} className={`p-3 rounded-2xl border transition-colors ${currentStatus === 'H' ? 'bg-white border-slate-200' : 'bg-rose-50 border-rose-200'}`}>
+                      <h4 className="text-xs font-bold text-slate-800 mb-2.5 truncate">{guru.nama_guru}</h4>
+                      <div className="flex items-center justify-between gap-1 bg-slate-100 p-1 rounded-xl">
+                        {[
+                          { v: 'H', l: 'Hadir', c: 'text-emerald-700 bg-emerald-100' },
+                          { v: 'A', l: 'Alpa', c: 'text-rose-700 bg-rose-100' },
+                          { v: 'I', l: 'Izin', c: 'text-amber-700 bg-amber-100' },
+                          { v: 'P', l: 'Lbg', c: 'text-purple-700 bg-purple-100' },
+                          { v: 'T', l: 'Telat', c: 'text-orange-700 bg-orange-100' }
+                        ].map(st => (
+                          <button
+                            key={st.v}
+                            onClick={() => setInputAsatidzStatus(prev => ({...prev, [key]: st.v as any}))}
+                            className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all ${currentStatus === st.v ? `${st.c} shadow-sm border border-black/5` : 'text-slate-500 hover:bg-slate-200'}`}
+                          >
+                            {st.v}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+    
+              <div className="sticky bottom-0 bg-white/80 backdrop-blur-md pt-4 pb-2 border-t border-slate-100 flex justify-end">
+                <button
+                  onClick={handleSavePresensiAsatidz}
+                  disabled={isSavingAsatidz}
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-600/30 transition flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isSavingAsatidz ? <RotateCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                  {isSavingAsatidz ? 'Menyimpan...' : `Simpan Presensi ${inputAsatidzWaktu}`}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    })()}
+      
           {}
           {navTab === 'pengaturan' && (
             <div className="max-w-7xl mx-auto w-full space-y-6">
