@@ -345,6 +345,7 @@ const [kebersihanFilterMode, setKebersihanFilterMode] = useState<'hari_ini' | 'b
 const [kebersihanBulan, setKebersihanBulan] = useState<string>(() => new Date().toISOString().slice(0, 7));
 const [kebersihanStartDate, setKebersihanStartDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
 const [kebersihanEndDate, setKebersihanEndDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+const [isRiwayatKotorModalOpen, setIsRiwayatKotorModalOpen] = useState(false);
 const [kamarList, setKamarList] = useState<Array<{nama_kamar: string; jenjang: string; wali_halaqoh: string}>>([]);
 const [laporanKebersihanList, setLaporanKebersihanList] = useState<Array<any>>([]);
 
@@ -3725,9 +3726,12 @@ const rekapSantriData = useMemo(() => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       
-      {/* Kartu 1: Total Kasus Kotor */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+     {/* Kartu 1: Total Kasus Kotor (Sekarang bisa diklik) */}
+      <div 
+        onClick={() => setIsRiwayatKotorModalOpen(true)}
+        className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-pointer hover:border-rose-300 hover:shadow-md transition-all group"
+      >
+        <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:bg-rose-100 transition-colors">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
             <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
             <line x1="12" y1="9" x2="12" y2="13"/>
@@ -3735,7 +3739,7 @@ const rekapSantriData = useMemo(() => {
           </svg>
         </div>
         <div>
-          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Total Kasus Kotor</p>
+          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5 group-hover:text-rose-600 transition-colors">Total Kasus Kotor</p>
           <h3 className="text-xl sm:text-2xl font-black text-slate-800 leading-none">{filteredLaporanKebersihan.length}</h3>
         </div>
       </div>
@@ -3790,6 +3794,59 @@ const rekapSantriData = useMemo(() => {
         </div>
       </div>
 
+      {/* Modal Riwayat Total Kasus Kotor */}
+          {isRiwayatKotorModalOpen && (
+            <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setIsRiwayatKotorModalOpen(false)}>
+              <div className="bg-white rounded-3xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                
+                {/* Header Modal */}
+                <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-rose-100 text-rose-600 rounded-xl">
+                      <History className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-800">Detail Riwayat Kasus Kotor</h3>
+                      <p className="text-[10px] text-slate-500 font-medium mt-0.5">Daftar kamar kotor berdasarkan rentang waktu filter saat ini</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setIsRiwayatKotorModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Tabel Riwayat */}
+                <div className="flex-1 overflow-y-auto p-0">
+                  {filteredLaporanKebersihan.length === 0 ? (
+                    <div className="p-12 text-center text-slate-400 text-sm italic">
+                      Tidak ada kasus kotor pada rentang waktu ini.
+                    </div>
+                  ) : (
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead className="bg-slate-50 text-slate-500 sticky top-0 border-b border-slate-200">
+                        <tr>
+                          <th className="py-3 px-5 uppercase tracking-wider font-bold w-32">Tanggal</th>
+                          <th className="py-3 px-5 uppercase tracking-wider font-bold w-24">Kamar</th>
+                          <th className="py-3 px-5 uppercase tracking-wider font-bold">Keterangan Kondisi</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {filteredLaporanKebersihan.map((item, idx) => (
+                          <tr key={item.id || idx} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="py-3 px-5 font-mono text-slate-600">{item.tanggal}</td>
+                            <td className="py-3 px-5 font-bold text-emerald-700">{item.kamar}</td>
+                            <td className="py-3 px-5 text-slate-700">{item.keterangan}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+
+              </div>
+            </div>
+          )}
+      
     </div>
   );
 })()}
