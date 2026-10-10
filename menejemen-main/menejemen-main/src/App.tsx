@@ -1441,10 +1441,10 @@ const handleSavePresensiAsatidz = async () => {
 
 const handleDownloadTemplateAsatidz = () => {
   const headers = ['Tanggal (YYYY-MM-DD)', 'Waktu Sholat (Asar/Magrib/Isya/Subuh)', 'Nama Guru', 'Status (H/A/I/P/T)'];
-  // Buat contoh data berdasarkan data guru yang ada, default absen Asar
-  const sampleData = guruList.map(g => `${new Date().toISOString().slice(0, 10)},Asar,"${g.nama_guru}",H`);
+  // Menggunakan pemisah titik koma (;) agar otomatis rapi di Excel format Indonesia
+  const sampleData = guruList.map(g => `${new Date().toISOString().slice(0, 10)};Asar;"${g.nama_guru}";H`);
   
-  const csvContent = '\uFEFF' + [headers.join(','), ...sampleData].join('\n');
+  const csvContent = '\uFEFF' + [headers.join(';'), ...sampleData].join('\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -1454,7 +1454,6 @@ const handleDownloadTemplateAsatidz = () => {
   link.click();
   document.body.removeChild(link);
 };
-
 const handleFileImportAsatidz = (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0];
   if (!file) return;
@@ -1468,8 +1467,8 @@ const handleFileImportAsatidz = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (lines.length > 1) {
           const parsed: PresensiJamaahRecord[] = [];
           for (let i = 1; i < lines.length; i++) {
-            // Pisahkan berdasarkan koma dan hilangkan tanda kutip
-            const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+            // Ubah pemisah di sini menjadi titik koma (;)
+            const cols = lines[i].split(';').map(c => c.replace(/^"|"$/g, '').trim());
             if (cols.length >= 4) {
               const tgl = cols[0];
               const wkt = ['Asar', 'Magrib', 'Isya', 'Subuh'].includes(cols[1]) ? cols[1] : 'Asar';
