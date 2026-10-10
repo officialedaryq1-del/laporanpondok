@@ -1525,33 +1525,6 @@ const handleSaveImportAsatidz = async () => {
     setIsImportingAsatidz(false);
   }
 };
-      
-    const encDate = encodeURIComponent(inputAsatidzTanggal);
-    const encWaktu = encodeURIComponent(inputAsatidzWaktu);
-
-    // 1. Hapus data presensi lama di waktu & tanggal yang sama (mencegah duplikat)
-    await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz?tanggal=eq.${encDate}&waktu_sholat=eq.${encWaktu}`, { 
-      method: 'DELETE', headers: reqHeaders 
-    }).catch(() => {});
-
-    // 2. Simpan data baru
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz`, { 
-      method: 'POST', headers: reqHeaders, body: JSON.stringify(recordsToInsert) 
-    });
-
-    if (res.ok) {
-      showToast('Presensi Asatidz berhasil disimpan!', 'success');
-      fetchSupabaseData(); // Refresh data dari server
-      setPresensiSubTab('ledger'); // Balik ke halaman buku besar
-    } else {
-      showToast('Gagal! Pastikan tabel "presensi_asatidz" sudah dibuat di Supabase', 'error');
-    }
-  } catch (err) {
-    showToast('Terjadi kesalahan jaringan', 'error');
-  } finally {
-    setIsSavingAsatidz(false);
-  }
-};
   
   const currentFormScore = useMemo(() => {
     let totalItemsCount = 0;
