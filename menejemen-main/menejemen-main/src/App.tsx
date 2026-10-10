@@ -1289,7 +1289,7 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
       const note = String(s.general_notes || '').trim();
       const rawClass = String(s.target_class || '').trim();
       const classLabel = rawClass 
-        ? (rawClass.toLowerCase().startsWith('kelas') ? rawClass : `Kelas ${rawClass}`)
+        ? (rawClass.toLowerCase().startsWith('') ? rawClass : `Kelas ${rawClass}`)
         : '';
       const classPrefix = classLabel ? `(${classLabel}) ` : '';
 
