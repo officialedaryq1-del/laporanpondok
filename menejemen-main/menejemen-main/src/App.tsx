@@ -354,6 +354,29 @@ const [kebersihanEndDate, setKebersihanEndDate] = useState<string>(() => {
   const [kamarList, setKamarList] = useState<Array<{nama_kamar: string; jenjang: string; wali_halaqoh: string}>>([]);
   const [laporanKebersihanList, setLaporanKebersihanList] = useState<Array<any>>([]);
 
+  // State Khusus Filter Riwayat Kebersihan (Default 1 Minggu Terakhir)
+const [riwayatStartDate, setRiwayatStartDate] = useState<string>(() => {
+  const date = new Date();
+  date.setDate(date.getDate() - 7); // Set 7 hari yang lalu
+  return date.toISOString().slice(0, 10);
+});
+const [riwayatEndDate, setRiwayatEndDate] = useState<string>(() => {
+  return new Date().toISOString().slice(0, 10); // Hari ini
+});
+
+  // Logika Filter Data Riwayat Kebersihan
+const filteredRiwayatKebersihan = useMemo(() => {
+  return laporanKebersihanList.filter(item => {
+    const itemDate = new Date(item.tanggal);
+    const start = riwayatStartDate ? new Date(riwayatStartDate) : null;
+    const end = riwayatEndDate ? new Date(riwayatEndDate) : null;
+
+    if (start && itemDate < start) return false;
+    if (end && itemDate > end) return false;
+    return true;
+  });
+}, [laporanKebersihanList, riwayatStartDate, riwayatEndDate]);
+  
   // State untuk Filter & Sort Laporan Rekap
   const [rekapStartDate, setRekapStartDate] = useState<string>('');
   const [rekapEndDate, setRekapEndDate] = useState<string>('');
@@ -3953,7 +3976,27 @@ const rekapSantriData = useMemo(() => {
               {/* === KONTEN 3: RIWAYAT INPUT === */}
               {kebersihanSubTab === 'riwayat' && (
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-                  <h3 className="font-bold text-sm text-slate-800">Riwayat Data Laporan Tersimpan</h3>
+                  
+                  {/* Header dengan Filter Tanggal ditambahkan di sini */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <h3 className="font-bold text-sm text-slate-800">Riwayat Data Laporan Tersimpan</h3>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="date"
+                        value={riwayatStartDate}
+                        onChange={(e) => setRiwayatStartDate(e.target.value)}
+                        className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                      />
+                      <span className="text-slate-400 text-xs font-bold">-</span>
+                      <input
+                        type="date"
+                        value={riwayatEndDate}
+                        onChange={(e) => setRiwayatEndDate(e.target.value)}
+                        className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
                       <thead className="text-xs uppercase bg-slate-50 text-slate-500">
@@ -3966,10 +4009,11 @@ const rekapSantriData = useMemo(() => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-xs">
-                        {laporanKebersihanList.length === 0 ? (
-                          <tr><td colSpan={5} className="px-4 py-6 text-center text-slate-400">Belum ada riwayat laporan.</td></tr>
+                        {/* laporanKebersihanList diganti menjadi filteredRiwayatKebersihan */}
+                        {filteredRiwayatKebersihan.length === 0 ? (
+                          <tr><td colSpan={5} className="px-4 py-6 text-center text-slate-400">Belum ada riwayat laporan pada rentang tanggal ini.</td></tr>
                         ) : (
-                          laporanKebersihanList.map((item, idx) => (
+                          filteredRiwayatKebersihan.map((item, idx) => (
                             <tr key={item.id || idx} className="hover:bg-slate-50">
                               <td className="px-4 py-3 font-mono">{item.tanggal}</td>
                               <td className="px-4 py-3 font-bold text-emerald-800">{item.kamar} <span className="text-[10px] bg-slate-100 px-1 rounded ml-1 font-normal text-slate-500">{item.jenjang}</span></td>
