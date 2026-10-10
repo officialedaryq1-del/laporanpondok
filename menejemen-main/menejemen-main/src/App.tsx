@@ -5321,12 +5321,10 @@ const rekapSantriData = useMemo(() => {
           {/* ========================================================= */}
           {navTab === 'dashboard' && (() => {
             const todayStr = inputAbsensiTanggal || new Date().toISOString().slice(0, 10);
-
-            const subsHariIni = submissions.filter(s => {
-              const dt = String(s.submission_date || s.created_at || '').slice(0, 10);
-              return dt === todayStr;
-            });
-
+            const dailyTemplates = useMemo(() => {
+              return templates.filter(t => String(t.timeframe || '').toLowerCase() === 'harian');
+            }, [templates]);
+        
             return (
               <div className="space-y-3.5 sm:space-y-6 max-w-7xl mx-auto">
                 
