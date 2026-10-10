@@ -3835,6 +3835,7 @@ const rekapSantriData = useMemo(() => {
                           <tr key={item.id || idx} className="hover:bg-slate-50/80 transition-colors">
                             <td className="py-3 px-5 font-mono text-slate-600">{item.tanggal}</td>
                             <td className="py-3 px-5 font-bold text-emerald-700">{item.kamar}</td>
+                            <td className="py-3 px-5 text-slate-700 font-medium">{item.wali_halaqoh || '-'}</td>
                             <td className="py-3 px-5 text-slate-700">{item.keterangan}</td>
                           </tr>
                         ))}
