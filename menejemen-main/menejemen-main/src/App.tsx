@@ -340,20 +340,31 @@ function MainAppContent() {
   const [isSavingAbsensi, setIsSavingAbsensi] = useState<boolean>(false);
 
   // State khusus E-Kebersihan
-  const [kebersihanSubTab, setKebersihanSubTab] = useState<'dashboard' | 'input' | 'riwayat' | 'rekap'>('dashboard');
-  const [kebersihanStartDate, setKebersihanStartDate] = useState<string>(() => {
-  const date = new Date();
-  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-  return `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-${String(firstDay.getDate()).padStart(2, '0')}`;
-});
-const [kebersihanEndDate, setKebersihanEndDate] = useState<string>(() => {
-  const date = new Date();
-  const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  return `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
-});
-  const [kamarList, setKamarList] = useState<Array<{nama_kamar: string; jenjang: string; wali_halaqoh: string}>>([]);
-  const [laporanKebersihanList, setLaporanKebersihanList] = useState<Array<any>>([]);
+const [kebersihanSubTab, setKebersihanSubTab] = useState<'dashboard' | 'input' | 'riwayat' | 'rekap'>('dashboard');
+const [kebersihanFilterMode, setKebersihanFilterMode] = useState<'hari_ini' | 'bulan' | 'rentang'>('hari_ini');
+const [kebersihanBulan, setKebersihanBulan] = useState<string>(() => new Date().toISOString().slice(0, 7));
+const [kebersihanStartDate, setKebersihanStartDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+const [kebersihanEndDate, setKebersihanEndDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+const [kamarList, setKamarList] = useState<Array<{nama_kamar: string; jenjang: string; wali_halaqoh: string}>>([]);
+const [laporanKebersihanList, setLaporanKebersihanList] = useState<Array<any>>([]);
 
+  // Logika otomatis mengatur tanggal berdasarkan mode filter
+useEffect(() => {
+  const today = new Date().toISOString().slice(0, 10);
+  
+  if (kebersihanFilterMode === 'hari_ini') {
+    setKebersihanStartDate(today);
+    setKebersihanEndDate(today);
+  } else if (kebersihanFilterMode === 'bulan') {
+    const [year, month] = kebersihanBulan.split('-');
+    const firstDay = new Date(Number(year), Number(month) - 1, 1);
+    const lastDay = new Date(Number(year), Number(month), 0);
+    
+    setKebersihanStartDate(`${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-01`);
+    setKebersihanEndDate(`${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`);
+  }
+}, [kebersihanFilterMode, kebersihanBulan]);
+  
   // State Khusus Filter Riwayat Kebersihan (Default 1 Minggu Terakhir)
 const [riwayatStartDate, setRiwayatStartDate] = useState<string>(() => {
   const date = new Date();
@@ -3573,9 +3584,9 @@ const rekapSantriData = useMemo(() => {
              {/* === KONTEN 1: DASHBOARD === */}
             {kebersihanSubTab === 'dashboard' && (
               <div className="space-y-4">
-                {/* Filter Analytics Sesuai Desain Pelanggaran */}
-                <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xs border border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
+                {/* Filter Analytics Kebersihan (Hari Ini, Bulan, Rentang) */}
+                <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xs border border-slate-200 flex flex-col lg:flex-row lg:items-center gap-4">
+                  <div className="flex items-center gap-3 shrink-0">
                     <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
                       <History className="w-5 h-5" />
                     </div>
@@ -3585,41 +3596,70 @@ const rekapSantriData = useMemo(() => {
                     </div>
                   </div>
                 
-                  <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 lg:max-w-2xl">
-                    <div className="flex-1 w-full">
-                      <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Mulai Tanggal</label>
-                      <input 
-                        type="date" 
-                        value={kebersihanStartDate} 
-                        onChange={(e) => setKebersihanStartDate(e.target.value)} 
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" 
-                      />
+                  <div className="flex flex-col sm:flex-row items-center gap-4 flex-1">
+                    {/* Opsi Tab Mode Filter */}
+                    <div className="flex bg-slate-100 p-1 rounded-xl shrink-0 w-full sm:w-auto">
+                      <button
+                        onClick={() => setKebersihanFilterMode('hari_ini')}
+                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-[11px] font-bold transition-all ${kebersihanFilterMode === 'hari_ini' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Hari Ini
+                      </button>
+                      <button
+                        onClick={() => setKebersihanFilterMode('bulan')}
+                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-[11px] font-bold transition-all ${kebersihanFilterMode === 'bulan' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Bulan
+                      </button>
+                      <button
+                        onClick={() => setKebersihanFilterMode('rentang')}
+                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-[11px] font-bold transition-all ${kebersihanFilterMode === 'rentang' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Rentang Waktu
+                      </button>
                     </div>
-                    <div className="flex-1 w-full">
-                      <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Sampai Tanggal</label>
-                      <input 
-                        type="date" 
-                        value={kebersihanEndDate} 
-                        onChange={(e) => setKebersihanEndDate(e.target.value)} 
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" 
-                      />
+                
+                    {/* Input Dinamis Berdasarkan Mode yang Dipilih */}
+                    <div className="flex-1 w-full flex items-center justify-end gap-3">
+                      
+                      {/* Tampilan jika Hari Ini */}
+                      {kebersihanFilterMode === 'hari_ini' && (
+                        <div className="px-4 py-2 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl text-xs font-bold w-full sm:w-auto text-center">
+                          {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                        </div>
+                      )}
+                
+                      {/* Tampilan jika Pemilihan Bulan */}
+                      {kebersihanFilterMode === 'bulan' && (
+                        <input
+                          type="month"
+                          value={kebersihanBulan}
+                          onChange={(e) => setKebersihanBulan(e.target.value)}
+                          className="w-full sm:w-auto px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                        />
+                      )}
+                
+                      {/* Tampilan jika Rentang Waktu */}
+                      {kebersihanFilterMode === 'rentang' && (
+                        <div className="flex items-center gap-2 w-full">
+                          <input
+                            type="date"
+                            value={kebersihanStartDate}
+                            onChange={(e) => setKebersihanStartDate(e.target.value)}
+                            className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                          />
+                          <span className="text-slate-400 font-bold">-</span>
+                          <input
+                            type="date"
+                            value={kebersihanEndDate}
+                            onChange={(e) => setKebersihanEndDate(e.target.value)}
+                            className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
-                
-                  <button
-                    onClick={() => {
-                      const date = new Date();
-                      const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-                      const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-                      setKebersihanStartDate(`${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-${String(firstDay.getDate()).padStart(2, '0')}`);
-                      setKebersihanEndDate(`${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`);
-                    }}
-                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition whitespace-nowrap self-start sm:self-auto cursor-pointer"
-                  >
-                    Reset ke Bulan Ini
-                  </button>
                 </div>
-
                     {/* Stat Cards (Sesuai Desain UI Baru) */}
 {(() => {
   // Hitung jumlah pelanggaran per kamar
