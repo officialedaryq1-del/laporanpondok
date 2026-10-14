@@ -327,6 +327,15 @@ function MainAppContent() {
 
 // State Modul Presensi Jamaah Asatidz
 const [presensiGuruList, setPresensiGuruList] = useState<PresensiJamaahRecord[]>([]);
+  // === TAMBAHKAN KODE INI ===
+const [editingPresensiCell, setEditingPresensiCell] = useState<{
+  guru_id: string;
+  nama_guru: string;
+  tanggal: string;
+  waktu_sholat: 'Asar' | 'Magrib' | 'Isya' | 'Subuh';
+  status: string;
+} | null>(null);
+// ==========================
 const [presensiSubTab, setPresensiSubTab] = useState<'ledger' | 'input' | 'import'>('ledger');
 const [presensiBulan, setPresensiBulan] = useState<string>(() => new Date().toISOString().slice(0, 7));
 const [presensiWaktuFilter, setPresensiWaktuFilter] = useState<'Semua' | 'Asar' | 'Magrib' | 'Isya' | 'Subuh'>('Semua');
@@ -1378,13 +1387,14 @@ const presensiAsatidzLedger = useMemo(() => {
     const pct = total > 0 ? ((h / total) * 100).toFixed(1) : '0.0';
 
     return {
-      no: index + 1,
-      nama: guru.nama_guru,
-      dailyStatus,
-      h, a, i, p: p_stat, t, pct
-    };
-  });
-}, [presensiGuruList, presensiBulan, presensiWaktuFilter, guruList]);
+        id: guru.id || guru.nama_guru, // <--- TAMBAHKAN BARIS INI DI SINI
+        no: index + 1,
+        nama: guru.nama_guru,
+        dailyStatus,
+        h, a, i, p: p_stat, t, pct
+      };
+    });
+  }, [presensiGuruList, presensiBulan, presensiWaktuFilter, guruList]);
 
   // --- FUNGSI & LOGIKA PRESENSI ASATIDZ ---
 useEffect(() => {
@@ -1436,7 +1446,49 @@ const handleSavePresensiAsatidz = async () => {
     setIsSavingAsatidz(false);
   }
 };
+  
+// === TAMBAHKAN FUNGSI INI DI BAWAH handleSavePresensiAsatidz ===
+const handleUpdateSinglePresensi = async (newStatus: 'H' | 'A' | 'I' | 'P' | 'T' | 'DELETE') => {
+  if (!editingPresensiCell) return;
 
+  const encDate = encodeURIComponent(editingPresensiCell.tanggal);
+  const encWaktu = encodeURIComponent(editingPresensiCell.waktu_sholat);
+  const encGuruId = encodeURIComponent(editingPresensiCell.guru_id);
+
+  try {
+    // Selalu hapus data lama terlebih dahulu agar tidak duplikat
+    await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz?tanggal=eq.${encDate}&waktu_sholat=eq.${encWaktu}&guru_id=eq.${encGuruId}`, {
+      method: 'DELETE', headers: reqHeaders
+    }).catch(() => {});
+
+    // Jika aksinya bukan DELETE (Kosongkan), simpan data baru
+    if (newStatus !== 'DELETE') {
+      const payload = [{
+        tanggal: editingPresensiCell.tanggal,
+        waktu_sholat: editingPresensiCell.waktu_sholat,
+        guru_id: editingPresensiCell.guru_id,
+        nama_guru: editingPresensiCell.nama_guru,
+        status: newStatus
+      }];
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz`, {
+        method: 'POST', headers: reqHeaders, body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error('Gagal simpan');
+    }
+
+    // Refresh Data & Tutup Modal
+    await fetchSupabaseData(); 
+    setEditingPresensiCell(null);
+    showToast(newStatus === 'DELETE' ? 'Data berhasil dikosongkan' : 'Presensi berhasil diperbarui!', 'success');
+
+  } catch (err) {
+    showToast('Terjadi kesalahan jaringan', 'error');
+  }
+};
+// ================================================================
+  
 // --- 1. FUNGSI DOWNLOAD TEMPLATE ---
 const handleDownloadTemplateAsatidz = () => {
   const headers = ['Tanggal (YYYY-MM-DD)', 'Waktu Sholat (Asar/Magrib/Isya/Subuh)', 'Nama Guru', 'Status (H/A/I/P/T)'];
@@ -5732,22 +5784,35 @@ const rekapSantriData = useMemo(() => {
                             if (dayOfWeek === 0) slots = ['Magrib', 'Isya'];
     
                             return slots.map((slot, idx) => {
-                              const st = row.dailyStatus[d]?.[slot] || '-';
-                              let colorClass = "text-slate-200 bg-transparent"; // Strip default
-                              if (st === 'H') colorClass = "bg-emerald-100 text-emerald-700 font-bold shadow-xs";
-                              else if (st === 'A') colorClass = "bg-rose-100 text-rose-700 font-bold shadow-xs";
-                              else if (st === 'I') colorClass = "bg-amber-100 text-amber-700 font-bold shadow-xs";
-                              else if (st === 'P') colorClass = "bg-purple-100 text-purple-700 font-bold shadow-xs";
-                              else if (st === 'T') colorClass = "bg-orange-100 text-orange-700 font-bold shadow-xs";
-    
-                              return (
-                                <td key={`${d}-${slot}-${idx}`} className={`py-1 px-0.5 border-r border-slate-100 ${dayOfWeek === 0 ? 'bg-rose-50/30' : ''}`}>
-                                  <div className={`w-4 h-4 mx-auto rounded flex items-center justify-center text-[8px] ${colorClass}`}>
-                                    {st}
-                                  </div>
-                                </td>
-                              );
-                            });
+                            const st = row.dailyStatus[d]?.[slot] || '-';
+                            let colorClass = "text-slate-200 bg-transparent"; // Strip default
+                            if (st === 'H') colorClass = "bg-emerald-100 text-emerald-700 font-bold shadow-xs";
+                            else if (st === 'A') colorClass = "bg-rose-100 text-rose-700 font-bold shadow-xs";
+                            else if (st === 'I') colorClass = "bg-amber-100 text-amber-700 font-bold shadow-xs";
+                            else if (st === 'P') colorClass = "bg-purple-100 text-purple-700 font-bold shadow-xs";
+                            else if (st === 'T') colorClass = "bg-orange-100 text-orange-700 font-bold shadow-xs";
+                          
+                            // === UBAH BAGIAN RETURN TD INI ===
+                            return (
+                              <td 
+                                key={`${d}-${slot}-${idx}`} 
+                                onClick={() => setEditingPresensiCell({
+                                  guru_id: String(row.id),
+                                  nama_guru: row.nama,
+                                  tanggal: `${year}-${month}-${String(d).padStart(2, '0')}`,
+                                  waktu_sholat: slot as any,
+                                  status: st
+                                })}
+                                title={`Klik untuk ubah presensi ${slot}`}
+                                className={`py-1 px-0.5 border-r border-slate-100 cursor-pointer hover:bg-blue-100/50 transition-colors ${dayOfWeek === 0 ? 'bg-rose-50/30 hover:bg-rose-100/50' : ''}`}
+                              >
+                                <div className={`w-4 h-4 mx-auto rounded flex items-center justify-center text-[8px] transition-transform hover:scale-110 ${colorClass}`}>
+                                  {st}
+                                </div>
+                              </td>
+                            );
+                            // ==================================
+                          });
                           })}
     
                           {/* Sel Rekap Total */}
@@ -6908,7 +6973,71 @@ const rekapSantriData = useMemo(() => {
         </div>
       </div>
     )}
+
+      {/* ========================================= */}
+      {/* MODAL EDIT PRESENSI CEPAT (KLIK DARI SEL) */}
+      {/* ========================================= */}
+      {editingPresensiCell && (
+        <div className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col transform transition-all animate-in zoom-in-95 duration-200">
+            
+            {/* Header Modal */}
+            <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <div>
+                <h3 className="font-black text-slate-800 text-sm flex items-center gap-1.5">
+                  <Edit className="w-4 h-4 text-blue-600"/> Ubah Kehadiran
+                </h3>
+                <p className="text-[10px] font-semibold text-slate-500 mt-1">
+                  {editingPresensiCell.nama_guru} • <span className="text-blue-600">{editingPresensiCell.tanggal} ({editingPresensiCell.waktu_sholat})</span>
+                </p>
+              </div>
+              <button onClick={() => setEditingPresensiCell(null)} className="p-1.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
       
+            {/* Tombol Pilihan Status */}
+            <div className="p-5 grid grid-cols-5 gap-2">
+              {[
+                { v: 'H', l: 'Hadir', c: 'text-emerald-700 bg-emerald-100 hover:bg-emerald-200 border-emerald-300' },
+                { v: 'A', l: 'Alpa', c: 'text-rose-700 bg-rose-100 hover:bg-rose-200 border-rose-300' },
+                { v: 'I', l: 'Izin', c: 'text-amber-700 bg-amber-100 hover:bg-amber-200 border-amber-300' },
+                { v: 'P', l: 'Lembaga', c: 'text-purple-700 bg-purple-100 hover:bg-purple-200 border-purple-300' },
+                { v: 'T', l: 'Telat', c: 'text-orange-700 bg-orange-100 hover:bg-orange-200 border-orange-300' }
+              ].map(st => {
+                const isSelected = editingPresensiCell.status === st.v;
+                return (
+                  <button
+                    key={st.v}
+                    onClick={() => handleUpdateSinglePresensi(st.v as any)}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-b-[3px] transition-all cursor-pointer ${st.c} ${
+                      isSelected ? 'ring-2 ring-offset-2 ring-slate-400 scale-105 opacity-100' : 'opacity-70 hover:opacity-100 hover:-translate-y-1'
+                    }`}
+                  >
+                    <span className="font-black text-lg mb-0.5">{st.v}</span>
+                    <span className="text-[8px] uppercase tracking-wider font-bold">{st.l}</span>
+                  </button>
+                );
+              })}
+            </div>
+      
+            {/* Footer / Kosongkan Data */}
+            <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+              <button 
+                onClick={() => handleUpdateSinglePresensi('DELETE')}
+                className="text-[10px] font-bold text-rose-500 hover:text-rose-700 flex items-center gap-1 transition"
+              >
+                <Trash2 className="w-3 h-3"/> Kosongkan (-)
+              </button>
+              <button onClick={() => setEditingPresensiCell(null)} className="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition">
+                Batal
+              </button>
+            </div>
+            
+          </div>
+        </div>
+      )}
+            
   </div>
   );
 }
