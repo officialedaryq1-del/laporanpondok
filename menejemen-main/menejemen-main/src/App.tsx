@@ -1384,8 +1384,9 @@ const presensiAsatidzLedger = useMemo(() => {
     });
 
     const total = h + a + i + p_stat + t;
-    const pct = total > 0 ? ((h / total) * 100).toFixed(1) : '0.0';
-
+    // Rumus diubah: (h + p_stat) digabung sebagai nilai positif / pembilang
+    const pct = total > 0 ? (((h + p_stat) / total) * 100).toFixed(1) : '0.0';
+    
     return {
         id: guru.id || guru.nama_guru, // <--- TAMBAHKAN BARIS INI DI SINI
         no: index + 1,
