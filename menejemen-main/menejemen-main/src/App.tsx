@@ -1440,10 +1440,12 @@ const handleSavePresensiAsatidz = async () => {
 // --- 1. FUNGSI DOWNLOAD TEMPLATE ---
 const handleDownloadTemplateAsatidz = () => {
   const headers = ['Tanggal (YYYY-MM-DD)', 'Waktu Sholat (Asar/Magrib/Isya/Subuh)', 'Nama Guru', 'Status (H/A/I/P/T)'];
-  // Paksa pemisah titik koma (;) agar rapi di Excel Indonesia
-  const sampleData = guruList.map(g => `${new Date().toISOString().slice(0, 10)};Asar;"${g.nama_guru}";H`);
   
-  const csvContent = '\uFEFF' + [headers.join(';'), ...sampleData].join('\n');
+  // UBAH: Gunakan koma (,) sebagai pemisah agar rapi di Excel standar
+  // Nama guru dibungkus tanda kutip ("") agar koma pada gelar tidak memecah kolom
+  const sampleData = guruList.map(g => `${new Date().toISOString().slice(0, 10)},Asar,"${g.nama_guru}",H`);
+  
+  const csvContent = '\uFEFF' + [headers.join(','), ...sampleData].join('\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -1469,8 +1471,10 @@ const handleFileImportAsatidz = (e: React.ChangeEvent<HTMLInputElement>) => {
           const parsed: PresensiJamaahRecord[] = [];
           for (let i = 1; i < lines.length; i++) {
             // Deteksi otomatis apakah file menggunakan koma (,) atau titik koma (;)
-            const separator = lines[i].includes(';') ? ';' : ',';
-            const cols = lines[i].split(separator).map(c => c.replace(/^"|"$/g, '').trim());
+           const separator = lines[i].includes(';') ? ';' : ',';
+            // UBAH: Regex khusus agar koma di dalam tanda kutip (gelar nama) tidak ikut terpotong
+            const regex = new RegExp(`${separator}(?=(?:[^"]*"[^"]*")*[^"]*$)`);
+            const cols = lines[i].split(regex).map(c => c.replace(/^"|"$/g, '').trim());
 
             if (cols.length >= 4) {
               let tgl = cols[0];
