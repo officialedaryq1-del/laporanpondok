@@ -1773,6 +1773,35 @@ const handleSaveImportAsatidz = async () => {
     }
   };
 
+  const handleDeleteSubmission = async (id: number) => {
+  if (!window.confirm('Apakah Anda yakin ingin menghapus data riwayat ini?')) return;
+
+  try {
+    // Opsional: Hapus detail laporan terlebih dahulu untuk menghindari error foreign key 
+    // (jika tidak menggunakan ON DELETE CASCADE di database)
+    await fetch(`${SUPABASE_URL}/rest/v1/submission_details?submission_id=eq.${id}`, {
+      method: 'DELETE',
+      headers: reqHeaders
+    });
+
+    // Hapus data utama
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/submissions?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: reqHeaders
+    });
+
+    if (res.ok) {
+      showToast('Data riwayat berhasil dihapus!', 'success');
+      // Update state lokal agar baris tabel langsung hilang
+      setSubmissions(prev => prev.filter(s => s.id !== id));
+    } else {
+      showToast('Gagal menghapus data riwayat', 'error');
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan koneksi', 'error');
+  }
+};
+  
   const handleOpenSubmissionDetail = async (sub: Submission) => {
   setSelectedSubmissionForDetail(sub);
   setDetailItemsLoading(true);
@@ -3023,10 +3052,30 @@ const rekapSantriData = useMemo(() => {
                                     {sub.general_notes || '-'}
                                   </td>
                                   <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
-                                    <button onClick={() => handleOpenSubmissionDetail(sub)} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-bold text-[11px] transition shadow-2xs" title="Lihat Detail Hasil Pengawasan" >
-                                      <Eye className="w-3.5 h-3.5" />
-                                      <span>Detail</span>
-                                    </button>
+                                    <div className="flex items-center justify-center gap-1.5">
+                                      {/* Tombol Detail (Sudah ada sebelumnya) */}
+                                      <button 
+                                        onClick={() => handleOpenSubmissionDetail(sub)}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-bold text-[11px] transition shadow-2xs"
+                                        title="Lihat Detail Hasil Pengawasan"
+                                      >
+                                        <Eye className="w-3.5 h-3.5" />
+                                        <span>Detail</span>
+                                      </button>
+                                      
+                                      {/* Tombol Hapus (Baru) */}
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteSubmission(sub.id);
+                                        }}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white font-bold text-[11px] transition shadow-2xs"
+                                        title="Hapus Riwayat Pengawasan"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <span>Hapus</span>
+                                      </button>
+                                    </div>
                                   </td>
                                 </tr>
                               ))}
