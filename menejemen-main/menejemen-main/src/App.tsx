@@ -307,7 +307,7 @@ function MainAppContent() {
   const [santriList, setSantriList] = useState<Santri[]>([]);
 
   // State khusus Catatan Laporan IKU per Kegiatan per Bulan
-  const [laporanBulan, setLaporanBulan] = useState<string>('2026-09');
+  const [laporanBulan, setLaporanBulan] = useState<string>(() => new Date().toISOString().slice(0, 7));
   const [laporanCatatanMap, setLaporanCatatanMap] = useState<Record<number, string>>({});
   const [modalCatatanTpl, setModalCatatanTpl] = useState<ChecklistTemplate | null>(null);
   const [inputCatatanTeks, setInputCatatanTeks] = useState<string>('');
