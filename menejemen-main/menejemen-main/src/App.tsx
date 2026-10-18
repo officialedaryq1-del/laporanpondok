@@ -1673,10 +1673,19 @@ const handleSaveImportAsatidz = async () => {
       return;
     }
 
+    // --- TAMBAHKAN LOGIKA INI ---
+    // Menggabungkan tanggal dari input manual dengan jam saat submit
+    let finalSubmissionDate = new Date().toISOString();
+    if (formKelas) { // formKelas adalah state untuk field 'Tanggal'
+      const timePart = finalSubmissionDate.substring(10); // Ambil format jam T00:00:00.000Z
+      finalSubmissionDate = `${formKelas}${timePart}`;
+    }
+    // ----------------------------
+
     const payload = {
       template_id: selectedTemplateId,
       pj_name: formPetugas,
-      submission_date: new Date().toISOString(),
+      submission_date: finalSubmissionDate, // <--- UBAH BAGIAN INI
       target_person: formGuru || null,
       target_subject: formMapel || null,
       target_class: formKelas || null,
@@ -1689,6 +1698,8 @@ const handleSaveImportAsatidz = async () => {
       n_kerapan: 3,
       n_kondusif: 3
     };
+
+    // ... sisa kode tidak perlu diubah ...
 
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/submissions`, {
