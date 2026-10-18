@@ -2698,9 +2698,24 @@ const rekapSantriData = useMemo(() => {
                             <BookOpen className="w-4 h-4 text-blue-600" />
                             Informasi Pengawasan & Guru Terkait
                           </h4>
-
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                            {}
+                            
+                            {/* 1. TANGGAL (Dipindah ke urutan pertama) */}
+                            {currentPengawasConfig.kelas && (
+                              <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                                  {currentFieldDetails.kelas?.label || 'Tanggal'}:
+                                </label>
+                                <input
+                                  type="date"
+                                  value={formKelas}
+                                  onChange={(e) => setFormKelas(e.target.value)}
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                />
+                              </div>
+                            )}
+                      
+                            {/* 2. PETUGAS (PJ) (Bergeser ke urutan kedua) */}
                             {currentPengawasConfig.pj && (() => {
                               const detail = currentFieldDetails.pj;
                               return (
@@ -2709,78 +2724,96 @@ const rekapSantriData = useMemo(() => {
                                     {detail.label}:
                                   </label>
                                   {detail.type === 'dropdown' ? (
-                                    <select 
-                                      value={formPetugas} 
-                                      onChange={(e) => setFormPetugas(e.target.value)} 
+                                    <select
+                                      value={formPetugas}
+                                      onChange={(e) => setFormPetugas(e.target.value)}
                                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                                     >
                                       <option value="">-- Pilih --</option>
                                       {safeParseOptions(detail.options).map(opt => (
                                         <option key={opt} value={opt}>{opt}</option>
                                       ))}
-                                      {/* Opsi default fallback guru */}
                                       {detail.options.length === 0 && guruList.map(g => (
                                         <option key={g.id} value={g.nama_guru}>{g.nama_guru}</option>
                                       ))}
                                     </select>
                                   ) : (
-                                    <input 
-                                      type="text" 
-                                      value={formPetugas} 
-                                      onChange={(e) => setFormPetugas(e.target.value)} 
+                                    <input
+                                      type="text"
+                                      value={formPetugas}
+                                      onChange={(e) => setFormPetugas(e.target.value)}
                                       placeholder={`Masukkan ${detail.label}...`}
-                                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                   )}
                                 </div>
                               );
                             })()}
-
+                      
+                            {/* 3. USTADZ (GURU) */}
                             {currentPengawasConfig.guru && (
                               <div>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
                                   {currentFieldDetails.guru?.label || 'Ustadz'}:
                                 </label>
-                                <input type="text" value={formGuru} onChange={(e) => setFormGuru(e.target.value)} placeholder="Masukkan nama ustadz..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                <input
+                                  type="text"
+                                  value={formGuru}
+                                  onChange={(e) => setFormGuru(e.target.value)}
+                                  placeholder="Masukkan nama ustadz..."
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
                               </div>
                             )}
-                            
+                      
+                            {/* 4. TEMPAT (MAPEL) */}
                             {currentPengawasConfig.mapel && (
                               <div>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
                                   {currentFieldDetails.mapel?.label || 'Tempat'}:
                                 </label>
-                                <input type="text" value={formMapel} onChange={(e) => setFormMapel(e.target.value)} placeholder="Masukkan tempat..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                <input
+                                  type="text"
+                                  value={formMapel}
+                                  onChange={(e) => setFormMapel(e.target.value)}
+                                  placeholder="Masukkan tempat..."
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
                               </div>
                             )}
-                            
-                            {currentPengawasConfig.kelas && (
-                              <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                                  {currentFieldDetails.kelas?.label || 'Tanggal'}:
-                                </label>
-                                {/* Input type diubah menjadi date agar muncul kalender */}
-                                <input type="date" value={formKelas} onChange={(e) => setFormKelas(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer" />
-                              </div>
-                            )}
-                            
+                      
+                            {/* 5. PENGAMPU/PEMIMPIN (JAM) */}
                             {currentPengawasConfig.jam && (
                               <div>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
                                   {currentFieldDetails.jam?.label || 'Pengampu/Pemimpin'}:
                                 </label>
-                                <input type="text" value={formJam} onChange={(e) => setFormJam(e.target.value)} placeholder="Masukkan nama pemimpin..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                <input
+                                  type="text"
+                                  value={formJam}
+                                  onChange={(e) => setFormJam(e.target.value)}
+                                  placeholder="Masukkan nama pemimpin..."
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
                               </div>
                             )}
-                            
+                      
+                            {/* 6. KETERANGAN (ABSEN) */}
                             {currentPengawasConfig.absen && (
                               <div>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
                                   {currentFieldDetails.absen?.label || 'Keterangan'}:
                                 </label>
-                                <input type="text" value={formSiswaAbsen} onChange={(e) => setFormSiswaAbsen(e.target.value)} placeholder="Tambahkan keterangan..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                <input
+                                  type="text"
+                                  value={formSiswaAbsen}
+                                  onChange={(e) => setFormSiswaAbsen(e.target.value)}
+                                  placeholder="Tambahkan keterangan..."
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
                               </div>
                             )}
+                      
                           </div>
                         </div>
                       )}
