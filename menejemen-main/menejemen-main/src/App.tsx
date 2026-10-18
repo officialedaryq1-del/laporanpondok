@@ -3304,14 +3304,14 @@ const rekapSantriData = useMemo(() => {
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-1">
-                        {[
-                          { key: 'pj', defaultLabel: 'Petugas (PJ)' },
-                          { key: 'guru', defaultLabel: 'Ustadz' },
-                          { key: 'mapel', defaultLabel: 'Tempat' },
-                          { key: 'kelas', defaultLabel: 'Tanggal' },
-                          { key: 'jam', defaultLabel: 'Pengampu/Pemimpin' },
-                          { key: 'absen', defaultLabel: 'Keterangan' }
-                        ].map(f => {
+                          {[
+                            { key: 'kelas', defaultLabel: 'Tanggal' }, // Tanggal dipindahkan ke urutan pertama
+                            { key: 'pj', defaultLabel: 'Petugas (PJ)' },
+                            { key: 'guru', defaultLabel: 'Ustadz' },
+                            { key: 'mapel', defaultLabel: 'Tempat' },
+                            { key: 'jam', defaultLabel: 'Pengampu/Pemimpin' },
+                            { key: 'absen', defaultLabel: 'Keterangan' }
+                          ].map(f => {
                           
                             const fieldKey = f.key as PengawasFieldKey;
                             const isChecked = currentPengawasConfig[fieldKey];
