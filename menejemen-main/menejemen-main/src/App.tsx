@@ -851,10 +851,28 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
     }
 
     try {
+      // Menggabungkan tanggal dari input manual dengan jam saat submit
+      let finalSubmissionDate = new Date().toISOString();
+      if (formKelas) { // formKelas adalah state untuk field 'Tanggal'
+        const timePart = new Date().toISOString().substring(10); // Ambil format T00:00:00.000Z
+        finalSubmissionDate = `${formKelas}${timePart}`;
+      }
+      
       const payload = {
-        division_id: Number(formIKUData.division_id),
-        kode_iku: formIKUData.kode_iku.trim(),
-        title: formIKUData.title.trim()
+        template_id: selectedTemplateId,
+        pj_name: formPetugas,
+        submission_date: finalSubmissionDate, // Gunakan variabel yang sudah disesuaikan
+        target_person: formGuru || null,
+        target_subject: formMapel || null,
+        target_class: formKelas || null,
+        target_time_slot: formJam || null,
+        absent_students: formSiswaAbsen || 'Nihil',
+        general_notes: formCatatan || null,
+        rate: currentFormScore.percentage,
+        rata_rata: currentFormScore.scale3,
+        n_kebersihan: 3,
+        n_kerapan: 3,
+        n_kondusif: 3
       };
 
       if (editingMasterId) {
