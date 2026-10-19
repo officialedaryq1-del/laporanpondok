@@ -1333,10 +1333,17 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
       return dStr.startsWith(bulan);
     });
 
+    // Cek apakah template ini menggunakan target berbentuk 'count'
+    const tpl = templates.find(t => t.id === templateId);
+    const isCountFormat = tpl?.target_format === 'count';
+
     const notesList: string[] = [];
     matchedSubs.forEach(s => {
       const note = String(s.general_notes || '').trim();
       
+      // Mengambil data Pengampu / Pemimpin (disimpan di target_time_slot)
+      const pengampu = String(s.target_time_slot || '').trim();
+
       // 1. Ambil dari isian form "Tanggal" (tersimpan di target_class)
       const isianTanggal = String(s.target_class || '').trim();
       let dateToUse = '';
@@ -1352,15 +1359,31 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
       const [year, month, day] = dateToUse.split('-');
       const formattedDate = (day && month && year) ? `${day}/${month}/${year}` : dateToUse;
 
-      if (note && note !== '-' && note.toLowerCase() !== 'nihil') {
-        // 4. Menggabungkan tanggal dan isi catatan
-        notesList.push(`• ${formattedDate} - ${note}`);
+      const hasValidNote = note && note !== '-' && note.toLowerCase() !== 'nihil';
+      const hasPengampu = pengampu && pengampu !== '-' && pengampu.toLowerCase() !== 'nihil';
+
+      // 4. Menyusun format baris log
+      let logEntry = `• ${formattedDate}`;
+
+      // Jika ada nama pemimpin, sisipkan di sebelah tanggal
+      if (hasPengampu) {
+        logEntry += ` (Pemimpin: ${pengampu})`;
+      }
+
+      if (hasValidNote) {
+        // Jika ada catatan khusus yang ditulis, gabungkan
+        logEntry += ` - ${note}`;
+        notesList.push(logEntry);
+      } else if (isCountFormat) {
+        // KHUSUS untuk form 'Count': Jika tidak ada catatan khusus yang ditulis, 
+        // tetap tarik lognya sebagai bukti kegiatan telah "Terlaksana"
+        logEntry += ` - Terlaksana`;
+        notesList.push(logEntry);
       }
     });
 
     return notesList;
   };
-
  // --- LOGIKA REKAP PRESENSI ASATIDZ (LEDGER 1-31) ---
 const presensiAsatidzLedger = useMemo(() => {
   const [year, month] = presensiBulan.split('-');
