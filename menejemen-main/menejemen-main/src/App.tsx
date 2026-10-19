@@ -1327,28 +1327,34 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
   return `${avgScore}%`;
 };
   const getMonthlySubmissionNotes = (templateId: number, bulan: string): string[] => {
-    const matchedSubs = submissions.filter(s => {
-      if (Number(s.template_id) !== Number(templateId)) return false;
-      const dStr = String(s.submission_date || s.created_at || '');
-      return dStr.startsWith(bulan);
-    });
+  const matchedSubs = submissions.filter(s => {
+    if (Number(s.template_id) !== Number(templateId)) return false;
+    const dStr = String(s.submission_date || s.created_at || '');
+    return dStr.startsWith(bulan);
+  });
 
-    const notesList: string[] = [];
-    matchedSubs.forEach(s => {
-      const note = String(s.general_notes || '').trim();
-      const rawClass = String(s.target_class || '').trim();
-      const classLabel = rawClass 
-        ? (rawClass.toLowerCase().startsWith('') ? rawClass : `Kelas ${rawClass}`)
-        : '';
-      const classPrefix = classLabel ? `(${classLabel}) ` : '';
+  const notesList: string[] = [];
+  matchedSubs.forEach(s => {
+    const note = String(s.general_notes || '').trim();
+    const rawClass = String(s.target_class || '').trim();
+    const classLabel = rawClass 
+      ? (rawClass.toLowerCase().startsWith('') ? rawClass : `Kelas ${rawClass}`)
+      : '';
+    const classPrefix = classLabel ? `(${classLabel}) ` : '';
 
-      if (note && note !== '-' && note.toLowerCase() !== 'nihil') {
-        notesList.push(`• ${classPrefix}${note}`);
-      }
-    });
+    // Mengambil tanggal dan memformatnya menjadi DD/MM/YYYY
+    const dateStr = String(s.submission_date || s.created_at || '').slice(0, 10);
+    const [year, month, day] = dateStr.split('-');
+    const formattedDate = (day && month && year) ? `${day}/${month}/${year}` : dateStr;
 
-    return notesList;
-  };
+    if (note && note !== '-' && note.toLowerCase() !== 'nihil') {
+      // Menggabungkan tanggal dengan isi catatan
+      notesList.push(`• ${formattedDate} ${classPrefix}${note}`);
+    }
+  });
+
+  return notesList;
+};
 
  // --- LOGIKA REKAP PRESENSI ASATIDZ (LEDGER 1-31) ---
 const presensiAsatidzLedger = useMemo(() => {
