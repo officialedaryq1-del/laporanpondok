@@ -6367,11 +6367,6 @@ const rekapSantriData = useMemo(() => {
                             
                             return (
                               <tr key={tpl.id} className="hover:bg-slate-50/80 transition-colors">
-                            const divName = divisions.find(d => Number(d.id) === Number(tpl.division_id))?.name || 'Divisi';
-                            const ikuObj = ikus.find(i => Number(i.id) === Number(tpl.iku_id));
-
-                            return (
-                              <tr key={tpl.id} className="hover:bg-slate-50/80 transition-colors">
                                 <td className="py-3 px-4 text-center font-mono text-slate-400">{idx + 1}</td>
                                 <td className="py-3 px-6 font-bold text-slate-900">{tpl.title}</td>
                                 <td className="py-3 px-5 font-medium text-slate-600">{divName}</td>
