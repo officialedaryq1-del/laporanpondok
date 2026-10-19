@@ -1337,17 +1337,22 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
     const tpl = templates.find(t => t.id === templateId);
     const isCountFormat = tpl?.target_format === 'count';
 
+    // --- TAMBAHKAN KODE INI UNTUK MENGECEK STATUS FIELD (AKTIF/TIDAK) ---
+    const tplConfig = pengawasConfigMap[templateId] || DEFAULT_PENGAWAS_CONFIG;
+    const isJamActive = tplConfig.jam; 
+    const fieldDetails = fieldDetailsMap[templateId] || DEFAULT_FIELD_DETAILS;
+    const labelPemimpin = fieldDetails.jam?.label || 'Pemimpin';
+    // ---------------------------------------------------------------------
+
     const notesList: string[] = [];
+
     matchedSubs.forEach(s => {
       const note = String(s.general_notes || '').trim();
-      
-      // Mengambil data Pengampu / Pemimpin (disimpan di target_time_slot)
       const pengampu = String(s.target_time_slot || '').trim();
 
       // 1. Ambil dari isian form "Tanggal" (tersimpan di target_class)
       const isianTanggal = String(s.target_class || '').trim();
       let dateToUse = '';
-
       if (isianTanggal && isianTanggal !== '-' && isianTanggal.length >= 10) {
         dateToUse = isianTanggal.slice(0, 10);
       } else {
@@ -1360,14 +1365,16 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
       const formattedDate = (day && month && year) ? `${day}/${month}/${year}` : dateToUse;
 
       const hasValidNote = note && note !== '-' && note.toLowerCase() !== 'nihil';
-      const hasPengampu = pengampu && pengampu !== '-' && pengampu.toLowerCase() !== 'nihil';
+      
+      // --- UBAH BARIS INI: Tambahkan isJamActive ---
+      const hasPengampu = isJamActive && pengampu && pengampu !== '-' && pengampu.toLowerCase() !== 'nihil';
 
       // 4. Menyusun format baris log
       let logEntry = `• ${formattedDate}`;
 
-      // Jika ada nama pemimpin, sisipkan di sebelah tanggal
+      // Jika field aktif dan ada namanya, sisipkan menggunakan label yang sesuai
       if (hasPengampu) {
-        logEntry += ` (Pemimpin: ${pengampu})`;
+        logEntry += ` (${labelPemimpin}: ${pengampu})`;
       }
 
       if (hasValidNote) {
@@ -1375,7 +1382,7 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
         logEntry += ` - ${note}`;
         notesList.push(logEntry);
       } else if (isCountFormat) {
-        // KHUSUS untuk form 'Count': Jika tidak ada catatan khusus yang ditulis, 
+        // KHUSUS untuk form 'Count': Jika tidak ada catatan khusus yang ditulis,
         // tetap tarik lognya sebagai bukti kegiatan telah "Terlaksana"
         logEntry += ` - Terlaksana`;
         notesList.push(logEntry);
