@@ -1327,34 +1327,39 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
   return `${avgScore}%`;
 };
   const getMonthlySubmissionNotes = (templateId: number, bulan: string): string[] => {
-  const matchedSubs = submissions.filter(s => {
-    if (Number(s.template_id) !== Number(templateId)) return false;
-    const dStr = String(s.submission_date || s.created_at || '');
-    return dStr.startsWith(bulan);
-  });
+    const matchedSubs = submissions.filter(s => {
+      if (Number(s.template_id) !== Number(templateId)) return false;
+      const dStr = String(s.submission_date || s.created_at || '');
+      return dStr.startsWith(bulan);
+    });
 
-  const notesList: string[] = [];
-  matchedSubs.forEach(s => {
-    const note = String(s.general_notes || '').trim();
-    const rawClass = String(s.target_class || '').trim();
-    const classLabel = rawClass 
-      ? (rawClass.toLowerCase().startsWith('') ? rawClass : `Kelas ${rawClass}`)
-      : '';
-    const classPrefix = classLabel ? `(${classLabel}) ` : '';
+    const notesList: string[] = [];
+    matchedSubs.forEach(s => {
+      const note = String(s.general_notes || '').trim();
+      
+      // 1. Ambil dari isian form "Tanggal" (tersimpan di target_class)
+      const isianTanggal = String(s.target_class || '').trim();
+      let dateToUse = '';
 
-    // Mengambil tanggal dan memformatnya menjadi DD/MM/YYYY
-    const dateStr = String(s.submission_date || s.created_at || '').slice(0, 10);
-    const [year, month, day] = dateStr.split('-');
-    const formattedDate = (day && month && year) ? `${day}/${month}/${year}` : dateStr;
+      if (isianTanggal && isianTanggal !== '-' && isianTanggal.length >= 10) {
+        dateToUse = isianTanggal.slice(0, 10);
+      } else {
+        // 2. Fallback ke waktu bawaan sistem / Supabase
+        dateToUse = String(s.submission_date || s.created_at || '').slice(0, 10);
+      }
 
-    if (note && note !== '-' && note.toLowerCase() !== 'nihil') {
-      // Menggabungkan tanggal dengan isi catatan
-      notesList.push(`• ${formattedDate} ${classPrefix}${note}`);
-    }
-  });
+      // 3. Format dari YYYY-MM-DD menjadi DD/MM/YYYY
+      const [year, month, day] = dateToUse.split('-');
+      const formattedDate = (day && month && year) ? `${day}/${month}/${year}` : dateToUse;
 
-  return notesList;
-};
+      if (note && note !== '-' && note.toLowerCase() !== 'nihil') {
+        // 4. Menggabungkan tanggal dan isi catatan
+        notesList.push(`• ${formattedDate} - ${note}`);
+      }
+    });
+
+    return notesList;
+  };
 
  // --- LOGIKA REKAP PRESENSI ASATIDZ (LEDGER 1-31) ---
 const presensiAsatidzLedger = useMemo(() => {
