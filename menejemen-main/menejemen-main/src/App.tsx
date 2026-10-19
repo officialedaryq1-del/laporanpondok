@@ -6346,7 +6346,27 @@ const rekapSantriData = useMemo(() => {
                       <tbody className="divide-y divide-slate-100 text-slate-700">
                         {templates
                           .filter(t => filterMasterDivisi === 'all' || Number(t.division_id) === Number(filterMasterDivisi))
+                          // --- TAMBAHKAN BLOK SORTING INI ---
+                          .sort((a, b) => {
+                            // 1. Urutkan berdasarkan ID Divisi terlebih dahulu
+                            if (a.division_id !== b.division_id) {
+                              return Number(a.division_id || 0) - Number(b.division_id || 0);
+                            }
+                            
+                            // 2. Jika Divisi sama, urutkan berdasarkan rentang waktu (Timeframe)
+                            const tfOrder: Record<string, number> = { 'Harian': 1, 'Mingguan': 2, 'Bulanan': 3, 'Tahunan': 4 };
+                            const tfA = tfOrder[a.timeframe || ''] || 5;
+                            const tfB = tfOrder[b.timeframe || ''] || 5;
+                            
+                            return tfA - tfB;
+                          })
+                          // ----------------------------------
                           .map((tpl, idx) => {
+                            const divName = divisions.find(d => Number(d.id) === Number(tpl.division_id))?.name || 'Divisi';
+                            const ikuObj = ikus.find(i => Number(i.id) === Number(tpl.iku_id));
+                            
+                            return (
+                              <tr key={tpl.id} className="hover:bg-slate-50/80 transition-colors">
                             const divName = divisions.find(d => Number(d.id) === Number(tpl.division_id))?.name || 'Divisi';
                             const ikuObj = ikus.find(i => Number(i.id) === Number(tpl.iku_id));
 
