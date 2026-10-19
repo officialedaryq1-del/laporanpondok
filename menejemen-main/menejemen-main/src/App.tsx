@@ -5329,7 +5329,9 @@ const rekapSantriData = useMemo(() => {
           {/* ========================================================= */}
           {navTab === 'dashboard' && (() => {
             const todayStr = inputAbsensiTanggal || new Date().toISOString().slice(0, 10);
-            const dailyTemplates = templates.filter(t => String(t.timeframe || '').toLowerCase() === 'harian');
+            const dailyTemplates = templates
+            .filter(t => String(t.timeframe || '').toLowerCase() === 'harian')
+            .sort((a, b) => Number(a.division_id) - Number(b.division_id));
         
             return (
               <div className="space-y-3.5 sm:space-y-6 max-w-7xl mx-auto">
