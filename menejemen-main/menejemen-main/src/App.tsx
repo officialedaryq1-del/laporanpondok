@@ -2125,10 +2125,15 @@ const handleSaveImportAsatidz = async () => {
     
     setIsLoading(true);
     
-    // Gabungkan sanksi yang dicentang, dan jika ada "Lainnya", tambahkan teks custom-nya
-    const sanksiList = formPlgSanksiChecked.map(s => 
-      s === '8. Lainnya (diisi sendiri)' ? `Lainnya: ${formPlgSanksiCustom}` : s
-    ).join('; ');
+    // --- PERBAIKAN DI SINI ---
+    const sanksiList = formPlgSanksiChecked.map(s => {
+      // Jika opsi yang dipilih adalah "Lainnya (diisi sendiri)", ganti dengan isi dari input custom
+      if (s === 'Lainnya (diisi sendiri)') {
+        return formPlgSanksiCustom.trim() !== '' ? formPlgSanksiCustom.trim() : null;
+      }
+      return s;
+    }).filter(Boolean).join('; ');
+    // -------------------------
 
     const recordsToInsert = selectedSantriPlgIds.map(id => {
       const s = santriList.find(x => String(x.id) === id);
@@ -2154,14 +2159,13 @@ const handleSaveImportAsatidz = async () => {
       });
       if (res.ok) {
         showToast('Data pelanggaran berhasil disimpan!', 'success');
-        // Reset Form
         setSelectedSantriPlgIds([]);
         setFormPlgBentuk('');
         setFormPlgSanksiChecked([]);
         setFormPlgSanksiCustom('');
         setFormPlgSP('Tanpa SP');
-        setPelanggaranSubTab('laporan'); // Otomatis pindah ke tab laporan
-        fetchSupabaseData(); // Refresh data utama
+        setPelanggaranSubTab('laporan');
+        fetchSupabaseData();
       } else {
         showToast('Gagal menyimpan data!', 'error');
       }
