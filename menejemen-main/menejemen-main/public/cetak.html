@@ -1323,8 +1323,28 @@
             const realisasi = calculateProgramRealisasi(item);
             const targetTeks = item.target_teks || (item.target ? `${item.target}%` : '100%');
             const matchedSubs = submissionsData.filter(s => s.template_id === item.id);
-            const catatan = matchedSubs.length > 0 && matchedSubs.some(s => s.general_notes) 
-                ? matchedSubs.map(s => s.general_notes).filter(Boolean).join('\n\n') 
+            
+            // Filter hanya data yang benar-benar memiliki catatan (general_notes)
+            const validSubs = matchedSubs.filter(s => s.general_notes && s.general_notes.trim() !== '' && s.general_notes.trim() !== '-');
+
+            const catatan = validSubs.length > 0 
+                ? validSubs.map(s => {
+                    // 1. Ambil tanggal dari form "Tanggal" (target_class) atau fallback ke waktu submit
+                    const isianTanggal = String(s.target_class || '').trim();
+                    let dateToUse = '';
+                    if (isianTanggal && isianTanggal !== '-' && isianTanggal.length >= 10) {
+                      dateToUse = isianTanggal.slice(0, 10);
+                    } else {
+                      dateToUse = String(s.submission_date || s.created_at || '').slice(0, 10);
+                    }
+
+                    // 2. Ubah format dari YYYY-MM-DD menjadi DD/MM/YYYY
+                    const [year, month, day] = dateToUse.split('-');
+                    const formattedDate = (day && month && year) ? `${day}/${month}/${year}` : dateToUse;
+
+                    // 3. Gabungkan tanggal dengan isi catatan
+                    return `[${formattedDate}] ${s.general_notes}`;
+                  }).join('\n\n') 
                 : '-';
 
             tableRowsHTML += `<tr class="hover:bg-slate-50 transition border-b border-slate-200">`;
