@@ -849,8 +849,21 @@
         return stats.total > 0 ? `${stats.persen}%` : '-';
       }
 
-      const matchedSubs = submissionsData.filter(s => s.template_id === tpl.id);
+      // Filter laporan yang sesuai dengan template_id DAN bulan yang dipilih
+      const matchedSubs = submissionsData.filter(s => {
+        if (s.template_id !== tpl.id) return false;
+        const dStr = String(s.submission_date || s.created_at || '');
+        return dStr.startsWith(selectedBulan); // Format 'YYYY-MM'
+      });
+
       if (matchedSubs.length === 0) return '-';
+
+      // PENYESUAIAN: Jika format target 'count', tampilkan total berapa kali pengisian
+      if (tpl.target_format === 'count') {
+        return `${matchedSubs.length} Kali`;
+      }
+
+      // DEFAULT: Jika format persentase, rata-rata persentase skor
       const totalScore = matchedSubs.reduce((acc, curr) => acc + getSubmissionScore(curr), 0);
       return `${Math.round(totalScore / matchedSubs.length)}%`;
     }
