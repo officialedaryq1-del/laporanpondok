@@ -1335,30 +1335,34 @@
             const isFirst = itemIdx === 0;
             const realisasi = calculateProgramRealisasi(item);
             const targetTeks = item.target_teks || (item.target ? `${item.target}%` : '100%');
-            const matchedSubs = submissionsData.filter(s => s.template_id === item.id);
             
-            // Filter hanya data yang benar-benar memiliki catatan (general_notes)
+            // --- KODE BARU UNTUK CATATAN (WEB) ---
+            const matchedSubs = submissionsData.filter(s => {
+              if (s.template_id !== item.id) return false;
+              
+              // Filter ketat berdasarkan bulan dropdown
+              const isianTanggal = String(s.target_class || '').trim();
+              const dateToUse = (isianTanggal && isianTanggal !== '-' && isianTanggal.length >= 10) 
+                  ? isianTanggal.slice(0, 10) 
+                  : String(s.submission_date || s.created_at || '').slice(0, 10);
+              
+              return dateToUse.startsWith(selectedBulan);
+            });
+            
             const validSubs = matchedSubs.filter(s => s.general_notes && s.general_notes.trim() !== '' && s.general_notes.trim() !== '-');
 
             const catatan = validSubs.length > 0 
                 ? validSubs.map(s => {
-                    // 1. Ambil tanggal dari form "Tanggal" (target_class) atau fallback ke waktu submit
                     const isianTanggal = String(s.target_class || '').trim();
-                    let dateToUse = '';
-                    if (isianTanggal && isianTanggal !== '-' && isianTanggal.length >= 10) {
-                      dateToUse = isianTanggal.slice(0, 10);
-                    } else {
-                      dateToUse = String(s.submission_date || s.created_at || '').slice(0, 10);
-                    }
-
-                    // 2. Ubah format dari YYYY-MM-DD menjadi DD/MM/YYYY
+                    const dateToUse = (isianTanggal && isianTanggal !== '-' && isianTanggal.length >= 10) 
+                        ? isianTanggal.slice(0, 10) 
+                        : String(s.submission_date || s.created_at || '').slice(0, 10);
                     const [year, month, day] = dateToUse.split('-');
                     const formattedDate = (day && month && year) ? `${day}/${month}/${year}` : dateToUse;
-
-                    // 3. Gabungkan tanggal dengan isi catatan
                     return `[${formattedDate}] ${s.general_notes}`;
                   }).join('\n\n') 
                 : '-';
+            // --- BATAS KODE BARU ---
 
             tableRowsHTML += `<tr class="hover:bg-slate-50 transition border-b border-slate-200">`;
 
@@ -2231,8 +2235,31 @@
               const isFirst = itemIdx === 0;
               const realisasi = calculateProgramRealisasi(item);
               const targetTeks = item.target_teks || (item.target ? `${item.target}%` : '100%');
-              const catatan = (catatanMap[item.id] || '-').replace(/\n/g, '<br>');
+              // --- KODE BARU UNTUK CATATAN (EKSPOR WORD) ---
+            const matchedSubs = submissionsData.filter(s => {
+              if (s.template_id !== item.id) return false;
+              const isianTanggal = String(s.target_class || '').trim();
+              const dateToUse = (isianTanggal && isianTanggal !== '-' && isianTanggal.length >= 10) 
+                  ? isianTanggal.slice(0, 10) 
+                  : String(s.submission_date || s.created_at || '').slice(0, 10);
+              return dateToUse.startsWith(selectedBulan);
+            });
+            
+            const validSubs = matchedSubs.filter(s => s.general_notes && s.general_notes.trim() !== '' && s.general_notes.trim() !== '-');
 
+            const catatan = validSubs.length > 0 
+                ? validSubs.map(s => {
+                    const isianTanggal = String(s.target_class || '').trim();
+                    const dateToUse = (isianTanggal && isianTanggal !== '-' && isianTanggal.length >= 10) 
+                        ? isianTanggal.slice(0, 10) 
+                        : String(s.submission_date || s.created_at || '').slice(0, 10);
+                    const [year, month, day] = dateToUse.split('-');
+                    const formattedDate = (day && month && year) ? `${day}/${month}/${year}` : dateToUse;
+                    return `[${formattedDate}] ${s.general_notes}`;
+                  }).join('<br><br>') // <-- Menggunakan <br> untuk Word
+                : '-';
+            // --- BATAS KODE BARU ---
+              
               tableRowsWord += '<tr>';
               if (isFirst) {
                 tableRowsWord += `
