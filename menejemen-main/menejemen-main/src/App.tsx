@@ -520,9 +520,35 @@ const filteredDashboardPelanggaran = useMemo(() => {
 const dashboardStatsPlg = useMemo(() => {
     const totalSantri = santriList.length;
     const totalKasus = filteredDashboardPelanggaran.length;
-    const totalSPAktif = filteredDashboardPelanggaran.filter(p => p.sp && p.sp !== 'Tanpa SP').length;
-    const totalSP3Terakhir = filteredDashboardPelanggaran.filter(p => p.sp === 'SP Terakhir' || p.sp === 'SP 3').length;
+
+    // --- LOGIKA PENYARINGAN STATUS FINAL (DIKELUARKAN) ---
+    // 1. Identifikasi ID atau Nama santri yang sudah pernah dikeluarkan dalam rentang data
+    const santriDikeluarkanSet = new Set(
+      filteredDashboardPelanggaran
+        .filter(p => p.sp === 'Dikeluarkan')
+        .map(p => p.santri_id || p.nama)
+    );
+
+    // 2. Filter data untuk Total SP Aktif (Kecualikan santri yang sudah dikeluarkan)
+    const totalSPAktif = filteredDashboardPelanggaran.filter(p => {
+      if (!p.sp || p.sp === 'Tanpa SP' || p.sp === 'Dikeluarkan') return false;
+      const santriKey = p.santri_id || p.nama;
+      // Jika santri ini sudah dikeluarkan, jangan hitung SP aktifnya lagi
+      if (santriDikeluarkanSet.has(santriKey)) return false;
+      return true;
+    }).length;
+
+    // 3. Filter data untuk SP 3 / SP Terakhir (Kecualikan santri yang sudah dikeluarkan)
+    const totalSP3Terakhir = filteredDashboardPelanggaran.filter(p => {
+      if (p.sp !== 'SP Terakhir' && p.sp !== 'SP 3') return false;
+      const santriKey = p.santri_id || p.nama;
+      if (santriDikeluarkanSet.has(santriKey)) return false;
+      return true;
+    }).length;
+
+    // 4. Total Dikeluarkan dihitung murni berdasarkan status dikeluarkan
     const totalDikeluarkan = filteredDashboardPelanggaran.filter(p => p.sp === 'Dikeluarkan').length;
+    // -----------------------------------------------------
 
     const spColors: Record<string, string> = {
         'Tanpa SP': '#94a3b8', 'Surat Pernyataan': '#38bdf8', 'SP 1': '#fbbf24', 
