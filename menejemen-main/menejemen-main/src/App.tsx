@@ -516,40 +516,47 @@ const filteredDashboardPelanggaran = useMemo(() => {
     });
 }, [pelanggaranList, dashPlgMulai, dashPlgSampai]);
 
-  // --- TAMBAHKAN KODE INI DI BAWAH filteredDashboardPelanggaran ---
-const dashboardStatsPlg = useMemo(() => {
+  // --- KODE BARU: LOGIKA PENGELOMPOKAN SP TERTINGGI PER SANTRI ---
+  const dashboardStatsPlg = useMemo(() => {
     const totalSantri = santriList.length;
-    const totalKasus = filteredDashboardPelanggaran.length;
+    const totalKasus = filteredDashboardPelanggaran.length; // Total Kasus tetap menghitung semua kejadian
 
-    // --- LOGIKA PENYARINGAN STATUS FINAL (DIKELUARKAN) ---
-    // 1. Identifikasi ID atau Nama santri yang sudah pernah dikeluarkan dalam rentang data
-    const santriDikeluarkanSet = new Set(
-      filteredDashboardPelanggaran
-        .filter(p => p.sp === 'Dikeluarkan')
-        .map(p => p.santri_id || p.nama)
-    );
+    // 1. Kelompokkan berdasarkan santri dan cari SP tertingginya
+    const spHierarchy = ['Tanpa SP', 'Surat Pernyataan', 'SP 1', 'SP 2', 'SP 3', 'SP Terakhir', 'Dikeluarkan'];
+    const studentWorstSpMap = new Map<string, any>();
 
-    // 2. Filter data untuk Total SP Aktif (Kecualikan santri yang sudah dikeluarkan)
-    const totalSPAktif = filteredDashboardPelanggaran.filter(p => {
-      if (!p.sp || p.sp === 'Tanpa SP' || p.sp === 'Dikeluarkan') return false;
-      const santriKey = p.santri_id || p.nama;
-      // Jika santri ini sudah dikeluarkan, jangan hitung SP aktifnya lagi
-      if (santriDikeluarkanSet.has(santriKey)) return false;
-      return true;
-    }).length;
+    filteredDashboardPelanggaran.forEach(p => {
+        const santriKey = p.santri_id || p.nama;
+        if (!santriKey) return;
 
-    // 3. Filter data untuk SP 3 / SP Terakhir (Kecualikan santri yang sudah dikeluarkan)
-    const totalSP3Terakhir = filteredDashboardPelanggaran.filter(p => {
-      if (p.sp !== 'SP Terakhir' && p.sp !== 'SP 3') return false;
-      const santriKey = p.santri_id || p.nama;
-      if (santriDikeluarkanSet.has(santriKey)) return false;
-      return true;
-    }).length;
+        const existingRecord = studentWorstSpMap.get(santriKey);
+        if (!existingRecord) {
+            studentWorstSpMap.set(santriKey, p);
+        } else {
+            // Bandingkan bobot SP saat ini dengan SP yang sudah tersimpan
+            const currentSpIndex = spHierarchy.indexOf(p.sp) > -1 ? spHierarchy.indexOf(p.sp) : 0;
+            const existingSpIndex = spHierarchy.indexOf(existingRecord.sp) > -1 ? spHierarchy.indexOf(existingRecord.sp) : 0;
+            
+            // Ganti data jika SP lebih tinggi, ATAU jika bobot SP sama tapi tanggalnya lebih baru
+            if (currentSpIndex > existingSpIndex) {
+                studentWorstSpMap.set(santriKey, p);
+            } else if (currentSpIndex === existingSpIndex) {
+                if (new Date(p.tanggal) > new Date(existingRecord.tanggal)) {
+                    studentWorstSpMap.set(santriKey, p);
+                }
+            }
+        }
+    });
 
-    // 4. Total Dikeluarkan dihitung murni berdasarkan status dikeluarkan
-    const totalDikeluarkan = filteredDashboardPelanggaran.filter(p => p.sp === 'Dikeluarkan').length;
-    // -----------------------------------------------------
+    // Array berisi daftar santri unik beserta 1 pelanggaran dengan SP terberatnya
+    const uniqueWorstViolations = Array.from(studentWorstSpMap.values());
 
+    // 2. Hitung metrics berdasarkan SP tertinggi per santri
+    const totalSPAktif = uniqueWorstViolations.filter(p => p.sp && p.sp !== 'Tanpa SP' && p.sp !== 'Dikeluarkan').length;
+    const totalSP3Terakhir = uniqueWorstViolations.filter(p => p.sp === 'SP 3' || p.sp === 'SP Terakhir').length;
+    const totalDikeluarkan = uniqueWorstViolations.filter(p => p.sp === 'Dikeluarkan').length;
+
+    // 3. Update Chart Donut berdasarkan SP tertinggi per santri
     const spColors: Record<string, string> = {
         'Tanpa SP': '#94a3b8', 'Surat Pernyataan': '#38bdf8', 'SP 1': '#fbbf24', 
         'SP 2': '#f97316', 'SP 3': '#ef4444', 'SP Terakhir': '#9f1239', 'Dikeluarkan': '#450a0a' 
@@ -558,12 +565,12 @@ const dashboardStatsPlg = useMemo(() => {
         'Tanpa SP': 0, 'Surat Pernyataan': 0, 'SP 1': 0, 'SP 2': 0, 'SP 3': 0, 'SP Terakhir': 0, 'Dikeluarkan': 0
     };
     
-    filteredDashboardPelanggaran.forEach(p => {
+    uniqueWorstViolations.forEach(p => {
         if (spCounts[p.sp] !== undefined) spCounts[p.sp]++;
         else spCounts['Tanpa SP']++;
     });
 
-    const totalSPForChart = totalKasus || 1; 
+    const totalSPForChart = uniqueWorstViolations.length || 1; 
     let accumulatedPct = 0;
     const gradientStops = Object.entries(spCounts).map(([key, count]) => {
         const pct = (count / totalSPForChart) * 100;
@@ -574,6 +581,7 @@ const dashboardStatsPlg = useMemo(() => {
     
     const donutStyle = { background: `conic-gradient(${gradientStops})` };
 
+    // Kasus Per Halaqoh (Tetap menggunakan raw data karena ini menghitung kejadian)
     const halaqohStats: Record<string, number> = {};
     filteredDashboardPelanggaran.forEach(p => {
         const h = p.halaqoh || 'Lainnya';
@@ -584,9 +592,11 @@ const dashboardStatsPlg = useMemo(() => {
 
     return {
         totalSantri, totalKasus, totalSPAktif, totalSP3Terakhir, totalDikeluarkan,
-        donutStyle, spColors, halaqohChartData, maxHalaqohChart
+        donutStyle, spColors, halaqohChartData, maxHalaqohChart,
+        uniqueWorstViolations // <--- Ini diexport agar bisa dipakai oleh Modal saat kartu diklik
     };
-}, [filteredDashboardPelanggaran, santriList]);
+  }, [filteredDashboardPelanggaran, santriList]);
+  // ----------------------------------------------------------------
 
   // State untuk Modal Klik Kartu Dashboard Pelanggaran
 const [dashCardModal, setDashCardModal] = useState<{ title: string; subtitle: string; data: any[] } | null>(null);
@@ -4598,25 +4608,21 @@ const rekapSantriData = useMemo(() => {
                         </div>
                       </div>
 
-                      {/* Kartu 3: Total SP Aktif (Bisa Diklik) */}
+                    {/* Kartu 3: Total SP Aktif (Bisa Diklik) */}
                       <div 
                         onClick={() => {
-                            const santriDikeluarkanSet = new Set(
-                                filteredDashboardPelanggaran.filter(p => p.sp === 'Dikeluarkan').map(p => p.santri_id || p.nama)
-                            );
-                            const dataAktif = filteredDashboardPelanggaran.filter(p => {
-                                if (!p.sp || p.sp === 'Tanpa SP' || p.sp === 'Dikeluarkan') return false;
-                                return !santriDikeluarkanSet.has(p.santri_id || p.nama);
-                            });
+                            // Pakai data uniqueWorstViolations agar tidak ada santri dobel
+                            const dataAktif = dashboardStatsPlg.uniqueWorstViolations.filter(p => p.sp && p.sp !== 'Tanpa SP' && p.sp !== 'Dikeluarkan');
                             setDashCardModal({
                                 title: "Rincian Status SP Aktif",
-                                subtitle: "Menampilkan santri yang memiliki status Surat Peringatan aktif",
+                                subtitle: "Menampilkan santri dengan status SP tertinggi yang masih aktif",
                                 data: dataAktif
                             });
                             setSearchDashCardModal('');
                         }}
                         className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-pointer hover:border-orange-400 hover:shadow-md transition-all group"
                       >
+                         {/* Isinya tetap sama, tidak berubah */}
                         <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-4"/><path d="M12 10h.01"/></svg>
                         </div>
@@ -4629,22 +4635,18 @@ const rekapSantriData = useMemo(() => {
                       {/* Kartu 4: SP Terakhir / SP 3 (Bisa Diklik) */}
                       <div 
                         onClick={() => {
-                            const santriDikeluarkanSet = new Set(
-                                filteredDashboardPelanggaran.filter(p => p.sp === 'Dikeluarkan').map(p => p.santri_id || p.nama)
-                            );
-                            const dataBerat = filteredDashboardPelanggaran.filter(p => {
-                                if (p.sp !== 'SP Terakhir' && p.sp !== 'SP 3') return false;
-                                return !santriDikeluarkanSet.has(p.santri_id || p.nama);
-                            });
+                            // Pakai data uniqueWorstViolations agar tidak ada santri dobel
+                            const dataBerat = dashboardStatsPlg.uniqueWorstViolations.filter(p => p.sp === 'SP 3' || p.sp === 'SP Terakhir');
                             setDashCardModal({
                                 title: "Rincian Kasus SP 3 / SP Terakhir",
-                                subtitle: "Menampilkan santri dengan tingkat pelanggaran berat",
+                                subtitle: "Menampilkan santri dengan tingkat pelanggaran berat tertinggi saat ini",
                                 data: dataBerat
                             });
                             setSearchDashCardModal('');
                         }}
                         className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-pointer hover:border-rose-400 hover:shadow-md transition-all group"
                       >
+                         {/* Isinya tetap sama, tidak berubah */}
                         <div className="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><circle cx="12" cy="10" r="4"/><path d="M8 14v1a4 4 0 0 0 8 0v-1"/><path d="M15.5 17 18 20"/><path d="M8.5 17 6 20"/></svg>
                         </div>
@@ -4657,7 +4659,8 @@ const rekapSantriData = useMemo(() => {
                       {/* Kartu 5: Dikeluarkan (Bisa Diklik) */}
                       <div 
                         onClick={() => {
-                            const dataOut = filteredDashboardPelanggaran.filter(p => p.sp === 'Dikeluarkan');
+                            // Pakai data uniqueWorstViolations agar tidak ada santri dobel
+                            const dataOut = dashboardStatsPlg.uniqueWorstViolations.filter(p => p.sp === 'Dikeluarkan');
                             setDashCardModal({
                                 title: "Rincian Santri Dikeluarkan",
                                 subtitle: "Menampilkan daftar santri yang telah dikenakan sanksi dikeluarkan",
@@ -4667,6 +4670,7 @@ const rekapSantriData = useMemo(() => {
                         }}
                         className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-pointer hover:border-red-400 hover:shadow-md transition-all group"
                       >
+                         {/* Isinya tetap sama, tidak berubah */}
                         <div className="w-12 h-12 rounded-xl bg-red-100 text-red-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="22" y2="13"/><line x1="22" y1="8" x2="17" y2="13"/></svg>
                         </div>
