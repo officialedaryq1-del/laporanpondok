@@ -4601,7 +4601,13 @@ const rekapSantriData = useMemo(() => {
                       {/* Kartu 3: Total SP Aktif (Bisa Diklik) */}
                       <div 
                         onClick={() => {
-                            const dataAktif = filteredDashboardPelanggaran.filter(p => p.sp && p.sp !== 'Tanpa SP');
+                            const santriDikeluarkanSet = new Set(
+                                filteredDashboardPelanggaran.filter(p => p.sp === 'Dikeluarkan').map(p => p.santri_id || p.nama)
+                            );
+                            const dataAktif = filteredDashboardPelanggaran.filter(p => {
+                                if (!p.sp || p.sp === 'Tanpa SP' || p.sp === 'Dikeluarkan') return false;
+                                return !santriDikeluarkanSet.has(p.santri_id || p.nama);
+                            });
                             setDashCardModal({
                                 title: "Rincian Status SP Aktif",
                                 subtitle: "Menampilkan santri yang memiliki status Surat Peringatan aktif",
@@ -4623,7 +4629,13 @@ const rekapSantriData = useMemo(() => {
                       {/* Kartu 4: SP Terakhir / SP 3 (Bisa Diklik) */}
                       <div 
                         onClick={() => {
-                            const dataBerat = filteredDashboardPelanggaran.filter(p => p.sp === 'SP Terakhir' || p.sp === 'SP 3');
+                            const santriDikeluarkanSet = new Set(
+                                filteredDashboardPelanggaran.filter(p => p.sp === 'Dikeluarkan').map(p => p.santri_id || p.nama)
+                            );
+                            const dataBerat = filteredDashboardPelanggaran.filter(p => {
+                                if (p.sp !== 'SP Terakhir' && p.sp !== 'SP 3') return false;
+                                return !santriDikeluarkanSet.has(p.santri_id || p.nama);
+                            });
                             setDashCardModal({
                                 title: "Rincian Kasus SP 3 / SP Terakhir",
                                 subtitle: "Menampilkan santri dengan tingkat pelanggaran berat",
