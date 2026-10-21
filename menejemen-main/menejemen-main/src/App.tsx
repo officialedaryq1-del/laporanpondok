@@ -1439,7 +1439,12 @@ const presensiAsatidzLedger = useMemo(() => {
     : presensiGuruList.filter(p => p.waktu_sholat === presensiWaktuFilter);
 
   return guruList.map((guru, index) => {
-    const guruRecords = filteredList.filter(p => String(p.guru_id) === String(guru.id || guru.nama_guru));
+    // PERBAIKAN 1: Logika pencocokan guru yang lebih robust (ID atau Nama)
+    const guruRecords = filteredList.filter(p => {
+      const matchId = String(p.guru_id) === String(guru.id);
+      const matchName = String(p.nama_guru || '').trim().toLowerCase() === String(guru.nama_guru || '').trim().toLowerCase();
+      return matchId || matchName;
+    });
 
     const dailyStatus: Record<number, Record<string, string>> = {};
     let h = 0, a = 0, i = 0, p_stat = 0, t = 0;
@@ -1464,7 +1469,8 @@ const presensiAsatidzLedger = useMemo(() => {
           return;
         }
 
-        const record = recordsForDay.find(r => r.waktu_sholat === slot);
+        // PERBAIKAN 2: Pencocokan waktu sholat yang case-insensitive
+        const record = recordsForDay.find(r => String(r.waktu_sholat || '').toLowerCase() === slot.toLowerCase());
         const st = record ? record.status : '-';
         daySlotsStatus[slot] = st;
 
@@ -1479,11 +1485,11 @@ const presensiAsatidzLedger = useMemo(() => {
     });
 
     const total = h + a + i + p_stat + t;
-    // Rumus diubah: (h + p_stat) digabung sebagai nilai positif / pembilang
+    // Rumus: (h + p_stat) digabung sebagai nilai positif / pembilang
     const pct = total > 0 ? (((h + p_stat) / total) * 100).toFixed(1) : '0.0';
     
     return {
-        id: guru.id || guru.nama_guru, // <--- TAMBAHKAN BARIS INI DI SINI
+        id: guru.id || guru.nama_guru, 
         no: index + 1,
         nama: guru.nama_guru,
         dailyStatus,
