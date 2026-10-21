@@ -1164,7 +1164,7 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
       }
     // Fetch data Presensi Asatidz
     try {
-      const pRes = await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz?select=*&order=tanggal.desc&limit=2000`, { headers: reqHeaders });
+      const pRes = await fetch(`${SUPABASE_URL}/rest/v1/presensi_asatidz?select=*&order=tanggal.desc&limit=100000`, { headers: reqHeaders });
       if (pRes.ok) {
         const data = await pRes.json();
         if (Array.isArray(data)) setPresensiGuruList(data);
