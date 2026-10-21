@@ -1587,11 +1587,11 @@ const handleUpdateSinglePresensi = async (newStatus: 'H' | 'A' | 'I' | 'P' | 'T'
   
 // --- 1. FUNGSI DOWNLOAD TEMPLATE ---
 const handleDownloadTemplateAsatidz = () => {
-  const headers = ['Tanggal (YYYY-MM-DD)', 'Waktu Sholat (Asar/Magrib/Isya/Subuh)', 'Nama Guru', 'Status (H/A/I/P/T)'];
+  // Tambahkan kolom ID Guru di paling depan
+  const headers = ['ID Guru', 'Nama Guru', 'Tanggal (YYYY-MM-DD)', 'Waktu Sholat (Asar/Magrib/Isya/Subuh)', 'Status (H/A/I/P/T)'];
   
-  // UBAH: Gunakan koma (,) sebagai pemisah agar rapi di Excel standar
-  // Nama guru dibungkus tanda kutip ("") agar koma pada gelar tidak memecah kolom
-  const sampleData = guruList.map(g => `${new Date().toISOString().slice(0, 10)},Asar,"${g.nama_guru}",H`);
+  // Masukkan id dan nama ke dalam template, dibungkus kutip agar aman dari koma
+  const sampleData = guruList.map(g => `"${g.id}","${g.nama_guru}",${new Date().toISOString().slice(0, 10)},Asar,H`);
   
   const csvContent = '\uFEFF' + [headers.join(','), ...sampleData].join('\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1618,17 +1618,18 @@ const handleFileImportAsatidz = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (lines.length > 1) {
           const parsed: PresensiJamaahRecord[] = [];
           for (let i = 1; i < lines.length; i++) {
-            // Deteksi otomatis apakah file menggunakan koma (,) atau titik koma (;)
-           const separator = lines[i].includes(';') ? ';' : ',';
-            // UBAH: Regex khusus agar koma di dalam tanda kutip (gelar nama) tidak ikut terpotong
+            const separator = lines[i].includes(';') ? ';' : ',';
             const regex = new RegExp(`${separator}(?=(?:[^"]*"[^"]*")*[^"]*$)`);
             const cols = lines[i].split(regex).map(c => c.replace(/^"|"$/g, '').trim());
 
-            if (cols.length >= 4) {
-              let tgl = cols[0];
-              if (!tgl || tgl.length < 8) continue; // Lewati baris kosong atau rusak
+            // Ubah pengecekan menjadi 5 kolom (karena ada ID)
+            if (cols.length >= 5) {
+              const id_guru = cols[0]; // Kolom 1: ID Guru
+              const nama = cols[1];    // Kolom 2: Nama Guru
+              let tgl = cols[2];       // Kolom 3: Tanggal
+              
+              if (!tgl || tgl.length < 8) continue; 
 
-              // Otomatis perbaiki format jika Excel mengubahnya menjadi DD/MM/YYYY
               if (tgl.includes('/')) {
                 const parts = tgl.split('/');
                 if (parts.length === 3 && parts[2].length === 4) {
@@ -1636,17 +1637,14 @@ const handleFileImportAsatidz = (e: React.ChangeEvent<HTMLInputElement>) => {
                 }
               }
 
-              const wkt = ['Asar', 'Magrib', 'Isya', 'Subuh'].includes(cols[1]) ? cols[1] : 'Asar';
-              const nama = cols[2];
-              const stat = ['H', 'A', 'I', 'P', 'T'].includes(cols[3].toUpperCase()) ? cols[3].toUpperCase() : 'H';
-              
-              const matchedGuru = guruList.find(g => g.nama_guru.toLowerCase() === nama.toLowerCase());
-              const guru_id = matchedGuru ? String(matchedGuru.id || matchedGuru.nama_guru) : nama;
+              const wkt = ['Asar', 'Magrib', 'Isya', 'Subuh'].includes(cols[3]) ? cols[3] : 'Asar';
+              const stat = ['H', 'A', 'I', 'P', 'T'].includes(cols[4].toUpperCase()) ? cols[4].toUpperCase() : 'H';
 
+              // Langsung dorong data menggunakan ID dari CSV tanpa perlu mencocokkan nama lagi
               parsed.push({
                 tanggal: tgl,
                 waktu_sholat: wkt as any,
-                guru_id: guru_id,
+                guru_id: id_guru, 
                 nama_guru: nama,
                 status: stat as any
               });
