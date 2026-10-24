@@ -561,7 +561,7 @@
 
       while (hasMore) {
         try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/log_setoran?select=*&limit=${batchSize}&offset=${offset}`, { headers: reqHeaders });
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/log_setoran_rows?select=*&limit=${batchSize}&offset=${offset}`, { headers: reqHeaders });
           if (!res.ok) break;
           const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {
@@ -581,7 +581,7 @@
 
     async function fetchAllSantri() {
       try {
-        let res = await fetch(`${SUPABASE_URL}/rest/v1/santri?select=*&limit=1500`, { headers: reqHeaders });
+        let res = await fetch(`${SUPABASE_URL}/rest/v1/santri_rows?select=*&limit=1500`, { headers: reqHeaders });
         if (!res.ok) {
           res = await fetch(`${SUPABASE_URL}/rest/v1/data_santri?select=*&limit=1500`, { headers: reqHeaders });
         }
@@ -598,10 +598,10 @@
     async function fetchTahfidhTargets() {
       try {
         const [tlRes, tpRes, tdRes, uRes] = await Promise.all([
-          fetch(`${SUPABASE_URL}/rest/v1/target_lembaga_putri?select=*`, { headers: reqHeaders }),
-          fetch(`${SUPABASE_URL}/rest/v1/target_pojokan_putri?select=*`, { headers: reqHeaders }),
-          fetch(`${SUPABASE_URL}/rest/v1/target_deresan_putri?select=*`, { headers: reqHeaders }),
-          fetch(`${SUPABASE_URL}/rest/v1/ustadzah?select=*`, { headers: reqHeaders })
+          fetch(`${SUPABASE_URL}/rest/v1/target_lembaga_rows?select=*`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/target_pojokan_rows?select=*`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/target_deresan_rows?select=*`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/ustadz_rows?select=*`, { headers: reqHeaders })
         ]);
 
         if (tlRes.ok) {
