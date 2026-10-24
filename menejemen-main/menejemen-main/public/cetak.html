@@ -1841,13 +1841,13 @@
                   <div>
                     <h3 class="text-xs font-black uppercase text-slate-800 tracking-wide mb-1.5 flex items-center gap-1.5">
                       <i class="fas fa-bullseye text-orange-600"></i>
-                      <span>1. EVALUASI TARGET POJOKAN / ZIYADAH BULANAN (KELAS VII - XII)</span>
+                      <span>1. EVALUASI TARGET POJOKAN / ZIYADAH BULANAN (KELAS VII - IX)</span>
                     </h3>
                     <table class="tahfidh-table">
                       <thead>
                         <tr>
                           <th class="th-tahfidh-orange" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-orange">Kls ${k}</th>`).join('')}
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-orange">Kls ${k}</th><th class="th-tahfidh-orange">%</th>`).join('')}
                           <th class="th-tahfidh-orange" style="width: 80px;">JUMLAH</th>
                           <th class="th-tahfidh-orange" style="width: 80px;">PERSENTASE</th>
                         </tr>
@@ -1855,13 +1855,23 @@
                       <tbody>
                         <tr>
                           <td class="font-semibold p-1.5 border border-slate-300">Tercapai</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-700 bg-emerald-50/50">${targetStats.pojokan.target[k]}</td>`).join('')}
+                          ${KELAS_KEYS_TAHFIDH.map(k => {
+                            const tot = targetStats.pojokan.total[k] || 1;
+                            const val = targetStats.pojokan.target[k] || 0;
+                            const pct = Math.round((val / tot) * 100);
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-700 bg-emerald-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-700 bg-emerald-50/50">${pct}%</td>`;
+                          }).join('')}
                           <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-emerald-100 text-emerald-800">${sumPojokTarget}</td>
                           <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-emerald-100 text-emerald-800">${pctPojokTarget}%</td>
                         </tr>
                         <tr>
                           <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${targetStats.pojokan.belum[k]}</td>`).join('')}
+                          ${KELAS_KEYS_TAHFIDH.map(k => {
+                            const tot = targetStats.pojokan.total[k] || 1;
+                            const val = targetStats.pojokan.belum[k] || 0;
+                            const pct = Math.round((val / tot) * 100);
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td>`;
+                          }).join('')}
                           <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumPojokBelum}</td>
                           <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctPojokTarget}%</td>
                         </tr>
@@ -1872,13 +1882,13 @@
                   <div>
                     <h3 class="text-xs font-black uppercase text-slate-800 tracking-wide mb-1.5 flex items-center gap-1.5">
                       <i class="fas fa-landmark text-amber-600"></i>
-                      <span>2. EVALUASI TARGET CAPAIAN LEMBAGA PUTRI (KELAS VII - XII)</span>
+                      <span>2. EVALUASI TARGET CAPAIAN LEMBAGA (KELAS VII - IX)</span>
                     </h3>
                     <table class="tahfidh-table">
                       <thead>
                         <tr>
                           <th class="th-tahfidh-yellow" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-yellow">Kls ${k}</th>`).join('')}
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-yellow">Kls ${k}</th><th class="th-tahfidh-yellow">%</th>`).join('')}
                           <th class="th-tahfidh-yellow" style="width: 80px;">JUMLAH</th>
                           <th class="th-tahfidh-yellow" style="width: 80px;">PERSENTASE</th>
                         </tr>
@@ -1886,19 +1896,34 @@
                       <tbody>
                         <tr>
                           <td class="font-semibold p-1.5 border border-slate-300">Tercapai</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-blue-700 bg-blue-50/50">${targetStats.lembaga.target[k]}</td>`).join('')}
+                          ${KELAS_KEYS_TAHFIDH.map(k => {
+                            const tot = targetStats.lembaga.total[k] || 1;
+                            const val = targetStats.lembaga.target[k] || 0;
+                            const pct = Math.round((val / tot) * 100);
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-blue-700 bg-blue-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-blue-700 bg-blue-50/50">${pct}%</td>`;
+                          }).join('')}
                           <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-blue-100 text-blue-800">${sumLembagaTarget}</td>
                           <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-blue-100 text-blue-800">${pctLembagaTarget}%</td>
                         </tr>
                         <tr>
                           <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${targetStats.lembaga.belum[k]}</td>`).join('')}
+                          ${KELAS_KEYS_TAHFIDH.map(k => {
+                            const tot = targetStats.lembaga.total[k] || 1;
+                            const val = targetStats.lembaga.belum[k] || 0;
+                            const pct = Math.round((val / tot) * 100);
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td>`;
+                          }).join('')}
                           <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumLembagaBelum}</td>
                           <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctLembagaTarget}%</td>
                         </tr>
                         <tr class="bg-emerald-50/70 font-semibold">
                           <td class="p-1.5 border border-slate-300 text-emerald-800">Khatam 30 Juz</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-800">${targetStats.lembaga.khatam[k]}</td>`).join('')}
+                          ${KELAS_KEYS_TAHFIDH.map(k => {
+                            const tot = targetStats.lembaga.total[k] || 1;
+                            const val = targetStats.lembaga.khatam[k] || 0;
+                            const pct = Math.round((val / tot) * 100);
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-800">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-800">${pct}%</td>`;
+                          }).join('')}
                           <td class="text-center font-mono font-black p-1.5 border border-slate-300" colspan="2">${sumLembagaKhatam} Santri</td>
                         </tr>
                       </tbody>
@@ -1908,13 +1933,13 @@
                   <div>
                     <h3 class="text-xs font-black uppercase text-slate-800 tracking-wide mb-1.5 flex items-center gap-1.5">
                       <i class="fas fa-book-open-reader text-blue-600"></i>
-                      <span>3. EVALUASI TARGET DERESAN / MUROJAAH BULANAN (KELAS VII - XII)</span>
+                      <span>3. EVALUASI TARGET DERESAN / MUROJAAH BULANAN (KELAS VII - IX)</span>
                     </h3>
                     <table class="tahfidh-table">
                       <thead>
                         <tr>
                           <th class="th-tahfidh-blue" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-blue">Kls ${k}</th>`).join('')}
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-blue">Kls ${k}</th><th class="th-tahfidh-blue">%</th>`).join('')}
                           <th class="th-tahfidh-blue" style="width: 80px;">JUMLAH</th>
                           <th class="th-tahfidh-blue" style="width: 80px;">PERSENTASE</th>
                         </tr>
@@ -1922,13 +1947,23 @@
                       <tbody>
                         <tr>
                           <td class="font-semibold p-1.5 border border-slate-300">Tercapai</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-teal-700 bg-teal-50/50">${targetStats.deresan.target[k]}</td>`).join('')}
+                          ${KELAS_KEYS_TAHFIDH.map(k => {
+                            const tot = targetStats.deresan.total[k] || 1;
+                            const val = targetStats.deresan.target[k] || 0;
+                            const pct = Math.round((val / tot) * 100);
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-teal-700 bg-teal-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-teal-700 bg-teal-50/50">${pct}%</td>`;
+                          }).join('')}
                           <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-teal-100 text-teal-800">${sumDeresanTarget}</td>
                           <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-teal-100 text-teal-800">${pctDeresanTarget}%</td>
                         </tr>
                         <tr>
                           <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${targetStats.deresan.belum[k]}</td>`).join('')}
+                          ${KELAS_KEYS_TAHFIDH.map(k => {
+                            const tot = targetStats.deresan.total[k] || 1;
+                            const val = targetStats.deresan.belum[k] || 0;
+                            const pct = Math.round((val / tot) * 100);
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td>`;
+                          }).join('')}
                           <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumDeresanBelum}</td>
                           <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctDeresanTarget}%</td>
                         </tr>
@@ -2740,64 +2775,99 @@
                 </tbody>
               </table>
 
-              <p style="font-weight: bold; font-size: 8.5pt; margin: 6pt 0 2pt 0;">1. EVALUASI TARGET POJOKAN / ZIYADAH</p>
+              <p style="font-weight: bold; font-size: 8.5pt; margin: 6pt 0 2pt 0;">1. EVALUASI TARGET POJOKAN / ZIYADAH (KELAS VII - IX)</p>
               <table width="100%" border="1" cellpadding="3" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt; margin-bottom: 6pt;">
                 <tr style="background-color: #f8cbad; font-weight: bold; text-align: center;">
                   <th style="border: 1px solid #000000; width: 22%;">KETERANGAN</th>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 11%;">Kls ${k}</th>`).join('')}
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 9%;">Kls ${k}</th><th style="border: 1px solid #000000; width: 6%;">%</th>`).join('')}
                   <th style="border: 1px solid #000000; width: 12%;">TOTAL</th>
                 </tr>
                 <tr>
                   <td style="border: 1px solid #000000; font-weight: bold; padding: 3px;">Tercapai</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; color: #047857; font-weight: bold;">${tsW.pojokan.target[k]}</td>`).join('')}
+                  ${KELAS_KEYS_TAHFIDH.map(k => {
+                    const tot = tsW.pojokan.total[k] || 1;
+                    const val = tsW.pojokan.target[k] || 0;
+                    const pct = Math.round((val/tot)*100);
+                    return `<td style="border: 1px solid #000000; text-align: center; color: #047857; font-weight: bold;">${val}</td><td style="border: 1px solid #000000; text-align: center; color: #047857; font-weight: bold;">${pct}%</td>`;
+                  }).join('')}
                   <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #ecfdf5;">${sumPojokTargetW} (${pctPojokTargetW}%)</td>
                 </tr>
                 <tr>
                   <td style="border: 1px solid #000000; font-weight: bold; color: #b91c1c; padding: 3px;">Belum Target</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${tsW.pojokan.belum[k]}</td>`).join('')}
+                  ${KELAS_KEYS_TAHFIDH.map(k => {
+                    const tot = tsW.pojokan.total[k] || 1;
+                    const val = tsW.pojokan.belum[k] || 0;
+                    const pct = Math.round((val/tot)*100);
+                    return `<td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${val}</td><td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${pct}%</td>`;
+                  }).join('')}
                   <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #fef2f2;">${sumPojokBelumW} (${100 - pctPojokTargetW}%)</td>
                 </tr>
               </table>
 
-              <p style="font-weight: bold; font-size: 8.5pt; margin: 6pt 0 2pt 0;">2. EVALUASI TARGET LEMBAGA</p>
+              <p style="font-weight: bold; font-size: 8.5pt; margin: 6pt 0 2pt 0;">2. EVALUASI TARGET LEMBAGA (KELAS VII - IX)</p>
               <table width="100%" border="1" cellpadding="3" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt; margin-bottom: 6pt;">
                 <tr style="background-color: #fff2cc; font-weight: bold; text-align: center;">
                   <th style="border: 1px solid #000000; width: 22%;">KETERANGAN</th>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 11%;">Kls ${k}</th>`).join('')}
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 9%;">Kls ${k}</th><th style="border: 1px solid #000000; width: 6%;">%</th>`).join('')}
                   <th style="border: 1px solid #000000; width: 12%;">TOTAL</th>
                 </tr>
                 <tr>
                   <td style="border: 1px solid #000000; font-weight: bold; padding: 3px;">Tercapai</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; color: #1d4ed8; font-weight: bold;">${tsW.lembaga.target[k]}</td>`).join('')}
+                  ${KELAS_KEYS_TAHFIDH.map(k => {
+                    const tot = tsW.lembaga.total[k] || 1;
+                    const val = tsW.lembaga.target[k] || 0;
+                    const pct = Math.round((val/tot)*100);
+                    return `<td style="border: 1px solid #000000; text-align: center; color: #1d4ed8; font-weight: bold;">${val}</td><td style="border: 1px solid #000000; text-align: center; color: #1d4ed8; font-weight: bold;">${pct}%</td>`;
+                  }).join('')}
                   <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #eff6ff;">${sumLembagaTargetW} (${pctLembagaTargetW}%)</td>
                 </tr>
                 <tr>
                   <td style="border: 1px solid #000000; font-weight: bold; color: #b91c1c; padding: 3px;">Belum Target</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${tsW.lembaga.belum[k]}</td>`).join('')}
+                  ${KELAS_KEYS_TAHFIDH.map(k => {
+                    const tot = tsW.lembaga.total[k] || 1;
+                    const val = tsW.lembaga.belum[k] || 0;
+                    const pct = Math.round((val/tot)*100);
+                    return `<td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${val}</td><td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${pct}%</td>`;
+                  }).join('')}
                   <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #fef2f2;">${sumLembagaBelumW} (${100 - pctLembagaTargetW}%)</td>
                 </tr>
                 <tr>
                   <td style="border: 1px solid #000000; font-weight: bold; color: #047857; padding: 3px;">Khatam 30 Juz</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; font-weight: bold; color: #047857;">${tsW.lembaga.khatam[k]}</td>`).join('')}
+                  ${KELAS_KEYS_TAHFIDH.map(k => {
+                    const tot = tsW.lembaga.total[k] || 1;
+                    const val = tsW.lembaga.khatam[k] || 0;
+                    const pct = Math.round((val/tot)*100);
+                    return `<td style="border: 1px solid #000000; text-align: center; font-weight: bold; color: #047857;">${val}</td><td style="border: 1px solid #000000; text-align: center; font-weight: bold; color: #047857;">${pct}%</td>`;
+                  }).join('')}
                   <td style="border: 1px solid #000000; text-align: center; font-weight: bold;">${sumLembagaKhatamW} Santri</td>
                 </tr>
               </table>
 
-              <p style="font-weight: bold; font-size: 8.5pt; margin: 6pt 0 2pt 0;">3. EVALUASI TARGET DERESAN / MUROJAAH</p>
+              <p style="font-weight: bold; font-size: 8.5pt; margin: 6pt 0 2pt 0;">3. EVALUASI TARGET DERESAN / MUROJAAH (KELAS VII - IX)</p>
               <table width="100%" border="1" cellpadding="3" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt; margin-bottom: 6pt;">
                 <tr style="background-color: #bdd7ee; font-weight: bold; text-align: center;">
                   <th style="border: 1px solid #000000; width: 22%;">KETERANGAN</th>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 11%;">Kls ${k}</th>`).join('')}
+                  ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 9%;">Kls ${k}</th><th style="border: 1px solid #000000; width: 6%;">%</th>`).join('')}
                   <th style="border: 1px solid #000000; width: 12%;">TOTAL</th>
                 </tr>
                 <tr>
                   <td style="border: 1px solid #000000; font-weight: bold; padding: 3px;">Tercapai</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; color: #0f766e; font-weight: bold;">${tsW.deresan.target[k]}</td>`).join('')}
+                  ${KELAS_KEYS_TAHFIDH.map(k => {
+                    const tot = tsW.deresan.total[k] || 1;
+                    const val = tsW.deresan.target[k] || 0;
+                    const pct = Math.round((val/tot)*100);
+                    return `<td style="border: 1px solid #000000; text-align: center; color: #0f766e; font-weight: bold;">${val}</td><td style="border: 1px solid #000000; text-align: center; color: #0f766e; font-weight: bold;">${pct}%</td>`;
+                  }).join('')}
                   <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #f0fdfa;">${sumDeresanTargetW} (${pctDeresanTargetW}%)</td>
                 </tr>
                 <tr>
                   <td style="border: 1px solid #000000; font-weight: bold; color: #b91c1c; padding: 3px;">Belum Target</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${tsW.deresan.belum[k]}</td>`).join('')}
+                  ${KELAS_KEYS_TAHFIDH.map(k => {
+                    const tot = tsW.deresan.total[k] || 1;
+                    const val = tsW.deresan.belum[k] || 0;
+                    const pct = Math.round((val/tot)*100);
+                    return `<td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${val}</td><td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${pct}%</td>`;
+                  }).join('')}
                   <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #fef2f2;">${sumDeresanBelumW} (${100 - pctDeresanTargetW}%)</td>
                 </tr>
               </table>
