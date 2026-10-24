@@ -360,7 +360,7 @@
     let transaksiTabunganData = [];
 
     const POJOK_PER_JUZ = 20;
-    const KELAS_KEYS_TAHFIDH = ['7', '8', '9', '10', '11', '12'];
+    const KELAS_KEYS_TAHFIDH = ['7', '8', '9'];
     const TAHUN_AJARAN_ORDER = ["07", "08", "09", "10", "11", "12", "01", "02", "03", "04", "05", "06"];
 
     // Urutan tampilan juz dari 29 turun ke 1, lalu juz 30
@@ -730,7 +730,13 @@
 
         santriData = santriList;
         daftarNilaiData = nilaiList;
-        santriTahfidhData = santriTahfidhList; // <--- TAMBAHKAN INI
+        
+        // Filter khusus URL Kedua: Hanya ambil santri Kelas 7, 8, dan 9
+        santriTahfidhData = santriTahfidhList.filter(s => {
+          const k = mapKelasTarget(s.kelas);
+          return k === '7' || k === '8' || k === '9';
+        });
+        
         logsTahfidhData = logsList;
 
         await preloadImagesAsBase64();
