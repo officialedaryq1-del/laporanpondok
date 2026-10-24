@@ -1029,7 +1029,7 @@
 
         const keg = String(log.kegiatan || '').toLowerCase().replace(/[^a-z0-9]/g, '');
         const logKet = String(log.keterangan || '').toLowerCase();
-        const isMurojaah = keg.includes('muroja') || keg.includes('muraja') || keg.includes('ulang');
+       const isMurojaah = keg.includes('muroja') || keg.includes('muraja') || keg.includes('ulang') || keg.includes('deresan');
         const isZiyadah = keg.includes('ziyadah') || keg === '' || keg.includes('tambah');
         
         const jAkhirLog = safeExtractNum(log.juz_akhir);
