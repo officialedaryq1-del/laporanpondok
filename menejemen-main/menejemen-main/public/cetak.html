@@ -314,23 +314,14 @@
   </div>
 
   <script>
-    // --- KONFIGURASI SUPABASE UTAMA (IKU, Presensi, Ledger, Santri, dll) ---
-const SUPABASE_URL = 'https://uswyqskcrrhqxwebeakz.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... (isi key utama Anda)';
-const reqHeadersUtama = {
-  apikey: SUPABASE_ANON_KEY,
-  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-  'Content-Type': 'application/json'
-};
+    const SUPABASE_URL = 'https://uswyqskcrrhqxwebeakz.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzd3lxc2tjcnJocXh3ZWJlYWt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2NjkzNzIsImV4cCI6MjEwNjI0NTM3Mn0.YiDGxufCcIuNfAMNwcyDjTfkokfynPg5r55glF1OgTk';
 
-// --- KONFIGURASI SUPABASE KEDUA (Khusus Tahfidz / Tabungan dari URL Lain) ---
-const SUPABASE_URL_KEDUA = 'https://nkirqdfmppziridabvwb.supabase.co';
-const SUPABASE_ANON_KEY_KEDUA = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5raXJxZGZtcHB6aXJpZGFidndiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5MDU5MDgsImV4cCI6MjEwNDQ4MTkwOH0.ctqZ3aw4j9_jSBI9uF2NO2YWJ1PpeM2yo_HU-yZUjXI';
-const reqHeadersKedua = {
-  apikey: SUPABASE_ANON_KEY_KEDUA,
-  Authorization: `Bearer ${SUPABASE_ANON_KEY_KEDUA}`,
-  'Content-Type': 'application/json'
-};
+    const reqHeaders = {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    };
 
     let divisionsData = [];
     let ikusData = [];
@@ -570,7 +561,7 @@ const reqHeadersKedua = {
 
       while (hasMore) {
         try {
-          const res = await fetch(`${SUPABASE_URL_KEDUA}/rest/v1/log_setoran_rows?select=*&limit=${batchSize}&offset=${offset}`, { headers: reqHeaders });
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/log_setoran_rows?select=*&limit=${batchSize}&offset=${offset}`, { headers: reqHeaders });
           if (!res.ok) break;
           const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {
@@ -607,10 +598,10 @@ const reqHeadersKedua = {
     async function fetchTahfidhTargets() {
       try {
         const [tlRes, tpRes, tdRes, uRes] = await Promise.all([
-          fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_lembaga_rows?select=*`, { headers: reqHeaders }),
-          fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_pojokan_rows?select=*`, { headers: reqHeaders }),
-          fetch(`${SUPABASE_UR_KEDUAL}/rest/v1/target_deresan_rows?select=*`, { headers: reqHeaders }),
-          fetch(`${SUPABASE_URL_KEDUA}/rest/v1/ustadz_rows?select=*`, { headers: reqHeaders })
+          fetch(`${SUPABASE_URL}/rest/v1/target_lembaga_rows?select=*`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/target_pojokan_rows?select=*`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/target_deresan_rows?select=*`, { headers: reqHeaders }),
+          fetch(`${SUPABASE_URL}/rest/v1/ustadz_rows?select=*`, { headers: reqHeaders })
         ]);
 
         if (tlRes.ok) {
