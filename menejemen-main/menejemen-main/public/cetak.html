@@ -216,7 +216,7 @@
           Disampaikan dalam Rapat Bulanan<br>Yayasan Asem Bungkuk Pati
         </p>
         <p class="text-xs text-slate-500 italic font-serif" id="coverLabelTanggalRapat">
-          Kudus, 15 September 2026
+          Pati, 15 September 2026
         </p>
       </div>
 
@@ -262,7 +262,7 @@
         </h2>
         
         <p class="text-xs sm:text-sm text-slate-800 text-justify leading-relaxed indent-8 max-w-4xl mx-auto">
-          Laporan Kegiatan Bulanan Pondok Tahfidh Yanbu'ul Qur'an 1 Pati Putra Unit SMP, periode <span id="pengesahanBulanTeks" class="font-bold">September 2026</span> Semester Gasal Tahun Ajaran 2026/2027 sebagai bahan evaluasi pelaksanaan Kegiatan Belajar Mengajar (KBM), Capaian Tahfidh Al-Qur'an, dan Akuntabilitas Keuangan Tabungan Santri di Yanbu'ul Qur'an Boarding School 1 Pati Putri Margorejo Kecamatan Wedarijaksa Kabupaten Pati telah disetujui oleh Tim untuk diajukan ke Ketua Yayasan Asem Bungkuk Sukoharjo Wedarijaksa Pati.
+          Laporan Kegiatan Bulanan Pondok Tahfidh Yanbu'ul Qur'an 1 Pati Putra Unit SMP, periode <span id="pengesahanBulanTeks" class="font-bold">September 2026</span> Semester Gasal Tahun Ajaran 2026/2027 sebagai bahan evaluasi pelaksanaan Kegiatan Belajar Mengajar (KBM), Capaian Tahfidh Al-Qur'an, dan Akuntabilitas Keuangan Tabungan Santri di Pondok Tahfidh Yanbu'ul Qur'an 1 Pati Putra Unit SMP Sukoharjo Kecamatan Wedarijaksa Kabupaten Pati telah disetujui oleh Tim untuk diajukan ke Ketua Yayasan Asem Bungkuk Sukoharjo Wedarijaksa Pati.
         </p>
 
         <p class="text-right text-xs sm:text-sm text-slate-700 mt-6 max-w-4xl mx-auto" id="pengesahanTanggalLokasi">
@@ -1444,64 +1444,6 @@
           });
         });
 
-        pagesHTML += `
-          <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
-
-          <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
-            <div>
-              <div class="kop-border pb-3 mb-4 flex items-center gap-5">
-                <img 
-                  src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" 
-                  alt="Logo" 
-                  class="w-16 h-16 object-contain shrink-0"
-                />
-                <div class="flex-1 text-center pr-6">
-                  <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
-                  <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
-                    PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                  </h1>
-                  <p class="text-[10px] text-slate-600 mt-0.5">
-                    Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                  </p>
-                </div>
-              </div>
-
-              <div class="text-center mb-4">
-                <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
-                  LAPORAN CAPAIAN INDIKATOR KINERJA UTAMA (IKU)
-                </h2>
-                <p class="text-xs font-semibold text-slate-600 mt-0.5">
-                  Unit Kerja: <span class="text-blue-700 font-bold">Divisi ${div.name} (${div.code})</span> &bull; Periode: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
-                </p>
-                <p class="text-[10px] text-slate-400 font-mono mt-0.5">
-                  Tanggal Unduh: ${dateFormatted}
-                </p>
-              </div>
-
-              <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs border-collapse border border-slate-300">
-                  <thead>
-                    <tr class="bg-slate-100 text-slate-700 font-black uppercase tracking-wider text-[10px] border-b border-slate-300">
-                      <th class="border border-slate-300 p-2 w-8 text-center">NO</th>
-                      <th class="border border-slate-300 p-2 w-[130px] max-w-[140px]">INDIKATOR (IKU)</th>
-                      <th class="border border-slate-300 p-1.5 text-center w-14">TARGET</th>
-                      <th class="border border-slate-300 p-1.5 text-center w-14 bg-blue-50/70 text-blue-900">REALISASI</th>
-                      <th class="border border-slate-300 p-1.5 text-center w-14 bg-emerald-50/70 text-emerald-900">YAYASAN</th>
-                      <th class="border border-slate-300 p-2 w-[130px] max-w-[140px]">KEGIATAN</th>
-                      <th class="border border-slate-300 p-1.5 text-center w-16">WAKTU</th>
-                      <th class="border border-slate-300 p-2.5 min-w-[280px]">CATATAN EVALUASI &amp; TINDAK LANJUT</th>
-                    </tr>
-                  </thead>
-                  <tbody class="text-slate-800 divide-y divide-slate-200">
-                    ${tableRowsHTML}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
-          </div>
-        `;
       });
 
       if (divisiFilter === 'all') {
@@ -2168,91 +2110,7 @@
           `;
         });
 
-        pagesHTML += `
-          <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
-
-          <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
-            <div>
-              <div class="kop-border pb-3 mb-4 flex items-center gap-5">
-                <img 
-                  src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" 
-                  alt="Logo" 
-                  class="w-16 h-16 object-contain shrink-0"
-                />
-                <div class="flex-1 text-center pr-6">
-                  <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
-                  <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
-                    PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                  </h1>
-                  <p class="text-[10px] text-slate-600 mt-0.5">
-                    Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                  </p>
-                </div>
-              </div>
-
-              <div class="text-center mb-3">
-                <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
-                  LAPORAN STATISTIK &amp; REKAPITULASI TABUNGAN SANTRI
-                </h2>
-                <p class="text-xs font-semibold text-slate-600 mt-0.5">
-                  Unit Pengelola: <span class="text-blue-700 font-bold">Sarpras &amp; Bendahara (Pengelola Tabungan Santri)</span> &bull; Periode: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
-                </p>
-                <p class="text-[10px] text-slate-400 font-mono mt-0.5">
-                  Tanggal Unduh: ${dateFormatted}
-                </p>
-              </div>
-
-              <!-- TABEL RINGKASAN METRIK TABUNGAN -->
-              <table class="excel-table mb-4" style="text-align: center;">
-                <thead>
-                  <tr style="background-color: #f1f5f9;">
-                    <th style="width: 28%; background-color: #ecfdf5; color: #047857;">TOTAL SALDO SELURUH SANTRI</th>
-                    <th style="width: 24%; background-color: #fffbeb; color: #b45309;">TABUNGAN KELAS VII</th>
-                    <th style="width: 24%; background-color: #eff6ff; color: #1d4ed8;">TABUNGAN KELAS VIII</th>
-                    <th style="width: 24%; background-color: #fef2f2; color: #b91c1c;">TABUNGAN KELAS IX</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="font-weight: bold; font-family: monospace; font-size: 13px;">
-                    <td style="background-color: #f0fdf4; color: #047857; padding: 6px; font-weight: 900;">${formatRupiah(tabunganData.totalSaldoAll)}</td>
-                    <td style="background-color: #fefce8; color: #b45309; padding: 6px;">${formatRupiah(tabunganData.totalKls7)}</td>
-                    <td style="background-color: #eff6ff; color: #1d4ed8; padding: 6px;">${formatRupiah(tabunganData.totalKls8)}</td>
-                    <td style="background-color: #fff1f2; color: #b91c1c; padding: 6px;">${formatRupiah(tabunganData.totalKls9)}</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs border-collapse border border-slate-300">
-                  <thead>
-                    <tr class="bg-slate-100 text-slate-700 font-black uppercase tracking-wider text-[10px] border-b border-slate-300 text-center">
-                      <th class="border border-slate-300 p-2 w-10">NO</th>
-                      <th class="border border-slate-300 p-2 text-left w-36">KELAS</th>
-                      <th class="border border-slate-300 p-2 w-32">JUMLAH SANTRI</th>
-                      <th class="border border-slate-300 p-2 bg-emerald-50 text-emerald-900 w-44 text-right">TOTAL TABUNGAN KELAS</th>
-                      <th class="border border-slate-300 p-2 text-right w-40">RATA-RATA PER SANTRI</th>
-                      <th class="border border-slate-300 p-2 bg-blue-50 text-blue-900 w-28">KONTRIBUSI (%)</th>
-                    </tr>
-                  </thead>
-                  <tbody class="text-slate-800 divide-y divide-slate-200">
-                    ${tabunganRowsHTML}
-                  </tbody>
-                  <tfoot>
-                    <tr class="bg-slate-200 font-black text-slate-900 text-xs">
-                      <td colspan="2" class="border border-slate-300 p-2 text-center uppercase tracking-wider">TOTAL KESELURUHAN</td>
-                      <td class="border border-slate-300 p-2 text-center font-mono">${tabunganData.totalSiswaMenabung} Santri</td>
-                      <td class="border border-slate-300 p-2 text-right font-mono text-emerald-800">${formatRupiah(tabunganData.totalSaldoAll)}</td>
-                      <td class="border border-slate-300 p-2 text-right font-mono">${formatRupiah(Math.round(tabunganData.totalSaldoAll / (tabunganData.totalSiswaMenabung || 1)))}</td>
-                      <td class="border border-slate-300 p-2 text-center font-mono">100.0%</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-
-            <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
-          </div>
-        `;
+      
       }
 
       container.innerHTML = pagesHTML;
