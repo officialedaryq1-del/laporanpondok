@@ -708,7 +708,7 @@
 }
     async function initData() {
       try {
-        const [divRes, ikuRes, tplRes, subRes, presensiRes, mapelRes, santriList, nilaiList, logsList] = await Promise.all([
+        const [divRes, ikuRes, tplRes, subRes, presensiRes, mapelRes, santriList, santriTahfidhList, nilaiList, logsList] = await Promise.all([
           fetch(`${SUPABASE_URL}/rest/v1/divisions?select=*&order=id.asc`, { headers: reqHeaders }),
           fetch(`${SUPABASE_URL}/rest/v1/indikator_kinerja_utama?select=*&order=id.asc`, { headers: reqHeaders }),
           fetch(`${SUPABASE_URL}/rest/v1/checklist_templates?select=*&order=id.asc`, { headers: reqHeaders }),
