@@ -314,12 +314,23 @@
   </div>
 
   <script>
+    // --- 1. KONFIGURASI SUPABASE UTAMA (IKU, Ledger, Presensi, Santri) ---
     const SUPABASE_URL = 'https://uswyqskcrrhqxwebeakz.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzd3lxc2tjcnJocXh3ZWJlYWt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2NjkzNzIsImV4cCI6MjEwNjI0NTM3Mn0.YiDGxufCcIuNfAMNwcyDjTfkokfynPg5r55glF1OgTk';
-
+    
     const reqHeaders = {
       apikey: SUPABASE_ANON_KEY,
       Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    };
+    
+    // --- 2. KONFIGURASI SUPABASE KEDUA (Khusus Tahfidh & Tabungan) ---
+    const SUPABASE_URL_KEDUA = 'https://https://nkirqdfmppziridabvwb.supabase.co'; // GANTI DENGAN URL KEDUA
+    const SUPABASE_ANON_KEY_KEDUA = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5raXJxZGZtcHB6aXJpZGFidndiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5MDU5MDgsImV4cCI6MjEwNDQ4MTkwOH0.ctqZ3aw4j9_jSBI9uF2NO2YWJ1PpeM2yo_HU-yZUjXI'; // GANTI DENGAN KEY KEDUA
+    
+    const reqHeadersKedua = {
+      apikey: SUPABASE_ANON_KEY_KEDUA,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY_KEDUA}`,
       'Content-Type': 'application/json'
     };
 
@@ -342,7 +353,9 @@
     let customTargetsLembaga = {};
     let customTargetsPojokan = {};
     let customTargetsDeresan = {};
-
+    
+    let santriTahfidhData = []; // Khusus untuk menampung santri dari URL Kedua
+    
     // Data Penunjang Tabungan Santri
     let transaksiTabunganData = [];
 
@@ -553,35 +566,36 @@
       return all;
     }
 
-    async function fetchAllTahfidhLogs() {
-      let all = [];
-      let offset = 0;
-      const batchSize = 1000;
-      let hasMore = true;
+   async function fetchAllTahfidhLogs() {
+  let all = [];
+  let offset = 0;
+  const batchSize = 1000;
+  let hasMore = true;
 
-      while (hasMore) {
-        try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/log_setoran_rows?select=*&limit=${batchSize}&offset=${offset}`, { headers: reqHeaders });
-          if (!res.ok) break;
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            all = all.concat(data);
-            if (data.length < batchSize) hasMore = false;
-            else offset += batchSize;
-          } else {
-            hasMore = false;
-          }
-        } catch (e) {
-          console.warn('Selesai mengambil log setoran:', e);
-          break;
-        }
+  while (hasMore) {
+    try {
+      // Menggunakan SUPABASE_URL_KEDUA dan reqHeadersKedua
+      const res = await fetch(`${SUPABASE_URL_KEDUA}/rest/v1/log_setoran_rows?select=*&limit=${batchSize}&offset=${offset}`, { headers: reqHeadersKedua });
+      if (!res.ok) break;
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        all = all.concat(data);
+        if (data.length < batchSize) hasMore = false;
+        else offset += batchSize;
+      } else {
+        hasMore = false;
       }
-      return all;
+    } catch (e) {
+      console.warn('Selesai mengambil log setoran:', e);
+      break;
     }
+  }
+  return all;
+}
 
     async function fetchAllSantri() {
       try {
-        let res = await fetch(`${SUPABASE_URL}/rest/v1/santri_rows?select=*&limit=1500`, { headers: reqHeaders });
+        let res = await fetch(`${SUPABASE_URL}/rest/v1/santri?select=*&limit=1500`, { headers: reqHeaders });
         if (!res.ok) {
           res = await fetch(`${SUPABASE_URL}/rest/v1/data_santri?select=*&limit=1500`, { headers: reqHeaders });
         }
@@ -594,15 +608,33 @@
       }
       return [];
     }
-
+    
+      async function fetchAllSantriTahfidh() {
+        try {
+          let res = await fetch(`${SUPABASE_URL_KEDUA}/rest/v1/santri_rows?select=*&limit=1500`, { headers: reqHeadersKedua });
+          if (!res.ok) {
+            res = await fetch(`${SUPABASE_URL_KEDUA}/rest/v1/data_santri?select=*&limit=1500`, { headers: reqHeadersKedua });
+          }
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) return data;
+          }
+        } catch (e) {
+          console.warn('Gagal memuat tabel santri tahfidh dari URL kedua:', e);
+        }
+        return [];
+      }
     async function fetchTahfidhTargets() {
-      try {
-        const [tlRes, tpRes, tdRes, uRes] = await Promise.all([
-          fetch(`${SUPABASE_URL}/rest/v1/target_lembaga_rows?select=*`, { headers: reqHeaders }),
-          fetch(`${SUPABASE_URL}/rest/v1/target_pojokan_rows?select=*`, { headers: reqHeaders }),
-          fetch(`${SUPABASE_URL}/rest/v1/target_deresan_rows?select=*`, { headers: reqHeaders }),
-          fetch(`${SUPABASE_URL}/rest/v1/ustadz_rows?select=*`, { headers: reqHeaders })
-        ]);
+  try {
+    // Menggunakan SUPABASE_URL_KEDUA dan reqHeadersKedua
+    const [tlRes, tpRes, tdRes, uRes] = await Promise.all([
+      fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_lembaga_rows?select=*`, { headers: reqHeadersKedua }),
+      fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_pojokan_rows?select=*`, { headers: reqHeadersKedua }),
+      fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_deresan_rows?select=*`, { headers: reqHeadersKedua }),
+      fetch(`${SUPABASE_URL_KEDUA}/rest/v1/ustadz_rows?select=*`, { headers: reqHeadersKedua })
+    ]);
+
+    // ... (biarkan sisa kode di bawahnya tetap sama, mulai dari "if (tlRes.ok) { ...")
 
         if (tlRes.ok) {
           const data = await tlRes.json();
@@ -654,26 +686,26 @@
       }
     }
 
-    async function fetchTabunganData() {
+   async function fetchTabunganData() {
+  try {
+    const candidates = ['transaksi_tabungan', 'riwayat_tabungan', 'tabungan', 'setoran_tabungan'];
+    for (const tbl of candidates) {
       try {
-        const candidates = ['transaksi_tabungan', 'riwayat_tabungan', 'tabungan', 'setoran_tabungan'];
-        for (const tbl of candidates) {
-          try {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/${tbl}?select=*&order=created_at.desc&limit=2000`, { headers: reqHeaders });
-            if (res.ok) {
-              const data = await res.json();
-              if (Array.isArray(data) && data.length > 0) {
-                transaksiTabunganData = data;
-                break;
-              }
-            }
-          } catch {}
+        // Menggunakan SUPABASE_URL_KEDUA dan reqHeadersKedua
+        const res = await fetch(`${SUPABASE_URL_KEDUA}/rest/v1/${tbl}?select=*&order=created_at.desc&limit=2000`, { headers: reqHeadersKedua });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            transaksiTabunganData = data;
+            break;
+          }
         }
-      } catch (e) {
-        console.warn('Info: Memuat data transaksi tabungan fallback:', e);
-      }
+      } catch {}
     }
-
+  } catch (e) {
+    console.warn('Info: Memuat data transaksi tabungan fallback:', e);
+  }
+}
     async function initData() {
       try {
         const [divRes, ikuRes, tplRes, subRes, presensiRes, mapelRes, santriList, nilaiList, logsList] = await Promise.all([
@@ -684,8 +716,9 @@
           fetch(`${SUPABASE_URL}/rest/v1/presensi_siswa?select=*&order=tanggal.desc&limit=5000`, { headers: reqHeaders }),
           fetch(`${SUPABASE_URL}/rest/v1/daftar_mapel?select=*&order=nama_mapel.asc`, { headers: reqHeaders }),
           fetchAllSantri(),
+          fetchAllSantriTahfidh(), // <--- TAMBAHKAN INI
           fetchAllDaftarNilai(),
-          fetchAllTahfidhLogs()
+          fetchAllTahfidhLogs() // Pastikan ini sudah pakai SUPABASE_URL_KEDUA seperti langkah sebelumnya
         ]);
 
         if (divRes.ok) divisionsData = await divRes.json();
@@ -697,6 +730,7 @@
 
         santriData = santriList;
         daftarNilaiData = nilaiList;
+        santriTahfidhData = santriTahfidhList; // <--- TAMBAHKAN INI
         logsTahfidhData = logsList;
 
         await preloadImagesAsBase64();
@@ -959,7 +993,7 @@
 
       KELAS_KEYS_TAHFIDH.forEach(k => { santriMap[k] = []; });
 
-      santriData.forEach(s => {
+      santriTahfidhData.forEach(s => {
         const cls = mapKelasTarget(s.kelas) || '7';
         if (!santriMap[cls]) santriMap[cls] = [];
 
@@ -1012,8 +1046,7 @@
 
         const isCurMonth = (logBulan === bKey || logBulan === bInt);
 
-        const matchedSantri = santriById[String(log.santri_id || '').trim()] || 
-                              santriData.find(s => isSantriMatch(log, s));
+       const matchedSantri = santriById[String(log.santri_id || '').trim()] || santriTahfidhData.find(s => isSantriMatch(log, s));
 
         if (matchedSantri) {
           const targetSantri = santriById[String(matchedSantri.id || matchedSantri.nis).trim()];
@@ -1137,7 +1170,7 @@
       });
 
       const halaqohMap = new Map();
-      santriData.forEach(s => {
+      santriTahfidhData.forEach(s => {
         const hName = String(s.halaqoh || 'Tanpa Halaqoh').trim();
         const c = hName.toLowerCase().replace(/[^a-z0-9]/g, '');
         const uInfo = uMap[c] || { nama: hName, kamar: s.kamar || '-' };
