@@ -102,16 +102,16 @@
       background-color: #f8fafc;
     }
 
-    /* Gaya khusus tabel matrix tahfidh */
+   /* Gaya khusus tabel matrix tahfidh */
     .tahfidh-table {
       border-collapse: collapse;
       width: 100%;
-      font-size: 10px;
+      font-size: 8.5px; /* DIUBAH: Diperkecil agar muat 27 kolom */
       border: 1.5px solid #000000;
     }
     .tahfidh-table th, .tahfidh-table td {
       border: 1px solid #000000;
-      padding: 3px 4px;
+      padding: 2px 2px; /* DIUBAH: Padding dikurangi agar sel lebih ramping */
       vertical-align: middle;
     }
     .th-tahfidh-orange {
@@ -262,7 +262,7 @@
         </h2>
         
         <p class="text-xs sm:text-sm text-slate-800 text-justify leading-relaxed indent-8 max-w-4xl mx-auto">
-          Laporan Kegiatan Bulanan Pondok Tahfidh Yanbu'ul Qur'an 1 Pati Putra Unit SMP, periode <span id="pengesahanBulanTeks" class="font-bold">September 2026</span> Semester Gasal Tahun Ajaran 2026/2027 sebagai bahan evaluasi pelaksanaan Kegiatan Belajar Mengajar (KBM), Capaian Tahfidh Al-Qur'an, dan Akuntabilitas Keuangan Tabungan Santri di Yanbu'ul Qur'an Boarding School 1 Pati Putri Margorejo Kecamatan Wedarijaksa Kabupaten Pati telah disetujui oleh Tim untuk diajukan ke Ketua Yayasan Asem Bungkuk Sukoharjo Wedarijaksa Pati.
+          Laporan Kegiatan Bulanan Pondok Tahfidh Yanbu'ul Qur'an 1 Pati Putra Unit SMP, periode <span id="pengesahanBulanTeks" class="font-bold">September 2026</span> Semester Gasal Tahun Ajaran 2026/2027 sebagai bahan evaluasi pelaksanaan Kegiatan Belajar Mengajar (KBM), Capaian Tahfidh Al-Qur'an, dan Akuntabilitas Keuangan Tabungan Santri di Yanbu'ul Qur'an Boarding School 1 Pati  Margorejo Kecamatan Wedarijaksa Kabupaten Pati telah disetujui oleh Tim untuk diajukan ke Ketua Yayasan Asem Bungkuk Sukoharjo Wedarijaksa Pati.
         </p>
 
         <p class="text-right text-xs sm:text-sm text-slate-700 mt-6 max-w-4xl mx-auto" id="pengesahanTanggalLokasi">
@@ -347,8 +347,8 @@
     let logoBase64 = '';
     let tulisanArabBase64 = '';
 
-    // Data Penunjang Tahfidh Putri
-    let ustadzahTahfidhData = [];
+    // Data Penunjang Tahfidh 
+    let USTADZTahfidhData = [];
     let logsTahfidhData = [];
     let customTargetsLembaga = {};
     let customTargetsPojokan = {};
@@ -679,7 +679,7 @@
         }
 
         if (uRes.ok) {
-          ustadzahTahfidhData = await uRes.json();
+          USTADZTahfidhData = await uRes.json();
         }
       } catch (e) {
         console.warn('Kendala memuat target tahfidh:', e);
@@ -927,7 +927,7 @@
 
       const map = new Map();
       daftarNilaiData.forEach(n => {
-        const guru = String(n.nama_guru || 'Ustadzah Pengampu').trim();
+        const guru = String(n.nama_guru || 'USTADZ Pengampu').trim();
         const mapel = String(n.nama_mapel || 'Mata Pelajaran').trim();
         
         let kelas = n.kelas || 
@@ -1178,9 +1178,9 @@
         });
       });
 
-      // 3. REKAP PER HALAQOH USTADZAH (Termasuk Komparasi Bulan Kemarin)
+      // 3. REKAP PER HALAQOH USTADZ (Termasuk Komparasi Bulan Kemarin)
       const uMap = {};
-      ustadzahTahfidhData.forEach(u => {
+      USTADZTahfidhData.forEach(u => {
         if (u.nama) {
           const c = u.nama.toLowerCase().replace(/[^a-z0-9]/g, '');
           uMap[c] = { nama: u.nama, kamar: u.kamar || '-' };
@@ -1268,9 +1268,15 @@
         });
       });
 
-      halaqohRows.sort((a, b) => a.nama.localeCompare(b.nama));
+    halaqohRows.sort((a, b) => {
+        // 1. Urutkan berdasarkan Kelas (KLS) dari terkecil ke terbesar
+        if (a.kls !== b.kls) {
+          return String(a.kls).localeCompare(String(b.kls), undefined, {numeric: true});
+        }
+        // 2. Jika kelasnya sama, urutkan berdasarkan Nama Abjad
+        return a.nama.localeCompare(b.nama);
+      });
       return { targetStats, juzMatrix, halaqohRows };
-    }
 
     function getTabunganReportData() {
       const defaultPerKelas = {
@@ -1658,7 +1664,7 @@
                     <thead>
                       <tr>
                         <th style="width: 30px; text-align: center;">NO</th>
-                        <th style="width: 170px; text-align: left;">NAMA GURU / USTADZAH</th>
+                        <th style="width: 170px; text-align: left;">NAMA GURU / USTADZ</th>
                         <th style="width: 150px; text-align: left;">MATA PELAJARAN</th>
                         <th style="width: 60px; text-align: center;">KELAS</th>
                         <th style="width: 48px; text-align: center;">KKM</th>
@@ -1753,7 +1759,7 @@
 
                 <div class="text-center mb-4">
                   <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
-                    LAPORAN EVALUASI 3 TARGET KETAHFIDHAN SANTRI PUTRI
+                    LAPORAN EVALUASI 3 TARGET KETAHFIDHAN SANTRI 
                   </h2>
                   <p class="text-xs font-semibold text-slate-600 mt-0.5">
                     Unit Pengelola: <span class="text-blue-700 font-bold">Pondok Tahfidh Lilbanat</span> &bull; Periode: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
@@ -1941,7 +1947,7 @@
 
                 <div class="text-center mb-2">
                   <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
-                    REKAPITULASI PENDAPATAN HAFALAN SANTRI PUTRI PER KELAS
+                    REKAPITULASI PENDAPATAN HAFALAN SANTRI  PER KELAS
                   </h2>
                   <p class="text-xs font-semibold text-slate-600 mt-0.5">
                     Unit Kerja: <span class="text-blue-700 font-bold">Pondok Tahfidh Lilbanat</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
@@ -1977,7 +1983,7 @@
                     </tbody>
                     <tfoot>
                       <tr class="bg-slate-200 font-black text-slate-900">
-                        <td class="text-center p-1.5 border border-slate-300 text-[10.5px]">JUMLAH SANTRI PUTRI AKTIF</td>
+                        <td class="text-center p-1.5 border border-slate-300 text-[10.5px]">JUMLAH SANTRI  AKTIF</td>
                         ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${juzMatrix.total[k] || 0}</td>`).join('')}
                         <td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${totSantriAktif}</td>
                       </tr>
@@ -1990,7 +1996,7 @@
             </div>
           `; // <--- PASTIKAN BARIS INI ADA
           
-            <!-- // Halaman Tahfidh 3: Per Halaqoh Ustadzah
+            <!-- // Halaman Tahfidh 3: Per Halaqoh USTADZ
             
            // Generate Format Nama Bulan
             const selYear = parseInt(selectedBulan.split('-')[0], 10);
@@ -2032,7 +2038,7 @@
             pagesHTML += `
             <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
 
-            <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+            <div class="page-break a4-landscape-page page-sheet p-4 sm:p-6 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
               <div>
                 <div class="kop-border pb-3 mb-3 flex items-center gap-5">
                   <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" class="w-16 h-16 object-contain shrink-0" />
@@ -2044,23 +2050,23 @@
                 </div>
 
                 <div class="text-center mb-3">
-                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">REKAPITULASI CAPAIAN PER HALAQOH USTADZAH PUTRI</h2>
+                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">REKAPITULASI CAPAIAN PER HALAQOH USTADZ </h2>
                   <p class="text-xs font-semibold text-slate-600 mt-0.5">Unit Kerja: <span class="text-blue-700 font-bold">Pondok Tahfidh Lilbanat</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span></p>
                 </div>
 
                 <div class="overflow-x-auto">
                   <table class="tahfidh-table">
-                    <thead>
+                   <thead>
                       <tr>
-                        <th rowspan="3" class="th-tahfidh-orange" style="width: 25px;">NO</th>
-                        <th rowspan="3" class="th-tahfidh-orange" style="width: 150px;">HALAQOH USTADZAH</th>
-                        <th rowspan="3" class="th-tahfidh-orange" style="width: 35px;">KAMAR</th>
-                        <th rowspan="3" class="th-tahfidh-orange" style="width: 35px;">KLS</th>
-                        <th rowspan="3" class="th-tahfidh-orange" style="width: 35px;">JML SANTRI</th>
-                        <th rowspan="3" class="th-tahfidh-orange" style="width: 35px;">MASIH ZIADAH</th>
-                        <th rowspan="3" class="th-tahfidh-orange" style="width: 40px;">SANTRI BOYONG</th>
-                        <th rowspan="3" class="th-tahfidh-orange" style="width: 35px;">KHATAM</th>
-                        <th rowspan="3" class="th-tahfidh-orange" style="width: 35px;">KHOTI MIN</th>
+                        <th rowspan="3" class="th-tahfidh-orange">NO</th>
+                        <th rowspan="3" class="th-tahfidh-orange" style="min-width: 100px;">HALAQOH USTADZ</th>
+                        <th rowspan="3" class="th-tahfidh-orange">KMR</th>
+                        <th rowspan="3" class="th-tahfidh-orange">KLS</th>
+                        <th rowspan="3" class="th-tahfidh-orange">JML</th>
+                        <th rowspan="3" class="th-tahfidh-orange">ZIADAH</th>
+                        <th rowspan="3" class="th-tahfidh-orange">BOYONG</th>
+                        <th rowspan="3" class="th-tahfidh-orange">KHATAM</th>
+                        <th rowspan="3" class="th-tahfidh-orange">KHOTI<br>MIN</th>
                         <th colspan="6" class="th-tahfidh-green">TARGET POJOKAN</th>
                         <th colspan="6" class="th-tahfidh-yellow">TARGET LEMBAGA</th>
                         <th colspan="6" class="th-tahfidh-blue">TARGET DERESAN</th>
@@ -2068,18 +2074,18 @@
                       <tr>
                         <th colspan="2" class="th-tahfidh-green">${prevLbl}</th>
                         <th colspan="2" class="th-tahfidh-green">${currLbl}</th>
-                        <th rowspan="2" class="th-tahfidh-green" style="width: 30px;">IP</th>
-                        <th rowspan="2" class="th-tahfidh-green" style="width: 45px;">PROSENTASE</th>
+                        <th rowspan="2" class="th-tahfidh-green">IP</th>
+                        <th rowspan="2" class="th-tahfidh-green">%</th>
 
                         <th colspan="2" class="th-tahfidh-yellow">${prevLbl}</th>
                         <th colspan="2" class="th-tahfidh-yellow">${currLbl}</th>
-                        <th rowspan="2" class="th-tahfidh-yellow" style="width: 30px;">IP</th>
-                        <th rowspan="2" class="th-tahfidh-yellow" style="width: 45px;">PROSENTASE</th>
+                        <th rowspan="2" class="th-tahfidh-yellow">IP</th>
+                        <th rowspan="2" class="th-tahfidh-yellow">%</th>
 
                         <th colspan="2" class="th-tahfidh-blue">${prevLbl}</th>
                         <th colspan="2" class="th-tahfidh-blue">${currLbl}</th>
-                        <th rowspan="2" class="th-tahfidh-blue" style="width: 30px;">IP</th>
-                        <th rowspan="2" class="th-tahfidh-blue" style="width: 45px;">PROSENTASE</th>
+                        <th rowspan="2" class="th-tahfidh-blue">IP</th>
+                        <th rowspan="2" class="th-tahfidh-blue">%</th>
                       </tr>
                       <tr style="text-align: center; font-weight: bold;">
                         <th class="th-tahfidh-green">Y</th><th class="th-tahfidh-green text-rose-800">N</th>
@@ -2130,7 +2136,7 @@
                     </tbody>
                     <tfoot>
                       <tr class="bg-orange-100 font-black text-slate-900 text-[10px] text-center border-t-2 border-slate-800">
-                        <td colspan="4" class="p-2 border border-slate-300">TOTAL / RATA-RATA SANTRI PUTRI</td>
+                        <td colspan="4" class="p-2 border border-slate-300">TOTAL / RATA-RATA SANTRI </td>
                         <td class="p-2 border border-slate-300">${tJml}</td>
                         <td class="p-2 border border-slate-300">${tZiadah}</td>
                         <td class="p-2 border border-slate-300">${tBoyong}</td>
@@ -2701,7 +2707,7 @@
 
               <div style="text-align: center; margin-bottom: 8pt;">
                 <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
-                  LAPORAN EVALUASI 3 TARGET KETAHFIDHAN SANTRI PUTRI
+                  LAPORAN EVALUASI 3 TARGET KETAHFIDHAN SANTRI 
                 </p>
                 <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
                   Unit Pengelola: Pondok Tahfidh Lilbanat &bull; Periode: ${bInfo.lengkap}
@@ -2876,7 +2882,7 @@
 
               <div style="text-align: center; margin-bottom: 8pt;">
                 <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
-                  REKAPITULASI PENDAPATAN HAFALAN SANTRI PUTRI PER KELAS
+                  REKAPITULASI PENDAPATAN HAFALAN SANTRI  PER KELAS
                 </p>
                 <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
                   Unit Pengelola: Pondok Tahfidh Lilbanat &bull; Periode: ${bInfo.lengkap}
@@ -2911,7 +2917,7 @@
                 </tbody>
                 <tfoot>
                   <tr style="background-color: #e2e8f0; font-weight: bold;">
-                    <td style="border: 1px solid #000000; padding: 3px; text-align: center;">TOTAL SANTRI PUTRI</td>
+                    <td style="border: 1px solid #000000; padding: 3px; text-align: center;">TOTAL SANTRI </td>
                     ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; padding: 3px; text-align: center;">${jmW.total[k] || 0}</td>`).join('')}
                     <td style="border: 1px solid #000000; padding: 3px; text-align: center;">${totSantriAktifW}</td>
                   </tr>
@@ -2993,7 +2999,7 @@
               <div style="page-break-before: always; mso-break-type: section-break;"></div>
               <!-- Judul Laporan -->
               <div style="text-align: center; margin-bottom: 8pt; margin-top: 15pt;">
-                <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0;">REKAPITULASI KETAHFIDHAN SANTRI PUTRI PER HALAQOH</p>
+                <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0;">REKAPITULASI KETAHFIDHAN SANTRI  PER HALAQOH</p>
                 <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">Unit Pengelola: Pondok Tahfidh Lilbanat &bull; Periode: ${bInfo.lengkap}</p>
               </div>
 
@@ -3001,7 +3007,7 @@
                 <thead>
                   <tr style="background-color: #f8cbad; text-align: center; font-weight: bold;">
                     <th rowspan="3" style="border: 1px solid #000000; width: 3%;">NO</th>
-                    <th rowspan="3" style="border: 1px solid #000000; width: 14%;">HALAQOH USTADZAH</th>
+                    <th rowspan="3" style="border: 1px solid #000000; width: 14%;">HALAQOH USTADZ</th>
                     <th rowspan="3" style="border: 1px solid #000000; width: 4%;">KMR</th>
                     <th rowspan="3" style="border: 1px solid #000000; width: 4%;">KLS</th>
                     <th rowspan="3" style="border: 1px solid #000000; width: 4%;">JML</th>
@@ -3045,7 +3051,7 @@
                 </tbody>
                 <tfoot>
                   <tr style="background-color: #ffedd5; font-weight: bold; text-align: center;">
-                    <td colspan="4" style="border: 1px solid #000000; padding: 3px;">TOTAL / RATA-RATA SANTRI PUTRI</td>
+                    <td colspan="4" style="border: 1px solid #000000; padding: 3px;">TOTAL / RATA-RATA SANTRI </td>
                     <td style="border: 1px solid #000000; padding: 3px;">${tJw}</td>
                     <td style="border: 1px solid #000000; padding: 3px;">${tZw}</td>
                     <td style="border: 1px solid #000000; padding: 3px;">${tBw}</td>
@@ -3263,7 +3269,7 @@
                 <td align="center" style="text-align: center; padding-top: 0pt;">
                   <p style="font-size: 17pt; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 1.5px; line-height: 1.2;">
                     LAPORAN BULANAN<br>
-                    YANBU'UL QUR'AN BOARDING SCHOOL 1 PATI PUTRI
+                    YANBU'UL QUR'AN BOARDING SCHOOL 1 PATI 
                   </p>
                   <div style="border-bottom: 2pt solid #000000; display: inline-block; padding-bottom: 2px; margin-top: 6pt;">
                     <p style="font-size: 13.5pt; font-weight: bold; margin: 0; color: #1e3a8a; text-transform: uppercase; letter-spacing: 2px;">
@@ -3333,7 +3339,7 @@
               <tr>
                 <td style="text-align: justify; font-size: 10pt; line-height: 1.4; padding: 0 40pt;">
                   <p style="text-indent: 30pt; margin: 0;">
-                    Laporan Kegiatan Bulanan Yanbu'ul Qur'an Boarding School 1 Pati Putri, periode <b>${bInfo.lengkap}</b> Semester Gasal Tahun Ajaran 2026/2027 sebagai bahan evaluasi pelaksanaan Kegiatan Belajar Mengajar (KBM), Capaian Tahfidh Al-Qur'an, dan Akuntabilitas Keuangan Tabungan Santri di Yanbu'ul Qur'an Boarding School 1 Pati Putri Margorejo Kecamatan Wedarijaksa Kabupaten Pati telah disetujui oleh Tim untuk diajukan ke Ketua Yayasan Asem Bungkuk Sukoharjo Wedarijaksa Pati.
+                    Laporan Kegiatan Bulanan Yanbu'ul Qur'an Boarding School 1 Pati , periode <b>${bInfo.lengkap}</b> Semester Gasal Tahun Ajaran 2026/2027 sebagai bahan evaluasi pelaksanaan Kegiatan Belajar Mengajar (KBM), Capaian Tahfidh Al-Qur'an, dan Akuntabilitas Keuangan Tabungan Santri di Yanbu'ul Qur'an Boarding School 1 Pati  Margorejo Kecamatan Wedarijaksa Kabupaten Pati telah disetujui oleh Tim untuk diajukan ke Ketua Yayasan Asem Bungkuk Sukoharjo Wedarijaksa Pati.
                   </p>
                 </td>
               </tr>
