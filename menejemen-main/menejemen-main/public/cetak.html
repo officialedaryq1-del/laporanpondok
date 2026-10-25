@@ -1268,7 +1268,7 @@
         });
       });
 
-    halaqohRows.sort((a, b) => {
+   halaqohRows.sort((a, b) => {
         // 1. Urutkan berdasarkan Kelas (KLS) dari terkecil ke terbesar
         if (a.kls !== b.kls) {
           return String(a.kls).localeCompare(String(b.kls), undefined, {numeric: true});
@@ -1277,6 +1277,7 @@
         return a.nama.localeCompare(b.nama);
       });
       return { targetStats, juzMatrix, halaqohRows };
+    } // <--- TAMBAHKAN KURUNG KURAWAL TUTUP INI DI SINI
 
     function getTabunganReportData() {
       const defaultPerKelas = {
@@ -1992,11 +1993,11 @@
                 </div>
               </div>
 
-              <<div class="text-center text-[10px] text-slate-400 font-serif pt-3">${pageNumberCounter++}</div>
+              <div class="text-center text-[10px] text-slate-400 font-serif pt-3">${pageNumberCounter++}</div>
             </div>
           `; // <--- PASTIKAN BARIS INI ADA
           
-            <!-- // Halaman Tahfidh 3: Per Halaqoh USTADZ
+           // Halaman Tahfidh 3: Per Halaqoh USTADZ
             
            // Generate Format Nama Bulan
             const selYear = parseInt(selectedBulan.split('-')[0], 10);
