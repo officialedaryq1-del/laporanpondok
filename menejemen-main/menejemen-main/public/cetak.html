@@ -994,6 +994,13 @@
       const bKey = String(bulanDigit).padStart(2, '0');
       const bInt = String(parseInt(bKey, 10));
 
+      // Dapatkan referensi bulan sebelumnya
+      let prevM = parseInt(bKey, 10) - 1;
+      let prevY = parseInt(selectedBulan.split('-')[0], 10);
+      if (prevM === 0) { prevM = 12; prevY--; }
+      const prevBKey = String(prevM).padStart(2, '0');
+      const prevBInt = String(prevM);
+
       const santriMap = {};
       const santriById = {};
 
@@ -1007,10 +1014,13 @@
           ...s,
           cls,
           maxZiyadahAbs: 0,
+          maxZiyadahAbsPrev: 0, // NEW
           maxZiyadahJuz: 0,
           maxZiyadahPojok: 0,
           totalZiyadahBulan: 0,
           totalMurojaahBulan: 0,
+          totalZiyadahPrevBulan: 0, // NEW
+          totalMurojaahPrevBulan: 0, // NEW
           hasLogsRecorded: false,
           hasKhatamLog: false
         };
@@ -1029,7 +1039,7 @@
 
         const keg = String(log.kegiatan || '').toLowerCase().replace(/[^a-z0-9]/g, '');
         const logKet = String(log.keterangan || '').toLowerCase();
-       const isMurojaah = keg.includes('muroja') || keg.includes('muraja') || keg.includes('ulang') || keg.includes('deresan');
+        const isMurojaah = keg.includes('muroja') || keg.includes('muraja') || keg.includes('ulang') || keg.includes('deresan');
         const isZiyadah = keg.includes('ziyadah') || keg === '' || keg.includes('tambah');
         
         const jAkhirLog = safeExtractNum(log.juz_akhir);
@@ -1051,8 +1061,9 @@
         }
 
         const isCurMonth = (logBulan === bKey || logBulan === bInt);
+        const isPrevMonth = (logBulan === prevBKey || logBulan === prevBInt);
 
-       const matchedSantri = santriById[String(log.santri_id || '').trim()] || santriTahfidhData.find(s => isSantriMatch(log, s));
+        const matchedSantri = santriById[String(log.santri_id || '').trim()] || santriTahfidhData.find(s => isSantriMatch(log, s));
 
         if (matchedSantri) {
           const targetSantri = santriById[String(matchedSantri.id || matchedSantri.nis).trim()];
@@ -1062,17 +1073,24 @@
               if (isMurojaah) targetSantri.totalMurojaahBulan += hal;
               if (isZiyadah) targetSantri.totalZiyadahBulan += hal;
             }
+            if (isPrevMonth) { // Kalkulasi Bulan Kemarin
+              if (isMurojaah) targetSantri.totalMurojaahPrevBulan += hal;
+              if (isZiyadah) targetSantri.totalZiyadahPrevBulan += hal;
+            }
             if (isLogKhatam) targetSantri.hasKhatamLog = true;
 
-            if (isZiyadah && isMonthUpTo(logBulan, bKey)) {
+            if (isZiyadah) {
               const j = safeExtractNum(log.juz_akhir);
               const p = safeExtractNum(log.pojok_akhir);
               if (j >= 1 && j <= 30) {
                 const abs = getAbsolutePojok(j, p);
-                if (abs > targetSantri.maxZiyadahAbs) {
+                if (isMonthUpTo(logBulan, bKey) && abs > targetSantri.maxZiyadahAbs) {
                   targetSantri.maxZiyadahAbs = abs;
                   targetSantri.maxZiyadahJuz = j;
                   targetSantri.maxZiyadahPojok = p;
+                }
+                if (isMonthUpTo(logBulan, prevBKey) && abs > targetSantri.maxZiyadahAbsPrev) {
+                  targetSantri.maxZiyadahAbsPrev = abs;
                 }
               }
             }
@@ -1130,13 +1148,7 @@
       });
 
       // 2. MATRIKS DISTRIBUSI PEROLEHAN JUZ PER KELAS
-      const juzMatrix = {
-        khotimin: {},
-        khatam: {},
-        juz: {},
-        belumSetor: {},
-        total: {}
-      };
+      const juzMatrix = { khotimin: {}, khatam: {}, juz: {}, belumSetor: {}, total: {} };
 
       KELAS_KEYS_TAHFIDH.forEach(k => {
         juzMatrix.khotimin[k] = targetStats.lembaga.khotimin[k];
@@ -1166,7 +1178,7 @@
         });
       });
 
-      // 3. REKAP PER HALAQOH USTADZAH
+      // 3. REKAP PER HALAQOH USTADZAH (Termasuk Komparasi Bulan Kemarin)
       const uMap = {};
       ustadzahTahfidhData.forEach(u => {
         if (u.nama) {
@@ -1182,12 +1194,7 @@
         const uInfo = uMap[c] || { nama: hName, kamar: s.kamar || '-' };
 
         if (!halaqohMap.has(hName)) {
-          halaqohMap.set(hName, {
-            nama: hName,
-            kamar: uInfo.kamar,
-            kelasSet: new Set(),
-            santriList: []
-          });
+          halaqohMap.set(hName, { nama: hName, kamar: uInfo.kamar, kelasSet: new Set(), santriList: [] });
         }
         const cls = mapKelasTarget(s.kelas) || '7';
         halaqohMap.get(hName).kelasSet.add(cls);
@@ -1203,6 +1210,7 @@
 
         let masihZiadah = 0, santriBoyong = 0, santriKhatam = 0, santriKhotimin = 0;
         let passPojok = 0, passLembaga = 0, passDeresan = 0;
+        let passPojokPrev = 0, passLembagaPrev = 0, passDeresanPrev = 0; // Hitungan Bulan Kemarin
 
         g.santriList.forEach(s => {
           const cls = s.cls || mapKelasTarget(s.kelas) || '7';
@@ -1216,38 +1224,51 @@
           else if (isKhatam) santriKhatam++;
           else masihZiadah++;
 
+          // Evaluasi Pojokan
           const minP = targetStats.pojokan.min[cls] || 20;
           if (s.totalZiyadahBulan >= minP) passPojok++;
+          if (s.totalZiyadahPrevBulan >= minP) passPojokPrev++;
 
+          // Evaluasi Lembaga
           const cTL = customTargetsLembaga[`${bKey}_${cls}`] || customTargetsLembaga[`${bInt}_${cls}`];
           let defTL = DefaultTargetLembaga[bKey]?.[cls] || { j: 30, p: 15 };
           let absTL = getAbsolutePojok(cTL ? cTL.juz : defTL.j, cTL ? cTL.pojokan : defTL.p);
           if (isKhatam || (absTL > 0 && s.maxZiyadahAbs >= absTL)) passLembaga++;
 
+          const cTLPrev = customTargetsLembaga[`${prevBKey}_${cls}`] || customTargetsLembaga[`${prevBInt}_${cls}`];
+          let defTLPrev = DefaultTargetLembaga[prevBKey]?.[cls] || { j: 30, p: 15 };
+          let absTLPrev = getAbsolutePojok(cTLPrev ? cTLPrev.juz : defTLPrev.j, cTLPrev ? cTLPrev.pojokan : defTLPrev.p);
+          const isKhatamPrev = s.maxZiyadahAbsPrev >= (29 * POJOK_PER_JUZ);
+          if (isKhatamPrev || (absTLPrev > 0 && s.maxZiyadahAbsPrev >= absTLPrev)) passLembagaPrev++;
+
+          // Evaluasi Deresan
           const minD = targetStats.deresan.min[cls] || 30;
           if (s.totalMurojaahBulan >= minD) passDeresan++;
+          if (s.totalMurojaahPrevBulan >= minD) passDeresanPrev++;
         });
 
         halaqohRows.push({
-          nama: g.nama,
-          kamar: g.kamar,
-          kls: Array.from(g.kelasSet).sort().join(', '),
-          jml,
-          masihZiadah,
-          santriBoyong,
-          santriKhatam,
-          santriKhotimin,
-          passPojok,
+          nama: g.nama, kamar: g.kamar, kls: Array.from(g.kelasSet).sort().join(', '),
+          jml, masihZiadah, santriBoyong, santriKhatam, santriKhotimin,
+
+          passPojokPrev, failPojokPrev: jml - passPojokPrev,
+          passPojok, failPojok: jml - passPojok,
+          ipPojok: passPojok - passPojokPrev,
           pctPojok: Math.round((passPojok / jml) * 100),
-          passLembaga,
+
+          passLembagaPrev, failLembagaPrev: jml - passLembagaPrev,
+          passLembaga, failLembaga: jml - passLembaga,
+          ipLembaga: passLembaga - passLembagaPrev,
           pctLembaga: Math.round((passLembaga / jml) * 100),
-          passDeresan,
+
+          passDeresanPrev, failDeresanPrev: jml - passDeresanPrev,
+          passDeresan, failDeresan: jml - passDeresan,
+          ipDeresan: passDeresan - passDeresanPrev,
           pctDeresan: Math.round((passDeresan / jml) * 100)
         });
       });
 
       halaqohRows.sort((a, b) => a.nama.localeCompare(b.nama));
-
       return { targetStats, juzMatrix, halaqohRows };
     }
 
@@ -1968,82 +1989,174 @@
               <div class="text-center text-[10px] text-slate-400 font-serif pt-3">${pageNumberCounter++}</div>
             </div>
 
-            <!-- Halaman Tahfidh 3: Per Halaqoh Ustadzah -->
+            <!-- // Halaman Tahfidh 3: Per Halaqoh Ustadzah
+            
+            // Generate Format Nama Bulan
+            const selYear = parseInt(selectedBulan.split('-')[0], 10);
+            const selMonth = parseInt(selectedBulan.split('-')[1], 10);
+            let prevMNum = selMonth - 1;
+            let prevYNum = selYear;
+            if(prevMNum === 0){ prevMNum = 12; prevYNum--; }
+            const monthsId = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sept", "Okt", "Nov", "Des"];
+            const currLbl = monthsId[selMonth - 1] + "'" + String(selYear).slice(-2);
+            const prevLbl = monthsId[prevMNum - 1] + "'" + String(prevYNum).slice(-2);
+
+            const formatIP = (ip) => {
+              if (ip > 0) return `<span class="text-emerald-600 font-bold">▲ ${ip}</span>`;
+              if (ip < 0) return `<span class="text-rose-600 font-bold">▼ ${Math.abs(ip)}</span>`;
+              return `<span class="text-slate-400 font-bold">-</span>`;
+            };
+
+            // Hitung Baris Total
+            let tJml = 0, tZiadah = 0, tBoyong = 0, tKhatam = 0, tKhotimin = 0;
+            let tPojokPY = 0, tPojokPN = 0, tPojokCY = 0, tPojokCN = 0;
+            let tLembagaPY = 0, tLembagaPN = 0, tLembagaCY = 0, tLembagaCN = 0;
+            let tDeresanPY = 0, tDeresanPN = 0, tDeresanCY = 0, tDeresanCN = 0;
+
+            hRowsW.forEach(h => {
+                tJml += h.jml; tZiadah += h.masihZiadah; tBoyong += h.santriBoyong; tKhatam += h.santriKhatam; tKhotimin += h.santriKhotimin;
+                tPojokPY += h.passPojokPrev; tPojokPN += h.failPojokPrev; tPojokCY += h.passPojok; tPojokCN += h.failPojok;
+                tLembagaPY += h.passLembagaPrev; tLembagaPN += h.failLembagaPrev; tLembagaCY += h.passLembaga; tLembagaCN += h.failLembaga;
+                tDeresanPY += h.passDeresanPrev; tDeresanPN += h.failDeresanPrev; tDeresanCY += h.passDeresan; tDeresanCN += h.failDeresan;
+            });
+
+            const tPojokIP = tPojokCY - tPojokPY;
+            const tPojokPct = tJml > 0 ? Math.round((tPojokCY / tJml) * 100) : 0;
+            const tLembagaIP = tLembagaCY - tLembagaPY;
+            const tLembagaPct = tJml > 0 ? Math.round((tLembagaCY / tJml) * 100) : 0;
+            const tDeresanIP = tDeresanCY - tDeresanPY;
+            const tDeresanPct = tJml > 0 ? Math.round((tDeresanCY / tJml) * 100) : 0;
+
+            pagesHTML += `
             <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
 
             <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
               <div>
                 <div class="kop-border pb-3 mb-3 flex items-center gap-5">
-                  <img 
-                    src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" 
-                    alt="Logo" 
-                    class="w-16 h-16 object-contain shrink-0"
-                  />
+                  <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" class="w-16 h-16 object-contain shrink-0" />
                   <div class="flex-1 text-center pr-6">
                     <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
-                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
-                      PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                    </h1>
-                    <p class="text-[10px] text-slate-600 mt-0.5">
-                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                    </p>
+                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP</h1>
+                    <p class="text-[10px] text-slate-600 mt-0.5">Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah</p>
                   </div>
                 </div>
 
                 <div class="text-center mb-3">
-                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
-                    REKAPITULASI CAPAIAN PER HALAQOH USTADZAH PUTRI
-                  </h2>
-                  <p class="text-xs font-semibold text-slate-600 mt-0.5">
-                    Unit Kerja: <span class="text-blue-700 font-bold">Pondok Tahfidh Lilbanat</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
-                  </p>
+                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">REKAPITULASI CAPAIAN PER HALAQOH USTADZAH PUTRI</h2>
+                  <p class="text-xs font-semibold text-slate-600 mt-0.5">Unit Kerja: <span class="text-blue-700 font-bold">Pondok Tahfidh Lilbanat</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span></p>
                 </div>
 
                 <div class="overflow-x-auto">
                   <table class="tahfidh-table">
                     <thead>
                       <tr>
-                        <th rowspan="2" class="th-tahfidh-orange" style="width: 25px;">NO</th>
-                        <th rowspan="2" class="th-tahfidh-orange" style="width: 170px;">HALAQOH USTADZAH</th>
-                        <th rowspan="2" class="th-tahfidh-orange" style="width: 45px;">KAMAR</th>
-                        <th rowspan="2" class="th-tahfidh-orange" style="width: 45px;">KELAS</th>
-                        <th rowspan="2" class="th-tahfidh-orange" style="width: 45px;">JML</th>
-                        <th rowspan="2" class="th-tahfidh-orange" style="width: 45px;">ZIADAH</th>
-                        <th rowspan="2" class="th-tahfidh-orange" style="width: 45px;">BOYONG</th>
-                        <th rowspan="2" class="th-tahfidh-orange" style="width: 45px;">KHATAM</th>
-                        <th colspan="2" class="th-tahfidh-green">TARGET POJOKAN</th>
-                        <th colspan="2" class="th-tahfidh-yellow">TARGET LEMBAGA</th>
-                        <th colspan="2" class="th-tahfidh-blue">TARGET DERESAN</th>
+                        <th rowspan="3" class="th-tahfidh-orange" style="width: 25px;">NO</th>
+                        <th rowspan="3" class="th-tahfidh-orange" style="width: 150px;">HALAQOH USTADZAH</th>
+                        <th rowspan="3" class="th-tahfidh-orange" style="width: 35px;">KAMAR</th>
+                        <th rowspan="3" class="th-tahfidh-orange" style="width: 35px;">KLS</th>
+                        <th rowspan="3" class="th-tahfidh-orange" style="width: 35px;">JML SANTRI</th>
+                        <th rowspan="3" class="th-tahfidh-orange" style="width: 35px;">MASIH ZIADAH</th>
+                        <th rowspan="3" class="th-tahfidh-orange" style="width: 40px;">SANTRI BOYONG</th>
+                        <th rowspan="3" class="th-tahfidh-orange" style="width: 35px;">KHATAM</th>
+                        <th rowspan="3" class="th-tahfidh-orange" style="width: 35px;">KHOTI MIN</th>
+                        <th colspan="6" class="th-tahfidh-green">TARGET POJOKAN</th>
+                        <th colspan="6" class="th-tahfidh-yellow">TARGET LEMBAGA</th>
+                        <th colspan="6" class="th-tahfidh-blue">TARGET DERESAN</th>
                       </tr>
                       <tr>
-                        <th class="th-tahfidh-green" style="width: 45px;">SUDAH</th>
-                        <th class="th-tahfidh-green" style="width: 45px;">%</th>
-                        <th class="th-tahfidh-yellow" style="width: 45px;">SUDAH</th>
-                        <th class="th-tahfidh-yellow" style="width: 45px;">%</th>
-                        <th class="th-tahfidh-blue" style="width: 45px;">SUDAH</th>
-                        <th class="th-tahfidh-blue" style="width: 45px;">%</th>
+                        <th colspan="2" class="th-tahfidh-green">${prevLbl}</th>
+                        <th colspan="2" class="th-tahfidh-green">${currLbl}</th>
+                        <th rowspan="2" class="th-tahfidh-green" style="width: 30px;">IP</th>
+                        <th rowspan="2" class="th-tahfidh-green" style="width: 45px;">PROSENTASE</th>
+
+                        <th colspan="2" class="th-tahfidh-yellow">${prevLbl}</th>
+                        <th colspan="2" class="th-tahfidh-yellow">${currLbl}</th>
+                        <th rowspan="2" class="th-tahfidh-yellow" style="width: 30px;">IP</th>
+                        <th rowspan="2" class="th-tahfidh-yellow" style="width: 45px;">PROSENTASE</th>
+
+                        <th colspan="2" class="th-tahfidh-blue">${prevLbl}</th>
+                        <th colspan="2" class="th-tahfidh-blue">${currLbl}</th>
+                        <th rowspan="2" class="th-tahfidh-blue" style="width: 30px;">IP</th>
+                        <th rowspan="2" class="th-tahfidh-blue" style="width: 45px;">PROSENTASE</th>
+                      </tr>
+                      <tr style="text-align: center; font-weight: bold;">
+                        <th class="th-tahfidh-green">Y</th><th class="th-tahfidh-green text-rose-800">N</th>
+                        <th class="th-tahfidh-green">Y</th><th class="th-tahfidh-green text-rose-800">N</th>
+
+                        <th class="th-tahfidh-yellow">Y</th><th class="th-tahfidh-yellow text-rose-800">N</th>
+                        <th class="th-tahfidh-yellow">Y</th><th class="th-tahfidh-yellow text-rose-800">N</th>
+
+                        <th class="th-tahfidh-blue">Y</th><th class="th-tahfidh-blue text-rose-800">N</th>
+                        <th class="th-tahfidh-blue">Y</th><th class="th-tahfidh-blue text-rose-800">N</th>
                       </tr>
                     </thead>
                     <tbody>
                       ${halaqohRows.map((h, hIdx) => `
-                        <tr class="hover:bg-slate-50">
-                          <td class="text-center font-mono font-bold text-slate-500">${hIdx + 1}</td>
-                          <td class="font-bold text-slate-900">${h.nama}</td>
-                          <td class="text-center font-bold font-mono text-slate-700">${h.kamar}</td>
-                          <td class="text-center text-[9px] text-slate-600 font-semibold">${h.kls}</td>
-                          <td class="text-center font-mono font-bold text-slate-800">${h.jml}</td>
-                          <td class="text-center font-mono text-emerald-700 font-bold">${h.masihZiadah}</td>
-                          <td class="text-center font-mono text-slate-500">${h.santriBoyong}</td>
-                          <td class="text-center font-mono font-bold text-blue-700 bg-blue-50/40">${h.santriKhatam}</td>
-                          <td class="text-center font-mono font-bold text-emerald-700">${h.passPojok}</td>
-                          <td class="text-center font-mono font-bold ${h.pctPojok >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-50 text-rose-700'}">${h.pctPojok}%</td>
-                          <td class="text-center font-mono font-bold text-amber-700">${h.passLembaga}</td>
-                          <td class="text-center font-mono font-bold ${h.pctLembaga >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-50 text-rose-700'}">${h.pctLembaga}%</td>
-                          <td class="text-center font-mono font-bold text-blue-700">${h.passDeresan}</td>
-                          <td class="text-center font-mono font-bold ${h.pctDeresan >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-50 text-rose-700'}">${h.pctDeresan}%</td>
+                        <tr class="hover:bg-slate-50 border-b border-slate-300 text-center">
+                          <td class="font-bold font-mono text-slate-500">${hIdx + 1}</td>
+                          <td class="font-bold text-slate-900 text-left truncate">${h.nama}</td>
+                          <td class="font-bold font-mono text-slate-700">${h.kamar}</td>
+                          <td class="text-[9px] text-slate-600 font-semibold">${h.kls}</td>
+                          <td class="font-mono font-bold text-slate-800">${h.jml}</td>
+                          <td class="font-mono text-emerald-700 font-bold">${h.masihZiadah}</td>
+                          <td class="font-mono text-slate-500">${h.santriBoyong}</td>
+                          <td class="font-mono font-bold text-blue-700">${h.santriKhatam}</td>
+                          <td class="font-mono font-bold text-purple-700">${h.santriKhotimin}</td>
+
+                          <td class="font-mono font-bold text-emerald-700 bg-emerald-50/40">${h.passPojokPrev}</td>
+                          <td class="font-mono font-bold text-rose-700 bg-rose-50/40">${h.failPojokPrev}</td>
+                          <td class="font-mono font-bold text-emerald-700 bg-emerald-50/80">${h.passPojok}</td>
+                          <td class="font-mono font-bold text-rose-700 bg-rose-50/80">${h.failPojok}</td>
+                          <td class="text-[9px] bg-slate-50">${formatIP(h.ipPojok)}</td>
+                          <td class="font-mono font-bold ${h.pctPojok >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-50 text-rose-700'}">${h.pctPojok}%</td>
+
+                          <td class="font-mono font-bold text-blue-700 bg-blue-50/40">${h.passLembagaPrev}</td>
+                          <td class="font-mono font-bold text-rose-700 bg-rose-50/40">${h.failLembagaPrev}</td>
+                          <td class="font-mono font-bold text-blue-700 bg-blue-50/80">${h.passLembaga}</td>
+                          <td class="font-mono font-bold text-rose-700 bg-rose-50/80">${h.failLembaga}</td>
+                          <td class="text-[9px] bg-slate-50">${formatIP(h.ipLembaga)}</td>
+                          <td class="font-mono font-bold ${h.pctLembaga >= 80 ? 'bg-blue-100 text-blue-800' : 'bg-rose-50 text-rose-700'}">${h.pctLembaga}%</td>
+
+                          <td class="font-mono font-bold text-teal-700 bg-teal-50/40">${h.passDeresanPrev}</td>
+                          <td class="font-mono font-bold text-rose-700 bg-rose-50/40">${h.failDeresanPrev}</td>
+                          <td class="font-mono font-bold text-teal-700 bg-teal-50/80">${h.passDeresan}</td>
+                          <td class="font-mono font-bold text-rose-700 bg-rose-50/80">${h.failDeresan}</td>
+                          <td class="text-[9px] bg-slate-50">${formatIP(h.ipDeresan)}</td>
+                          <td class="font-mono font-bold ${h.pctDeresan >= 80 ? 'bg-teal-100 text-teal-800' : 'bg-rose-50 text-rose-700'}">${h.pctDeresan}%</td>
                         </tr>
                       `).join('')}
                     </tbody>
+                    <tfoot>
+                      <tr class="bg-orange-100 font-black text-slate-900 text-[10px] text-center border-t-2 border-slate-800">
+                        <td colspan="4" class="p-2 border border-slate-300">TOTAL / RATA-RATA SANTRI PUTRI</td>
+                        <td class="p-2 border border-slate-300">${tJml}</td>
+                        <td class="p-2 border border-slate-300">${tZiadah}</td>
+                        <td class="p-2 border border-slate-300">${tBoyong}</td>
+                        <td class="p-2 border border-slate-300">${tKhatam}</td>
+                        <td class="p-2 border border-slate-300">${tKhotimin}</td>
+
+                        <td class="p-2 border border-slate-300 text-emerald-800 bg-emerald-100/50">${tPojokPY}</td>
+                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-100/50">${tPojokPN}</td>
+                        <td class="p-2 border border-slate-300 text-emerald-800 bg-emerald-200/50">${tPojokCY}</td>
+                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-200/50">${tPojokCN}</td>
+                        <td class="p-2 border border-slate-300 text-[9px] bg-white">${formatIP(tPojokIP)}</td>
+                        <td class="p-2 border border-slate-300 ${tPojokPct >= 80 ? 'text-emerald-800' : 'text-rose-700'}">${tPojokPct}%</td>
+
+                        <td class="p-2 border border-slate-300 text-blue-800 bg-blue-100/50">${tLembagaPY}</td>
+                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-100/50">${tLembagaPN}</td>
+                        <td class="p-2 border border-slate-300 text-blue-800 bg-blue-200/50">${tLembagaCY}</td>
+                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-200/50">${tLembagaCN}</td>
+                        <td class="p-2 border border-slate-300 text-[9px] bg-white">${formatIP(tLembagaIP)}</td>
+                        <td class="p-2 border border-slate-300 ${tLembagaPct >= 80 ? 'text-blue-800' : 'text-rose-700'}">${tLembagaPct}%</td>
+
+                        <td class="p-2 border border-slate-300 text-teal-800 bg-teal-100/50">${tDeresanPY}</td>
+                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-100/50">${tDeresanPN}</td>
+                        <td class="p-2 border border-slate-300 text-teal-800 bg-teal-200/50">${tDeresanCY}</td>
+                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-200/50">${tDeresanCN}</td>
+                        <td class="p-2 border border-slate-300 text-[9px] bg-white">${formatIP(tDeresanIP)}</td>
+                        <td class="p-2 border border-slate-300 ${tDeresanPct >= 80 ? 'text-teal-800' : 'text-rose-700'}">${tDeresanPct}%</td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               </div>
@@ -2806,98 +2919,159 @@
             `;
 
             // Lembar 3 Tahfidh di Word
+            const formatIPWord = (ip) => {
+              if (ip > 0) return `<span style="color: #059669; font-weight: bold;">&#9650; ${ip}</span>`;
+              if (ip < 0) return `<span style="color: #e11d48; font-weight: bold;">&#9660; ${Math.abs(ip)}</span>`;
+              return `<span style="color: #94a3b8; font-weight: bold;">-</span>`;
+            };
+
+            const sYearW = parseInt(selectedBulan.split('-')[0], 10);
+            const sMonthW = parseInt(selectedBulan.split('-')[1], 10);
+            let pMNumW = sMonthW - 1; let pYNumW = sYearW;
+            if(pMNumW === 0){ pMNumW = 12; pYNumW--; }
+            const mLbls = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sept", "Okt", "Nov", "Des"];
+            const currLblW = mLbls[sMonthW - 1] + "'" + String(sYearW).slice(-2);
+            const prevLblW = mLbls[pMNumW - 1] + "'" + String(pYNumW).slice(-2);
+
+            let tJw=0, tZw=0, tBw=0, tKw=0, tKmw=0;
+            let pPYw=0, pPNw=0, pCYw=0, pCNw=0;
+            let lPYw=0, lPNw=0, lCYw=0, lCNw=0;
+            let dPYw=0, dPNw=0, dCYw=0, dCNw=0;
+
             let rowsTahfidhWord = '';
             hRowsW.forEach((hw, hIdxW) => {
+              tJw+=hw.jml; tZw+=hw.masihZiadah; tBw+=hw.santriBoyong; tKw+=hw.santriKhatam; tKmw+=hw.santriKhotimin;
+              pPYw+=hw.passPojokPrev; pPNw+=hw.failPojokPrev; pCYw+=hw.passPojok; pCNw+=hw.failPojok;
+              lPYw+=hw.passLembagaPrev; lPNw+=hw.failLembagaPrev; lCYw+=hw.passLembaga; lCNw+=hw.failLembaga;
+              dPYw+=hw.passDeresanPrev; dPNw+=hw.failDeresanPrev; dCYw+=hw.passDeresan; dCNw+=hw.failDeresan;
+
               rowsTahfidhWord += `
-                <tr>
-                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 4%;">${hIdxW + 1}</td>
-                  <td style="border: 1px solid #000000; padding: 3px; width: 24%; font-weight: bold;">${hw.nama}</td>
-                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%;">${hw.kamar}</td>
-                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 7%; font-size: 6.5pt;">${hw.kls}</td>
-                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%; font-weight: bold;">${hw.jml}</td>
-                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%; color: #047857;">${hw.masihZiadah}</td>
-                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%;">${hw.santriBoyong}</td>
-                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%; font-weight: bold; color: #1e3a8a;">${hw.santriKhatam}</td>
-                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 7%;">${hw.passPojok}</td>
-                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%; font-weight: bold;">${hw.pctPojok}%</td>
-                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 7%;">${hw.passLembaga}</td>
-                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%; font-weight: bold;">${hw.pctLembaga}%</td>
-                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 7%;">${hw.passDeresan}</td>
-                  <td style="border: 1px solid #000000; padding: 3px; text-align: center; width: 6%; font-weight: bold;">${hw.pctDeresan}%</td>
+                <tr style="text-align: center;">
+                  <td style="border: 1px solid #000000; padding: 2px;">${hIdxW + 1}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; text-align: left; font-weight: bold;">${hw.nama}</td>
+                  <td style="border: 1px solid #000000; padding: 2px;">${hw.kamar}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-size: 6pt;">${hw.kls}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold;">${hw.jml}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; color: #047857;">${hw.masihZiadah}</td>
+                  <td style="border: 1px solid #000000; padding: 2px;">${hw.santriBoyong}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #1d4ed8;">${hw.santriKhatam}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #6d28d9;">${hw.santriKhotimin}</td>
+
+                  <td style="border: 1px solid #000000; padding: 2px; color: #047857;">${hw.passPojokPrev}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; color: #b91c1c;">${hw.failPojokPrev}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #047857;">${hw.passPojok}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #b91c1c;">${hw.failPojok}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-size: 6pt;">${formatIPWord(hw.ipPojok)}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold;">${hw.pctPojok}%</td>
+
+                  <td style="border: 1px solid #000000; padding: 2px; color: #1d4ed8;">${hw.passLembagaPrev}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; color: #b91c1c;">${hw.failLembagaPrev}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #1d4ed8;">${hw.passLembaga}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #b91c1c;">${hw.failLembaga}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-size: 6pt;">${formatIPWord(hw.ipLembaga)}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold;">${hw.pctLembaga}%</td>
+
+                  <td style="border: 1px solid #000000; padding: 2px; color: #0f766e;">${hw.passDeresanPrev}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; color: #b91c1c;">${hw.failDeresanPrev}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #0f766e;">${hw.passDeresan}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #b91c1c;">${hw.failDeresan}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-size: 6pt;">${formatIPWord(hw.ipDeresan)}</td>
+                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold;">${hw.pctDeresan}%</td>
                 </tr>
               `;
             });
 
+            const ipPW = pCYw - pPYw; const pctPW = tJw > 0 ? Math.round((pCYw / tJw) * 100) : 0;
+            const ipLW = lCYw - lPYw; const pctLW = tJw > 0 ? Math.round((lCYw / tJw) * 100) : 0;
+            const ipDW = dCYw - dPYw; const pctDW = tJw > 0 ? Math.round((dCYw / tJw) * 100) : 0;
+
             wordDivisionsContent += `
-              <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
-                <span style="mso-special-character: page-break;">&nbsp;</span>
-              </p>
-              <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
+              <!-- (Bagian header kop surat biarkan seperti sebelumnya) -->
               <div style="page-break-before: always; mso-break-type: section-break;"></div>
-
-              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
-                <tr>
-                  <td width="55" valign="middle" align="left" style="width: 55px;">
-                    <img 
-                      src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
-                      alt="Logo" 
-                      width="44" 
-                      height="44" 
-                      style="width: 44px; height: 44px; border: 0;"
-                    />
-                  </td>
-                  <td align="center" valign="middle">
-                    <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
-                      YAYASAN ASEM BUNGKUK PATI
-                    </p>
-                    <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
-                      PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                    </p>
-                    <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
-                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                    </p>
-                  </td>
-                </tr>
-              </table>
-
-              <div style="text-align: center; margin-bottom: 8pt;">
-                <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
-                  LAPORAN REKAPITULASI KETAHFIDHAN SANTRI PUTRI PER HALAQOH
-                </p>
-                <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
-                  Unit Pengelola: Pondok Tahfidh Lilbanat &bull; Periode: ${bInfo.lengkap}
-                </p>
+              <!-- Judul Laporan -->
+              <div style="text-align: center; margin-bottom: 8pt; margin-top: 15pt;">
+                <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0;">REKAPITULASI KETAHFIDHAN SANTRI PUTRI PER HALAQOH</p>
+                <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">Unit Pengelola: Pondok Tahfidh Lilbanat &bull; Periode: ${bInfo.lengkap}</p>
               </div>
 
-              <table width="100%" border="1" cellpadding="3" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 7pt;">
+              <table width="100%" border="1" cellpadding="2" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 6.5pt;">
                 <thead>
                   <tr style="background-color: #f8cbad; text-align: center; font-weight: bold;">
-                    <th rowspan="2" style="border: 1px solid #000000; width: 4%;">NO</th>
-                    <th rowspan="2" style="border: 1px solid #000000; width: 24%;">HALAQOH USTADZAH</th>
-                    <th rowspan="2" style="border: 1px solid #000000; width: 6%;">KMR</th>
-                    <th rowspan="2" style="border: 1px solid #000000; width: 7%;">KLS</th>
-                    <th rowspan="2" style="border: 1px solid #000000; width: 6%;">JML</th>
-                    <th rowspan="2" style="border: 1px solid #000000; width: 6%;">ZIADAH</th>
-                    <th rowspan="2" style="border: 1px solid #000000; width: 6%;">BOYONG</th>
-                    <th rowspan="2" style="border: 1px solid #000000; width: 6%;">KHATAM</th>
-                    <th colspan="2" style="border: 1px solid #000000; background-color: #e2efda; width: 13%;">POJOKAN</th>
-                    <th colspan="2" style="border: 1px solid #000000; background-color: #fff2cc; width: 13%;">LEMBAGA</th>
-                    <th colspan="2" style="border: 1px solid #000000; background-color: #bdd7ee; width: 13%;">DERESAN</th>
+                    <th rowspan="3" style="border: 1px solid #000000; width: 3%;">NO</th>
+                    <th rowspan="3" style="border: 1px solid #000000; width: 14%;">HALAQOH USTADZAH</th>
+                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">KMR</th>
+                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">KLS</th>
+                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">JML</th>
+                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">ZIADAH</th>
+                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">BYNG</th>
+                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">KHTM</th>
+                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">KHT MIN</th>
+                    <th colspan="6" style="border: 1px solid #000000; background-color: #e2efda;">TARGET POJOKAN</th>
+                    <th colspan="6" style="border: 1px solid #000000; background-color: #fff2cc;">TARGET LEMBAGA</th>
+                    <th colspan="6" style="border: 1px solid #000000; background-color: #bdd7ee;">TARGET DERESAN</th>
                   </tr>
                   <tr style="text-align: center; font-weight: bold;">
-                    <th style="border: 1px solid #000000; background-color: #e2efda; width: 7%;">YA</th>
-                    <th style="border: 1px solid #000000; background-color: #e2efda; width: 6%;">%</th>
-                    <th style="border: 1px solid #000000; background-color: #fff2cc; width: 7%;">YA</th>
-                    <th style="border: 1px solid #000000; background-color: #fff2cc; width: 6%;">%</th>
-                    <th style="border: 1px solid #000000; background-color: #bdd7ee; width: 7%;">YA</th>
-                    <th style="border: 1px solid #000000; background-color: #bdd7ee; width: 6%;">%</th>
+                    <th colspan="2" style="border: 1px solid #000000; background-color: #e2efda;">${prevLblW}</th>
+                    <th colspan="2" style="border: 1px solid #000000; background-color: #e2efda;">${currLblW}</th>
+                    <th rowspan="2" style="border: 1px solid #000000; background-color: #e2efda;">IP</th>
+                    <th rowspan="2" style="border: 1px solid #000000; background-color: #e2efda;">%</th>
+                    
+                    <th colspan="2" style="border: 1px solid #000000; background-color: #fff2cc;">${prevLblW}</th>
+                    <th colspan="2" style="border: 1px solid #000000; background-color: #fff2cc;">${currLblW}</th>
+                    <th rowspan="2" style="border: 1px solid #000000; background-color: #fff2cc;">IP</th>
+                    <th rowspan="2" style="border: 1px solid #000000; background-color: #fff2cc;">%</th>
+                    
+                    <th colspan="2" style="border: 1px solid #000000; background-color: #bdd7ee;">${prevLblW}</th>
+                    <th colspan="2" style="border: 1px solid #000000; background-color: #bdd7ee;">${currLblW}</th>
+                    <th rowspan="2" style="border: 1px solid #000000; background-color: #bdd7ee;">IP</th>
+                    <th rowspan="2" style="border: 1px solid #000000; background-color: #bdd7ee;">%</th>
+                  </tr>
+                  <tr style="text-align: center; font-weight: bold;">
+                    <th style="border: 1px solid #000000; background-color: #e2efda;">Y</th><th style="border: 1px solid #000000; background-color: #e2efda; color: #991b1b;">N</th>
+                    <th style="border: 1px solid #000000; background-color: #e2efda;">Y</th><th style="border: 1px solid #000000; background-color: #e2efda; color: #991b1b;">N</th>
+
+                    <th style="border: 1px solid #000000; background-color: #fff2cc;">Y</th><th style="border: 1px solid #000000; background-color: #fff2cc; color: #991b1b;">N</th>
+                    <th style="border: 1px solid #000000; background-color: #fff2cc;">Y</th><th style="border: 1px solid #000000; background-color: #fff2cc; color: #991b1b;">N</th>
+
+                    <th style="border: 1px solid #000000; background-color: #bdd7ee;">Y</th><th style="border: 1px solid #000000; background-color: #bdd7ee; color: #991b1b;">N</th>
+                    <th style="border: 1px solid #000000; background-color: #bdd7ee;">Y</th><th style="border: 1px solid #000000; background-color: #bdd7ee; color: #991b1b;">N</th>
                   </tr>
                 </thead>
                 <tbody>
                   ${rowsTahfidhWord}
                 </tbody>
+                <tfoot>
+                  <tr style="background-color: #ffedd5; font-weight: bold; text-align: center;">
+                    <td colspan="4" style="border: 1px solid #000000; padding: 3px;">TOTAL / RATA-RATA SANTRI PUTRI</td>
+                    <td style="border: 1px solid #000000; padding: 3px;">${tJw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px;">${tZw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px;">${tBw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px;">${tKw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px;">${tKmw}</td>
+                    
+                    <td style="border: 1px solid #000000; padding: 3px; background-color: #d1fae5;">${pPYw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px; background-color: #ffe4e6; color: #991b1b;">${pPNw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px; background-color: #a7f3d0;">${pCYw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px; background-color: #fecdd3; color: #991b1b;">${pCNw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px; font-size: 6pt;">${formatIPWord(ipPW)}</td>
+                    <td style="border: 1px solid #000000; padding: 3px;">${pctPW}%</td>
+                    
+                    <td style="border: 1px solid #000000; padding: 3px; background-color: #dbeafe;">${lPYw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px; background-color: #ffe4e6; color: #991b1b;">${lPNw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px; background-color: #bfdbfe;">${lCYw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px; background-color: #fecdd3; color: #991b1b;">${lCNw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px; font-size: 6pt;">${formatIPWord(ipLW)}</td>
+                    <td style="border: 1px solid #000000; padding: 3px;">${pctLW}%</td>
+                    
+                    <td style="border: 1px solid #000000; padding: 3px; background-color: #ccfbf1;">${dPYw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px; background-color: #ffe4e6; color: #991b1b;">${dPNw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px; background-color: #99f6e4;">${dCYw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px; background-color: #fecdd3; color: #991b1b;">${dCNw}</td>
+                    <td style="border: 1px solid #000000; padding: 3px; font-size: 6pt;">${formatIPWord(ipDW)}</td>
+                    <td style="border: 1px solid #000000; padding: 3px;">${pctDW}%</td>
+                  </tr>
+                </tfoot>
               </table>
-
               <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
             `;
           }
