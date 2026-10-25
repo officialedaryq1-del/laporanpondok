@@ -1991,7 +1991,7 @@
 
             <!-- // Halaman Tahfidh 3: Per Halaqoh Ustadzah
             
-            // Generate Format Nama Bulan
+           // Generate Format Nama Bulan
             const selYear = parseInt(selectedBulan.split('-')[0], 10);
             const selMonth = parseInt(selectedBulan.split('-')[1], 10);
             let prevMNum = selMonth - 1;
@@ -2012,7 +2012,7 @@
             let tPojokPY = 0, tPojokPN = 0, tPojokCY = 0, tPojokCN = 0;
             let tLembagaPY = 0, tLembagaPN = 0, tLembagaCY = 0, tLembagaCN = 0;
             let tDeresanPY = 0, tDeresanPN = 0, tDeresanCY = 0, tDeresanCN = 0;
-            
+
             halaqohRows.forEach(h => {
                 tJml += h.jml; tZiadah += h.masihZiadah; tBoyong += h.santriBoyong; tKhatam += h.santriKhatam; tKhotimin += h.santriKhotimin;
                 tPojokPY += h.passPojokPrev; tPojokPN += h.failPojokPrev; tPojokCY += h.passPojok; tPojokCN += h.failPojok;
@@ -2027,6 +2027,7 @@
             const tDeresanIP = tDeresanCY - tDeresanPY;
             const tDeresanPct = tJml > 0 ? Math.round((tDeresanCY / tJml) * 100) : 0;
 
+            // PASTIKAN BARIS DI BAWAH INI MEMILIKI TANDA BACKTICK ( ` )
             pagesHTML += `
             <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
 
@@ -2164,6 +2165,7 @@
               <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
             </div>
           `;
+          // PASTIKAN BARIS DI ATAS INI MEMILIKI TANDA BACKTICK ( ` ) DAN TITIK KOMA ( ; )
         }
 
         const tabunganData = getTabunganReportData();
