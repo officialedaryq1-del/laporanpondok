@@ -363,11 +363,10 @@
     const KELAS_KEYS_TAHFIDH = ['7', '8', '9'];
     const TAHUN_AJARAN_ORDER = ["07", "08", "09", "10", "11", "12", "01", "02", "03", "04", "05", "06"];
 
-    // Urutan tampilan juz dari 29 turun ke 1, lalu juz 30
+    // Urutan tampilan juz dari 30 turun ke 1 (Juz 30 di posisi paling atas)
     const DISPLAY_JUZ_ORDER = (() => {
       const arr = [];
-      for (let j = 29; j >= 1; j--) arr.push(j);
-      arr.push(30);
+      for (let j = 30; j >= 1; j--) arr.push(j);
       return arr;
     })();
 
@@ -1995,7 +1994,7 @@
                   </div>
                 </div>
               </div>
-              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">\${pageNumberCounter++}</div>
+              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
             </div>
 
             <!-- Halaman Tahfidh 2: Pendapatan Juz Hafalan -->
@@ -2075,7 +2074,7 @@
                   </table>
                 </div>
               </div>
-              <div class="text-center text-[10px] text-slate-400 font-serif pt-3">\${pageNumberCounter++}</div>
+              <div class="text-center text-[10px] text-slate-400 font-serif pt-3">${pageNumberCounter++}</div>
             </div>
           `; // <--- PASTIKAN BARIS INI ADA
           
@@ -2480,7 +2479,7 @@
                       </table>
                   </div>
               </div>
-              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">\${pageNumberCounter++}</div>
+              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
           </div>
           `;  
         }
