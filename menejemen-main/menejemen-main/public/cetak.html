@@ -2196,38 +2196,15 @@
          let rincianRowsHTML = '';
           sortedSantri.forEach((s, idx) => {
               const cls = mapKelasTarget(s.kelas) || '7';
-              
-              // Ambil capaian (dengan perbaikan angka desimal panjang)
-              let capPojokBulanNum = s.totalZiyadahBulan || 0;
-              let capPojokBulan = Number.isInteger(capPojokBulanNum) ? capPojokBulanNum : parseFloat(capPojokBulanNum.toFixed(2));
-              
-              let capDeresanBulanNum = s.totalMurojaahBulan || 0;
-              let capDeresanBulan = Number.isInteger(capDeresanBulanNum) ? capDeresanBulanNum : parseFloat(capDeresanBulanNum.toFixed(2));
-              
-              // Evaluasi Pojok & Deresan (Y/N)
-              const targetPojokMin = tahfidhData.targetStats.pojokan.min[cls] || 20;
-              const ketPojok = capPojokBulan >= targetPojokMin ? 'Y' : 'N';
-              
-              const targetDeresanMin = tahfidhData.targetStats.deresan.min[cls] || 30;
-              const ketDeresan = capDeresanBulan >= targetDeresanMin ? 'Y' : 'N';
-              
-              // Evaluasi Lembaga
-              const isKhatam = s.hasKhatamLog || s.maxZiyadahAbs >= (29 * 20);
-              const cTL = customTargetsLembaga[`${bInfo.bulanDigit}_${cls}`] || DefaultTargetLembaga[bInfo.bulanDigit]?.[cls] || { j: 30, p: 15 };
-              const absTL = getAbsolutePojok(cTL.juz || cTL.j, cTL.pojokan || cTL.p);
-              const ketLembaga = (isKhatam || (absTL > 0 && s.maxZiyadahAbs >= absTL)) ? 'Y' : 'N';
-              
-             // --- CARI AWAL & AKHIR BERDASARKAN TANGGAL KRONOLOGIS (YANG ADA ISINYA) ---
+
+              // --- CARI AWAL & AKHIR BERDASARKAN TANGGAL KRONOLOGIS ---
               let zAwalLog = null, zAwalDate = '9999-99-99';
               let zAkhirLog = null, zAkhirDate = '0000-00-00';
-              
               let daAwalLog = null, daAwalDate = '9999-99-99';
               let daAkhirLog = null, daAkhirDate = '0000-00-00';
-              
               let dbAwalLog = null, dbAwalDate = '9999-99-99';
               let dbAkhirLog = null, dbAkhirDate = '0000-00-00';
 
-              // Loop ke seluruh log milik santri tersebut
               logsTahfidhData.forEach(log => {
                   if (isSantriMatch(log, s)) {
                       let logBulan = '';
@@ -2246,7 +2223,6 @@
                           const isZiyadah = keg.includes('ziyadah') || keg === '' || keg.includes('tambah');
                           const isMurojaah = keg.includes('muroja') || keg.includes('muraja') || keg.includes('ulang') || keg.includes('deresan');
                           
-                          // Pastikan field di database memang ada angkanya (> 0)
                           const hasAwal = safeExtractNum(log.juz_awal) > 0;
                           const hasAkhir = safeExtractNum(log.juz_akhir) > 0;
                           
@@ -2267,7 +2243,6 @@
                   }
               });
 
-              // Helper function: jika kosong/0, kembalikan '-'
               const getVal = (logObj, key) => (logObj && safeExtractNum(logObj[key]) > 0) ? safeExtractNum(logObj[key]) : '-';
 
               let awalJuz = getVal(zAwalLog, 'juz_awal');
@@ -2288,7 +2263,7 @@
               let akhirJuzDeresB = getVal(dbAkhirLog, 'juz_akhir');
               let akhirPojokDeresB = getVal(dbAkhirLog, 'pojok_akhir');
 
-              // --- PERBAIKAN KALKULASI MATEMATIS (AKHIR - AWAL + 1) KHUSUS ZIYADAH ---
+              // --- KALKULASI JML (AKHIR - AWAL + 1) KHUSUS ZIYADAH ---
               const hitungJarakPojok = (jz1, pj1, jz2, pj2) => {
                   if (jz1 !== '-' && pj1 !== '-' && jz2 !== '-' && pj2 !== '-') {
                       let start = getAbsolutePojok(jz1, pj1);
@@ -2298,16 +2273,13 @@
                   return 0; 
               };
 
-              // 1. Kalkulasi Ziyadah JML (Menggunakan rumus hitung jarak matematis)
-              capPojokBulan = hitungJarakPojok(awalJuz, awalPojok, akhirJuz, akhirPojok);
+              let capPojokBulan = hitungJarakPojok(awalJuz, awalPojok, akhirJuz, akhirPojok);
               if (capPojokBulan === 0 && s.totalZiyadahBulan > 0) {
-                  capPojokBulan = Math.round(s.totalZiyadahBulan); // Fallback darurat jika ustadz tidak isi Awal sama sekali
+                  capPojokBulan = Math.round(s.totalZiyadahBulan);
               }
 
-              // 2. Kalkulasi Total Deresan JML (Dibiarkan menggunakan akumulasi asli dari database)
-              capDeresanBulanNum = s.totalMurojaahBulan || 0;
-              capDeresanBulan = Number.isInteger(capDeresanBulanNum) ? capDeresanBulanNum : parseFloat(capDeresanBulanNum.toFixed(2));
-              // -------------------------------------------------------------
+              let capDeresanBulanNum = s.totalMurojaahBulan || 0;
+              let capDeresanBulan = Number.isInteger(capDeresanBulanNum) ? capDeresanBulanNum : parseFloat(capDeresanBulanNum.toFixed(2));
 
               // Evaluasi Pojok & Deresan (Y/N)
               const targetPojokMin = tahfidhData.targetStats.pojokan.min[cls] || 20;
@@ -2331,7 +2303,6 @@
                   <td class="p-1 border border-slate-300 text-[9px]">${s.kamar || '-'}</td>
                   <td class="p-1 border border-slate-300 text-[9px] truncate max-w-[100px] whitespace-nowrap overflow-hidden">${s.halaqoh || '-'}</td>
                   
-                  <!-- Ziyadah Awal & Akhir -->
                   <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-700">${awalJuz}</td>
                   <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-700">${awalPojok}</td>
                   <td class="p-1 border border-slate-300 text-[9px] font-bold text-emerald-700">${akhirJuz}</td>
@@ -2339,17 +2310,14 @@
                   <td class="p-1 border border-slate-300 font-black bg-emerald-50 text-emerald-800 text-[9px]">${capPojokBulan}</td>
                   <td class="p-1 border border-slate-300 text-[9px] font-black ${ketPojok==='Y'?'text-emerald-600 bg-emerald-50/50':'text-rose-600 bg-rose-50/50'}">${ketPojok}</td>
                   
-                  <!-- Pantauan Lembaga -->
                   <td class="p-1 border border-slate-300 text-[9px] font-black ${ketLembaga==='Y'?'text-blue-600 bg-blue-50/50':'text-rose-600 bg-rose-50/50'}">${ketLembaga}</td>
                   <td class="p-1 border border-slate-300 text-[9px] bg-amber-50/30" colspan="2">Juz ${cTL.juz||cTL.j||'-'} P.${cTL.pojokan||cTL.p||'-'}</td>
                   
-                  <!-- Deresan A -->
                   <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${awalJuzDeresA}</td>
                   <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${awalPojokDeresA}</td>
                   <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${akhirJuzDeresA}</td>
                   <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${akhirPojokDeresA}</td>
                   
-                  <!-- Deresan B -->
                   <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${awalJuzDeresB}</td>
                   <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${awalPojokDeresB}</td>
                   <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${akhirJuzDeresB}</td>
