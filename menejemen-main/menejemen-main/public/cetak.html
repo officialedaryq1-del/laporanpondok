@@ -1798,14 +1798,14 @@
             `;
           });
 
-          const tKhotimin = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.khotimin[k] || 0), 0);
-          const tKhotiminPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.khotimin[k] || 0), 0);
-          const tKhatam = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.khatam[k] || 0), 0);
-          const tKhatamPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.khatam[k] || 0), 0);
-          const tBelumSetor = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.belumSetor[k] || 0), 0);
-          const tBelumSetorPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.belumSetor[k] || 0), 0);
-          const tSantriAktif = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.total[k] || 0), 0);
-          const tSantriAktifPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.total[k] || 0), 0);
+          const totKhotimin = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.khotimin[k] || 0), 0);
+          const totKhotiminPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.khotimin[k] || 0), 0);
+          const totKhatam = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.khatam[k] || 0), 0);
+          const totKhatamPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.khatam[k] || 0), 0);
+          const totBelumSetor = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.belumSetor[k] || 0), 0);
+          const totBelumSetorPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.belumSetor[k] || 0), 0);
+          const totSantriAktif = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.total[k] || 0), 0);
+          const totSantriAktifPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.total[k] || 0), 0);
 
           // Halaman Tahfidh 1: Evaluasi 3 Target
           pagesHTML += `
@@ -2035,8 +2035,8 @@
                           const valPrev = jmWPrev.khotimin[k] || 0;
                           return `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-yellow-50">${formatIPDiff(val - valPrev)}</td>`;
                         }).join('')}
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${tKhotimin}</td>
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-yellow-50">${formatIPDiff(tKhotimin - tKhotiminPrev)}</td>
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${totKhotimin}</td>
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-yellow-50">${formatIPDiff(totKhotimin - totKhotiminPrev)}</td>
                       </tr>
                       <tr class="bg-blue-100 font-bold">
                         <td class="text-center p-1 border border-slate-300 text-[10px]">Khatam</td>
@@ -2045,8 +2045,8 @@
                           const valPrev = jmWPrev.khatam[k] || 0;
                           return `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-blue-50">${formatIPDiff(val - valPrev)}</td>`;
                         }).join('')}
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${tKhatam}</td>
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-blue-50">${formatIPDiff(tKhatam - tKhatamPrev)}</td>
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${totKhatam}</td>
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-blue-50">${formatIPDiff(totKhatam - totKhatamPrev)}</td>
                       </tr>
                       ${juzRowsHTML}
                       <tr class="bg-rose-50 font-bold text-rose-800">
@@ -2056,8 +2056,8 @@
                           const valPrev = jmWPrev.belumSetor[k] || 0;
                           return `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(val - valPrev)}</td>`;
                         }).join('')}
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${tBelumSetor}</td>
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(tBelumSetor - tBelumSetorPrev)}</td>
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${totBelumSetor}</td>
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(totBelumSetor - totBelumSetorPrev)}</td>
                       </tr>
                     </tbody>
                     <tfoot>
@@ -2068,8 +2068,8 @@
                           const valPrev = jmWPrev.total[k] || 0;
                           return `<td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(val - valPrev)}</td>`;
                         }).join('')}
-                        <td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${tSantriAktif}</td>
-                        <td class="text-center font-mono p-1.5 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(tSantriAktif - tSantriAktifPrev)}</td>
+                        <td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${totSantriAktif}</td>
+                        <td class="text-center font-mono p-1.5 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(totSantriAktif - totSantriAktifPrev)}</td>
                       </tr>
                     </tfoot>
                   </table>
