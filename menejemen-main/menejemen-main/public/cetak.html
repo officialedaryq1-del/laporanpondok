@@ -1100,9 +1100,9 @@
 
       // 1. STATISTIK EVALUASI TARGET KELAS
       const targetStats = {
-        pojokan: { target: {}, belum: {}, total: {}, min: {} },
-        lembaga: { target: {}, belum: {}, khatam: {}, khotimin: {}, total: {}, label: {} },
-        deresan: { target: {}, belum: {}, total: {}, min: {} }
+        pojokan: { target: {}, targetPrev: {}, belum: {}, belumPrev: {}, total: {}, min: {} },
+        lembaga: { target: {}, targetPrev: {}, belum: {}, belumPrev: {}, khatam: {}, khotimin: {}, total: {}, label: {} },
+        deresan: { target: {}, targetPrev: {}, belum: {}, belumPrev: {}, total: {}, min: {} }
       };
 
       KELAS_KEYS_TAHFIDH.forEach(k => {
@@ -1111,10 +1111,16 @@
 
         // Target Pojokan
         const minPojok = customTargetsPojokan[`${bKey}_${k}`] ?? customTargetsPojokan[`${bInt}_${k}`] ?? DefaultTargetPojokan[bKey]?.[k] ?? 20;
+        const minPojokPrev = customTargetsPojokan[`${prevBKey}_${k}`] ?? customTargetsPojokan[`${prevBInt}_${k}`] ?? DefaultTargetPojokan[prevBKey]?.[k] ?? 20;
         targetStats.pojokan.min[k] = minPojok;
+        
         const passPojok = sList.filter(s => s.totalZiyadahBulan >= minPojok).length;
+        const passPojokPrev = sList.filter(s => s.totalZiyadahPrevBulan >= minPojokPrev).length;
+        
         targetStats.pojokan.target[k] = passPojok;
+        targetStats.pojokan.targetPrev[k] = passPojokPrev;
         targetStats.pojokan.belum[k] = tot - passPojok;
+        targetStats.pojokan.belumPrev[k] = tot - passPojokPrev;
         targetStats.pojokan.total[k] = tot;
 
         // Target Lembaga
@@ -1123,7 +1129,11 @@
         let absTL = getAbsolutePojok(cTL ? cTL.juz : defTL.j, cTL ? cTL.pojokan : defTL.p);
         targetStats.lembaga.label[k] = cTL ? `Juz ${cTL.juz} P.${cTL.pojokan}` : `Juz ${defTL.j} P.${defTL.p}`;
 
-        let passLembaga = 0, countKhatam = 0, countKhotimin = 0;
+        const cTLPrev = customTargetsLembaga[`${prevBKey}_${k}`] || customTargetsLembaga[`${prevBInt}_${k}`];
+        let defTLPrev = DefaultTargetLembaga[prevBKey]?.[k] || { j: 30, p: 15 };
+        let absTLPrev = getAbsolutePojok(cTLPrev ? cTLPrev.juz : defTLPrev.j, cTLPrev ? cTLPrev.pojokan : defTLPrev.p);
+
+        let passLembaga = 0, passLembagaPrev = 0, countKhatam = 0, countKhotimin = 0;
         sList.forEach(s => {
           const isKhatam = s.hasKhatamLog || s.maxZiyadahAbs >= (29 * POJOK_PER_JUZ);
           if (isKhatam) {
@@ -1131,19 +1141,30 @@
             if (k === '12') countKhotimin++;
           }
           if (isKhatam || (absTL > 0 && s.maxZiyadahAbs >= absTL)) passLembaga++;
+          
+          const isKhatamPrev = s.maxZiyadahAbsPrev >= (29 * POJOK_PER_JUZ);
+          if (isKhatamPrev || (absTLPrev > 0 && s.maxZiyadahAbsPrev >= absTLPrev)) passLembagaPrev++;
         });
         targetStats.lembaga.target[k] = passLembaga;
+        targetStats.lembaga.targetPrev[k] = passLembagaPrev;
         targetStats.lembaga.belum[k] = tot - passLembaga;
+        targetStats.lembaga.belumPrev[k] = tot - passLembagaPrev;
         targetStats.lembaga.khatam[k] = countKhatam;
         targetStats.lembaga.khotimin[k] = countKhotimin;
         targetStats.lembaga.total[k] = tot;
 
         // Target Deresan
         const minDeresan = customTargetsDeresan[`${bKey}_${k}`] ?? customTargetsDeresan[`${bInt}_${k}`] ?? DefaultTargetDeresan[bKey]?.[k] ?? 30;
+        const minDeresanPrev = customTargetsDeresan[`${prevBKey}_${k}`] ?? customTargetsDeresan[`${prevBInt}_${k}`] ?? DefaultTargetDeresan[prevBKey]?.[k] ?? 30;
         targetStats.deresan.min[k] = minDeresan;
+        
         const passDeresan = sList.filter(s => s.totalMurojaahBulan >= minDeresan).length;
+        const passDeresanPrev = sList.filter(s => s.totalMurojaahPrevBulan >= minDeresanPrev).length;
+        
         targetStats.deresan.target[k] = passDeresan;
+        targetStats.deresan.targetPrev[k] = passDeresanPrev;
         targetStats.deresan.belum[k] = tot - passDeresan;
+        targetStats.deresan.belumPrev[k] = tot - passDeresanPrev;
         targetStats.deresan.total[k] = tot;
       });
 
@@ -1693,29 +1714,41 @@
         if (tahfidhData) {
           const { targetStats, juzMatrix, halaqohRows } = tahfidhData;
 
-          let sumPojokTarget = 0, sumPojokBelum = 0, sumPojokTotal = 0;
-          let sumLembagaTarget = 0, sumLembagaBelum = 0, sumLembagaKhatam = 0, sumLembagaKhotimin = 0, sumLembagaTotal = 0;
-          let sumDeresanTarget = 0, sumDeresanBelum = 0, sumDeresanTotal = 0;
+          let sumPojokTarget = 0, sumPojokTargetPrev = 0, sumPojokBelum = 0, sumPojokBelumPrev = 0, sumPojokTotal = 0;
+          let sumLembagaTarget = 0, sumLembagaTargetPrev = 0, sumLembagaBelum = 0, sumLembagaBelumPrev = 0, sumLembagaKhatam = 0, sumLembagaKhotimin = 0, sumLembagaTotal = 0;
+          let sumDeresanTarget = 0, sumDeresanTargetPrev = 0, sumDeresanBelum = 0, sumDeresanBelumPrev = 0, sumDeresanTotal = 0;
 
           KELAS_KEYS_TAHFIDH.forEach(k => {
             sumPojokTarget += targetStats.pojokan.target[k] || 0;
+            sumPojokTargetPrev += targetStats.pojokan.targetPrev[k] || 0;
             sumPojokBelum += targetStats.pojokan.belum[k] || 0;
+            sumPojokBelumPrev += targetStats.pojokan.belumPrev[k] || 0;
             sumPojokTotal += targetStats.pojokan.total[k] || 0;
 
             sumLembagaTarget += targetStats.lembaga.target[k] || 0;
+            sumLembagaTargetPrev += targetStats.lembaga.targetPrev[k] || 0;
             sumLembagaBelum += targetStats.lembaga.belum[k] || 0;
+            sumLembagaBelumPrev += targetStats.lembaga.belumPrev[k] || 0;
             sumLembagaKhatam += targetStats.lembaga.khatam[k] || 0;
             sumLembagaKhotimin += targetStats.lembaga.khotimin[k] || 0;
             sumLembagaTotal += targetStats.lembaga.total[k] || 0;
 
             sumDeresanTarget += targetStats.deresan.target[k] || 0;
+            sumDeresanTargetPrev += targetStats.deresan.targetPrev[k] || 0;
             sumDeresanBelum += targetStats.deresan.belum[k] || 0;
+            sumDeresanBelumPrev += targetStats.deresan.belumPrev[k] || 0;
             sumDeresanTotal += targetStats.deresan.total[k] || 0;
           });
 
           const pctPojokTarget = sumPojokTotal > 0 ? Math.round((sumPojokTarget / sumPojokTotal) * 100) : 0;
           const pctLembagaTarget = sumLembagaTotal > 0 ? Math.round((sumLembagaTarget / sumLembagaTotal) * 100) : 0;
           const pctDeresanTarget = sumDeresanTotal > 0 ? Math.round((sumDeresanTarget / sumDeresanTotal) * 100) : 0;
+          
+          const formatIPDiff = (ip) => {
+             if (ip > 0) return `<span class="text-emerald-600 font-bold">▲ ${ip}</span>`;
+             if (ip < 0) return `<span class="text-rose-600 font-bold">▼ ${Math.abs(ip)}</span>`;
+             return `<span class="text-slate-400 font-bold">-</span>`;
+          };
 
           let juzRowsHTML = '';
           DISPLAY_JUZ_ORDER.forEach(j => {
@@ -1742,29 +1775,17 @@
             <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
               <div>
                 <div class="kop-border pb-3 mb-4 flex items-center gap-5">
-                  <img 
-                    src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" 
-                    alt="Logo" 
-                    class="w-16 h-16 object-contain shrink-0"
-                  />
+                  <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" class="w-16 h-16 object-contain shrink-0" />
                   <div class="flex-1 text-center pr-6">
                     <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
-                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
-                      PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                    </h1>
-                    <p class="text-[10px] text-slate-600 mt-0.5">
-                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                    </p>
+                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP</h1>
+                    <p class="text-[10px] text-slate-600 mt-0.5">Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id</p>
                   </div>
                 </div>
 
                 <div class="text-center mb-4">
-                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
-                    LAPORAN EVALUASI 3 TARGET KETAHFIDHAN SANTRI 
-                  </h2>
-                  <p class="text-xs font-semibold text-slate-600 mt-0.5">
-                    Unit Pengelola: <span class="text-blue-700 font-bold">Pondok Tahfidh</span> &bull; Periode: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
-                  </p>
+                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">LAPORAN EVALUASI 3 TARGET KETAHFIDHAN SANTRI</h2>
+                  <p class="text-xs font-semibold text-slate-600 mt-0.5">Unit Pengelola: <span class="text-blue-700 font-bold">Pondok Tahfidh</span> &bull; Periode: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span></p>
                 </div>
 
                 <!-- TABEL RINGKASAN METRIK TAHFIDH -->
@@ -1795,9 +1816,10 @@
                       <thead>
                         <tr>
                           <th class="th-tahfidh-orange" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-orange">Kls ${k}</th><th class="th-tahfidh-orange">%</th>`).join('')}
-                          <th class="th-tahfidh-orange" style="width: 80px;">JUMLAH</th>
-                          <th class="th-tahfidh-orange" style="width: 80px;">PERSENTASE</th>
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-orange">Kls ${k}</th><th class="th-tahfidh-orange">%</th><th class="th-tahfidh-orange">IP</th>`).join('')}
+                          <th class="th-tahfidh-orange" style="width: 60px;">JUMLAH</th>
+                          <th class="th-tahfidh-orange" style="width: 50px;">%</th>
+                          <th class="th-tahfidh-orange" style="width: 40px;">IP</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1806,22 +1828,26 @@
                           ${KELAS_KEYS_TAHFIDH.map(k => {
                             const tot = targetStats.pojokan.total[k] || 1;
                             const val = targetStats.pojokan.target[k] || 0;
+                            const valPrev = targetStats.pojokan.targetPrev[k] || 0;
                             const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-700 bg-emerald-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-700 bg-emerald-50/50">${pct}%</td>`;
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-700 bg-emerald-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-700 bg-emerald-50/50">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-emerald-50/50 text-[8.5px]">${formatIPDiff(val - valPrev)}</td>`;
                           }).join('')}
                           <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-emerald-100 text-emerald-800">${sumPojokTarget}</td>
                           <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-emerald-100 text-emerald-800">${pctPojokTarget}%</td>
+                          <td class="text-center font-mono p-1.5 border border-slate-300 bg-emerald-100 text-[9px]">${formatIPDiff(sumPojokTarget - sumPojokTargetPrev)}</td>
                         </tr>
                         <tr>
                           <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
                           ${KELAS_KEYS_TAHFIDH.map(k => {
                             const tot = targetStats.pojokan.total[k] || 1;
                             const val = targetStats.pojokan.belum[k] || 0;
+                            const valPrev = targetStats.pojokan.belumPrev[k] || 0;
                             const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td>`;
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-50/40 text-[8.5px]">${formatIPDiff(val - valPrev)}</td>`;
                           }).join('')}
                           <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumPojokBelum}</td>
                           <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctPojokTarget}%</td>
+                          <td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-100 text-[9px]">${formatIPDiff(sumPojokBelum - sumPojokBelumPrev)}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1836,9 +1862,10 @@
                       <thead>
                         <tr>
                           <th class="th-tahfidh-yellow" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-yellow">Kls ${k}</th><th class="th-tahfidh-yellow">%</th>`).join('')}
-                          <th class="th-tahfidh-yellow" style="width: 80px;">JUMLAH</th>
-                          <th class="th-tahfidh-yellow" style="width: 80px;">PERSENTASE</th>
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-yellow">Kls ${k}</th><th class="th-tahfidh-yellow">%</th><th class="th-tahfidh-yellow">IP</th>`).join('')}
+                          <th class="th-tahfidh-yellow" style="width: 60px;">JUMLAH</th>
+                          <th class="th-tahfidh-yellow" style="width: 50px;">%</th>
+                          <th class="th-tahfidh-yellow" style="width: 40px;">IP</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1847,22 +1874,26 @@
                           ${KELAS_KEYS_TAHFIDH.map(k => {
                             const tot = targetStats.lembaga.total[k] || 1;
                             const val = targetStats.lembaga.target[k] || 0;
+                            const valPrev = targetStats.lembaga.targetPrev[k] || 0;
                             const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-blue-700 bg-blue-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-blue-700 bg-blue-50/50">${pct}%</td>`;
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-blue-700 bg-blue-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-blue-700 bg-blue-50/50">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-blue-50/50 text-[8.5px]">${formatIPDiff(val - valPrev)}</td>`;
                           }).join('')}
                           <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-blue-100 text-blue-800">${sumLembagaTarget}</td>
                           <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-blue-100 text-blue-800">${pctLembagaTarget}%</td>
+                          <td class="text-center font-mono p-1.5 border border-slate-300 bg-blue-100 text-[9px]">${formatIPDiff(sumLembagaTarget - sumLembagaTargetPrev)}</td>
                         </tr>
                         <tr>
                           <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
                           ${KELAS_KEYS_TAHFIDH.map(k => {
                             const tot = targetStats.lembaga.total[k] || 1;
                             const val = targetStats.lembaga.belum[k] || 0;
+                            const valPrev = targetStats.lembaga.belumPrev[k] || 0;
                             const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td>`;
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-50/40 text-[8.5px]">${formatIPDiff(val - valPrev)}</td>`;
                           }).join('')}
                           <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumLembagaBelum}</td>
                           <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctLembagaTarget}%</td>
+                          <td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-100 text-[9px]">${formatIPDiff(sumLembagaBelum - sumLembagaBelumPrev)}</td>
                         </tr>
                         <tr class="bg-emerald-50/70 font-semibold">
                           <td class="p-1.5 border border-slate-300 text-emerald-800">Khatam 30 Juz</td>
@@ -1870,9 +1901,9 @@
                             const tot = targetStats.lembaga.total[k] || 1;
                             const val = targetStats.lembaga.khatam[k] || 0;
                             const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-800">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-800">${pct}%</td>`;
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-800">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-800">${pct}%</td><td class="border border-slate-300 bg-emerald-50/50"></td>`;
                           }).join('')}
-                          <td class="text-center font-mono font-black p-1.5 border border-slate-300" colspan="2">${sumLembagaKhatam} Santri</td>
+                          <td class="text-center font-mono font-black p-1.5 border border-slate-300" colspan="3">${sumLembagaKhatam} Santri</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1887,9 +1918,10 @@
                       <thead>
                         <tr>
                           <th class="th-tahfidh-blue" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-blue">Kls ${k}</th><th class="th-tahfidh-blue">%</th>`).join('')}
-                          <th class="th-tahfidh-blue" style="width: 80px;">JUMLAH</th>
-                          <th class="th-tahfidh-blue" style="width: 80px;">PERSENTASE</th>
+                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-blue">Kls ${k}</th><th class="th-tahfidh-blue">%</th><th class="th-tahfidh-blue">IP</th>`).join('')}
+                          <th class="th-tahfidh-blue" style="width: 60px;">JUMLAH</th>
+                          <th class="th-tahfidh-blue" style="width: 50px;">%</th>
+                          <th class="th-tahfidh-blue" style="width: 40px;">IP</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1898,22 +1930,26 @@
                           ${KELAS_KEYS_TAHFIDH.map(k => {
                             const tot = targetStats.deresan.total[k] || 1;
                             const val = targetStats.deresan.target[k] || 0;
+                            const valPrev = targetStats.deresan.targetPrev[k] || 0;
                             const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-teal-700 bg-teal-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-teal-700 bg-teal-50/50">${pct}%</td>`;
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-teal-700 bg-teal-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-teal-700 bg-teal-50/50">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-teal-50/50 text-[8.5px]">${formatIPDiff(val - valPrev)}</td>`;
                           }).join('')}
                           <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-teal-100 text-teal-800">${sumDeresanTarget}</td>
                           <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-teal-100 text-teal-800">${pctDeresanTarget}%</td>
+                          <td class="text-center font-mono p-1.5 border border-slate-300 bg-teal-100 text-[10px]">${formatIPDiff(sumDeresanTarget - sumDeresanTargetPrev)}</td>
                         </tr>
                         <tr>
                           <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
                           ${KELAS_KEYS_TAHFIDH.map(k => {
                             const tot = targetStats.deresan.total[k] || 1;
                             const val = targetStats.deresan.belum[k] || 0;
+                            const valPrev = targetStats.deresan.belumPrev[k] || 0;
                             const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td>`;
+                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-50/40 text-[8.5px]">${formatIPDiff(val - valPrev)}</td>`;
                           }).join('')}
                           <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumDeresanBelum}</td>
                           <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctDeresanTarget}%</td>
+                          <td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-100 text-[10px]">${formatIPDiff(sumDeresanBelum - sumDeresanBelumPrev)}</td>
                         </tr>
                       </tbody>
                     </table>
