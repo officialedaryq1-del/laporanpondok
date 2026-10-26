@@ -2217,10 +2217,15 @@
               const absTL = getAbsolutePojok(cTL.juz || cTL.j, cTL.pojokan || cTL.p);
               const ketLembaga = (isKhatam || (absTL > 0 && s.maxZiyadahAbs >= absTL)) ? 'Y' : 'N';
               
-              // --- CARI AWAL & AKHIR BERDASARKAN TANGGAL KRONOLOGIS ---
-              let ziyadahAwalLog = null, ziyadahAkhirLog = null;
-              let deresAAwalLog = null, deresAAkhirLog = null;
-              let deresBAwalLog = null, deresBAkhirLog = null;
+             // --- CARI AWAL & AKHIR BERDASARKAN TANGGAL KRONOLOGIS (YANG ADA ISINYA) ---
+              let zAwalLog = null, zAwalDate = '9999-99-99';
+              let zAkhirLog = null, zAkhirDate = '0000-00-00';
+              
+              let daAwalLog = null, daAwalDate = '9999-99-99';
+              let daAkhirLog = null, daAkhirDate = '0000-00-00';
+              
+              let dbAwalLog = null, dbAwalDate = '9999-99-99';
+              let dbAkhirLog = null, dbAkhirDate = '0000-00-00';
 
               // Loop ke seluruh log milik santri tersebut
               logsTahfidhData.forEach(log => {
@@ -2241,44 +2246,47 @@
                           const isZiyadah = keg.includes('ziyadah') || keg === '' || keg.includes('tambah');
                           const isMurojaah = keg.includes('muroja') || keg.includes('muraja') || keg.includes('ulang') || keg.includes('deresan');
                           
+                          // Pastikan field di database memang ada angkanya (> 0)
+                          const hasAwal = safeExtractNum(log.juz_awal) > 0;
+                          const hasAkhir = safeExtractNum(log.juz_akhir) > 0;
+                          
                           if (isZiyadah) {
-                              if (!ziyadahAwalLog || logDateStr < ziyadahAwalLog.tanggal) ziyadahAwalLog = log;
-                              if (!ziyadahAkhirLog || logDateStr >= ziyadahAkhirLog.tanggal) ziyadahAkhirLog = log;
+                              if (hasAwal && logDateStr < zAwalDate) { zAwalLog = log; zAwalDate = logDateStr; }
+                              if (hasAkhir && logDateStr >= zAkhirDate) { zAkhirLog = log; zAkhirDate = logDateStr; }
                           } else if (isMurojaah) {
                               const isDeresanB = kegRaw.includes(' b') || kegRaw.includes('lama') || kegRaw.includes('sabqi') || kegRaw.includes('manzil');
                               if (isDeresanB) {
-                                  if (!deresBAwalLog || logDateStr < deresBAwalLog.tanggal) deresBAwalLog = log;
-                                  if (!deresBAkhirLog || logDateStr >= deresBAkhirLog.tanggal) deresBAkhirLog = log;
+                                  if (hasAwal && logDateStr < dbAwalDate) { dbAwalLog = log; dbAwalDate = logDateStr; }
+                                  if (hasAkhir && logDateStr >= dbAkhirDate) { dbAkhirLog = log; dbAkhirDate = logDateStr; }
                               } else {
-                                  if (!deresAAwalLog || logDateStr < deresAAwalLog.tanggal) deresAAwalLog = log;
-                                  if (!deresAAkhirLog || logDateStr >= deresAAkhirLog.tanggal) deresAAkhirLog = log;
+                                  if (hasAwal && logDateStr < daAwalDate) { daAwalLog = log; daAwalDate = logDateStr; }
+                                  if (hasAkhir && logDateStr >= daAkhirDate) { daAkhirLog = log; daAkhirDate = logDateStr; }
                               }
                           }
                       }
                   }
               });
 
-              // Helper function untuk mengambil nilai dengan aman (mencegah undefined/0 muncul, ganti jadi '-')
+              // Helper function: jika kosong/0, kembalikan '-'
               const getVal = (logObj, key) => (logObj && safeExtractNum(logObj[key]) > 0) ? safeExtractNum(logObj[key]) : '-';
 
-              let awalJuz = getVal(ziyadahAwalLog, 'juz_awal');
-              let awalPojok = getVal(ziyadahAwalLog, 'pojok_awal');
-              
-              // Gunakan tanggal akhir bulan ini, jika kosong gunakan max record historisnya
-              let akhirJuz = getVal(ziyadahAkhirLog, 'juz_akhir');
-              let akhirPojok = getVal(ziyadahAkhirLog, 'pojok_akhir');
+              let awalJuz = getVal(zAwalLog, 'juz_awal');
+              let awalPojok = getVal(zAwalLog, 'pojok_awal');
+              let akhirJuz = getVal(zAkhirLog, 'juz_akhir');
+              let akhirPojok = getVal(zAkhirLog, 'pojok_akhir');
+              // Fallback jika tidak ketemu sama sekali di log terakhir, gunakan histori global bulan itu
               if (akhirJuz === '-') akhirJuz = s.maxZiyadahJuz || '-';
               if (akhirPojok === '-') akhirPojok = s.maxZiyadahPojok || '-';
 
-              let awalJuzDeresA = getVal(deresAAwalLog, 'juz_awal');
-              let awalPojokDeresA = getVal(deresAAwalLog, 'pojok_awal');
-              let akhirJuzDeresA = getVal(deresAAkhirLog, 'juz_akhir');
-              let akhirPojokDeresA = getVal(deresAAkhirLog, 'pojok_akhir');
+              let awalJuzDeresA = getVal(daAwalLog, 'juz_awal');
+              let awalPojokDeresA = getVal(daAwalLog, 'pojok_awal');
+              let akhirJuzDeresA = getVal(daAkhirLog, 'juz_akhir');
+              let akhirPojokDeresA = getVal(daAkhirLog, 'pojok_akhir');
 
-              let awalJuzDeresB = getVal(deresBAwalLog, 'juz_awal');
-              let awalPojokDeresB = getVal(deresBAwalLog, 'pojok_awal');
-              let akhirJuzDeresB = getVal(deresBAkhirLog, 'juz_akhir');
-              let akhirPojokDeresB = getVal(deresBAkhirLog, 'pojok_akhir');
+              let awalJuzDeresB = getVal(dbAwalLog, 'juz_awal');
+              let awalPojokDeresB = getVal(dbAwalLog, 'pojok_awal');
+              let akhirJuzDeresB = getVal(dbAkhirLog, 'juz_akhir');
+              let akhirPojokDeresB = getVal(dbAkhirLog, 'pojok_akhir');
 
               rincianRowsHTML += `
               <tr class="hover:bg-slate-50 transition border-b border-slate-300 text-center text-slate-800">
