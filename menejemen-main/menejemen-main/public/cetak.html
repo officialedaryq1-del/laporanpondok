@@ -2175,7 +2175,7 @@
           `;
           // PASTIKAN BARIS DI ATAS INI MEMILIKI TANDA BACKTICK ( ` ) DAN TITIK KOMA ( ; )
         // --- BAGIAN TAMBAHAN: HALAMAN 4 RINCIAN PER SANTRI ---
-          const targetSantriData = Object.values(tahfidhW.santriById);
+        const targetSantriData = Object.values(tahfidhData.santriById);
           
           // 1. Urutkan Santri: Kelas -> Halaqoh -> Nama
           let sortedSantri = targetSantriData.sort((a, b) => {
@@ -2201,10 +2201,10 @@
               let capDeresanBulan = s.totalMurojaahBulan || 0;
               
               // Evaluasi Pojok & Deresan (Y/N)
-              const targetPojokMin = tahfidhW.targetStats.pojokan.min[cls] || 20;
+              const targetPojokMin = tahfidhData.targetStats.pojokan.min[cls] || 20;
               const ketPojok = capPojokBulan >= targetPojokMin ? 'Y' : 'N';
               
-              const targetDeresanMin = tahfidhW.targetStats.deresan.min[cls] || 30;
+              const targetDeresanMin = tahfidhData.targetStats.deresan.min[cls] || 30;
               const ketDeresan = capDeresanBulan >= targetDeresanMin ? 'Y' : 'N';
               
               // Evaluasi Lembaga
