@@ -2175,7 +2175,8 @@
           `;
           // PASTIKAN BARIS DI ATAS INI MEMILIKI TANDA BACKTICK ( ` ) DAN TITIK KOMA ( ; )
         // --- BAGIAN TAMBAHAN: HALAMAN 4 RINCIAN PER SANTRI ---
-        const targetSantriData = Object.values(tahfidhData.santriById);
+        // Menggunakan Set untuk menghapus duplikat referensi objek (karena 1 santri punya key ID & NIS)
+        const targetSantriData = Array.from(new Set(Object.values(tahfidhData.santriById)));
           
           // 1. Urutkan Santri: Kelas -> Halaqoh -> Nama
           let sortedSantri = targetSantriData.sort((a, b) => {
@@ -2192,13 +2193,16 @@
               return namaA.localeCompare(namaB);
           });
 
-          let rincianRowsHTML = '';
+         let rincianRowsHTML = '';
           sortedSantri.forEach((s, idx) => {
               const cls = mapKelasTarget(s.kelas) || '7';
               
-              // Ambil capaian
-              let capPojokBulan = s.totalZiyadahBulan || 0;
-              let capDeresanBulan = s.totalMurojaahBulan || 0;
+              // Ambil capaian (dengan perbaikan angka desimal panjang)
+              let capPojokBulanNum = s.totalZiyadahBulan || 0;
+              let capPojokBulan = Number.isInteger(capPojokBulanNum) ? capPojokBulanNum : parseFloat(capPojokBulanNum.toFixed(2));
+              
+              let capDeresanBulanNum = s.totalMurojaahBulan || 0;
+              let capDeresanBulan = Number.isInteger(capDeresanBulanNum) ? capDeresanBulanNum : parseFloat(capDeresanBulanNum.toFixed(2));
               
               // Evaluasi Pojok & Deresan (Y/N)
               const targetPojokMin = tahfidhData.targetStats.pojokan.min[cls] || 20;
@@ -2213,6 +2217,69 @@
               const absTL = getAbsolutePojok(cTL.juz || cTL.j, cTL.pojokan || cTL.p);
               const ketLembaga = (isKhatam || (absTL > 0 && s.maxZiyadahAbs >= absTL)) ? 'Y' : 'N';
               
+              // --- CARI AWAL & AKHIR BERDASARKAN TANGGAL KRONOLOGIS ---
+              let ziyadahAwalLog = null, ziyadahAkhirLog = null;
+              let deresAAwalLog = null, deresAAkhirLog = null;
+              let deresBAwalLog = null, deresBAkhirLog = null;
+
+              // Loop ke seluruh log milik santri tersebut
+              logsTahfidhData.forEach(log => {
+                  if (isSantriMatch(log, s)) {
+                      let logBulan = '';
+                      const logDateStr = String(log.tanggal || log.created_at || ''); 
+                      
+                      if (logDateStr) {
+                          const parts = logDateStr.split(' ')[0].split('T')[0].split('-');
+                          if (parts.length >= 2) logBulan = parts[1];
+                      }
+                      
+                      const isCurMonth = (logBulan === bInfo.bulanDigit || logBulan === String(parseInt(bInfo.bulanDigit, 10)));
+                      
+                      if (isCurMonth) {
+                          const kegRaw = String(log.kegiatan || '').toLowerCase();
+                          const keg = kegRaw.replace(/[^a-z0-9]/g, '');
+                          const isZiyadah = keg.includes('ziyadah') || keg === '' || keg.includes('tambah');
+                          const isMurojaah = keg.includes('muroja') || keg.includes('muraja') || keg.includes('ulang') || keg.includes('deresan');
+                          
+                          if (isZiyadah) {
+                              if (!ziyadahAwalLog || logDateStr < ziyadahAwalLog.tanggal) ziyadahAwalLog = log;
+                              if (!ziyadahAkhirLog || logDateStr >= ziyadahAkhirLog.tanggal) ziyadahAkhirLog = log;
+                          } else if (isMurojaah) {
+                              const isDeresanB = kegRaw.includes(' b') || kegRaw.includes('lama') || kegRaw.includes('sabqi') || kegRaw.includes('manzil');
+                              if (isDeresanB) {
+                                  if (!deresBAwalLog || logDateStr < deresBAwalLog.tanggal) deresBAwalLog = log;
+                                  if (!deresBAkhirLog || logDateStr >= deresBAkhirLog.tanggal) deresBAkhirLog = log;
+                              } else {
+                                  if (!deresAAwalLog || logDateStr < deresAAwalLog.tanggal) deresAAwalLog = log;
+                                  if (!deresAAkhirLog || logDateStr >= deresAAkhirLog.tanggal) deresAAkhirLog = log;
+                              }
+                          }
+                      }
+                  }
+              });
+
+              // Helper function untuk mengambil nilai dengan aman (mencegah undefined/0 muncul, ganti jadi '-')
+              const getVal = (logObj, key) => (logObj && safeExtractNum(logObj[key]) > 0) ? safeExtractNum(logObj[key]) : '-';
+
+              let awalJuz = getVal(ziyadahAwalLog, 'juz_awal');
+              let awalPojok = getVal(ziyadahAwalLog, 'pojok_awal');
+              
+              // Gunakan tanggal akhir bulan ini, jika kosong gunakan max record historisnya
+              let akhirJuz = getVal(ziyadahAkhirLog, 'juz_akhir');
+              let akhirPojok = getVal(ziyadahAkhirLog, 'pojok_akhir');
+              if (akhirJuz === '-') akhirJuz = s.maxZiyadahJuz || '-';
+              if (akhirPojok === '-') akhirPojok = s.maxZiyadahPojok || '-';
+
+              let awalJuzDeresA = getVal(deresAAwalLog, 'juz_awal');
+              let awalPojokDeresA = getVal(deresAAwalLog, 'pojok_awal');
+              let akhirJuzDeresA = getVal(deresAAkhirLog, 'juz_akhir');
+              let akhirPojokDeresA = getVal(deresAAkhirLog, 'pojok_akhir');
+
+              let awalJuzDeresB = getVal(deresBAwalLog, 'juz_awal');
+              let awalPojokDeresB = getVal(deresBAwalLog, 'pojok_awal');
+              let akhirJuzDeresB = getVal(deresBAkhirLog, 'juz_akhir');
+              let akhirPojokDeresB = getVal(deresBAkhirLog, 'pojok_akhir');
+
               rincianRowsHTML += `
               <tr class="hover:bg-slate-50 transition border-b border-slate-300 text-center text-slate-800">
                   <td class="p-1 border border-slate-300 font-mono text-[9px]">${idx + 1}</td>
@@ -2222,11 +2289,11 @@
                   <td class="p-1 border border-slate-300 text-[9px]">${s.kamar || '-'}</td>
                   <td class="p-1 border border-slate-300 text-[9px] truncate max-w-[100px] whitespace-nowrap overflow-hidden">${s.halaqoh || '-'}</td>
                   
-                  <!-- Ziyadah -->
-                  <td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td>
-                  <td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td>
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold">${s.maxZiyadahJuz || '-'}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold">${s.maxZiyadahPojok || '-'}</td>
+                  <!-- Ziyadah Awal & Akhir -->
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-700">${awalJuz}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-700">${awalPojok}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-emerald-700">${akhirJuz}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-emerald-700">${akhirPojok}</td>
                   <td class="p-1 border border-slate-300 font-black bg-emerald-50 text-emerald-800 text-[9px]">${capPojokBulan}</td>
                   <td class="p-1 border border-slate-300 text-[9px] font-black ${ketPojok==='Y'?'text-emerald-600 bg-emerald-50/50':'text-rose-600 bg-rose-50/50'}">${ketPojok}</td>
                   
@@ -2234,17 +2301,23 @@
                   <td class="p-1 border border-slate-300 text-[9px] font-black ${ketLembaga==='Y'?'text-blue-600 bg-blue-50/50':'text-rose-600 bg-rose-50/50'}">${ketLembaga}</td>
                   <td class="p-1 border border-slate-300 text-[9px] bg-amber-50/30" colspan="2">Juz ${cTL.juz||cTL.j||'-'} P.${cTL.pojokan||cTL.p||'-'}</td>
                   
-                  <!-- Deresan A & B -->
-                  <td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td><td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td>
-                  <td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td><td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td>
-                  <td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td><td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td>
-                  <td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td><td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td>
+                  <!-- Deresan A -->
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${awalJuzDeresA}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${awalPojokDeresA}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${akhirJuzDeresA}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${akhirPojokDeresA}</td>
+                  
+                  <!-- Deresan B -->
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${awalJuzDeresB}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${awalPojokDeresB}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${akhirJuzDeresB}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${akhirPojokDeresB}</td>
                   
                   <td class="p-1 border border-slate-300 font-black bg-blue-50 text-blue-800 text-[9px]">${capDeresanBulan}</td>
                   <td class="p-1 border border-slate-300 text-[9px] font-black ${ketDeresan==='Y'?'text-blue-600 bg-blue-50/50':'text-rose-600 bg-rose-50/50'}">${ketDeresan}</td>
               </tr>`;
           });
-
+          
           pagesHTML += `
           <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
           <div class="page-break a4-landscape-page page-sheet p-4 sm:p-6 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
