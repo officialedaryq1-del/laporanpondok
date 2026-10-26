@@ -1276,9 +1276,9 @@
         // 2. Jika kelasnya sama, urutkan berdasarkan Nama Abjad
         return a.nama.localeCompare(b.nama);
       });
-      return { targetStats, juzMatrix, halaqohRows };
+     return { targetStats, juzMatrix, halaqohRows, santriById };
     } // <--- TAMBAHKAN KURUNG KURAWAL TUTUP INI DI SINI
-
+    
     function getTabunganReportData() {
       const defaultPerKelas = {
         '7-A': 2218000,
@@ -2174,6 +2174,150 @@
             </div>
           `;
           // PASTIKAN BARIS DI ATAS INI MEMILIKI TANDA BACKTICK ( ` ) DAN TITIK KOMA ( ; )
+        // --- BAGIAN TAMBAHAN: HALAMAN 4 RINCIAN PER SANTRI ---
+          const targetSantriData = Object.values(tahfidhW.santriById);
+          
+          // 1. Urutkan Santri: Kelas -> Halaqoh -> Nama
+          let sortedSantri = targetSantriData.sort((a, b) => {
+              let klsA = mapKelasTarget(a.kelas) || '7';
+              let klsB = mapKelasTarget(b.kelas) || '7';
+              if (klsA !== klsB) return klsA.localeCompare(klsB, undefined, {numeric: true});
+              
+              let halA = String(a.halaqoh || 'Tanpa Halaqoh').trim();
+              let halB = String(b.halaqoh || 'Tanpa Halaqoh').trim();
+              if (halA !== halB) return halA.localeCompare(halB);
+              
+              let namaA = String(a.nama || a.nama_siswa || '').trim();
+              let namaB = String(b.nama || b.nama_siswa || '').trim();
+              return namaA.localeCompare(namaB);
+          });
+
+          let rincianRowsHTML = '';
+          sortedSantri.forEach((s, idx) => {
+              const cls = mapKelasTarget(s.kelas) || '7';
+              
+              // Ambil capaian
+              let capPojokBulan = s.totalZiyadahBulan || 0;
+              let capDeresanBulan = s.totalMurojaahBulan || 0;
+              
+              // Evaluasi Pojok & Deresan (Y/N)
+              const targetPojokMin = tahfidhW.targetStats.pojokan.min[cls] || 20;
+              const ketPojok = capPojokBulan >= targetPojokMin ? 'Y' : 'N';
+              
+              const targetDeresanMin = tahfidhW.targetStats.deresan.min[cls] || 30;
+              const ketDeresan = capDeresanBulan >= targetDeresanMin ? 'Y' : 'N';
+              
+              // Evaluasi Lembaga
+              const isKhatam = s.hasKhatamLog || s.maxZiyadahAbs >= (29 * 20);
+              const cTL = customTargetsLembaga[`${bInfo.bulanDigit}_${cls}`] || DefaultTargetLembaga[bInfo.bulanDigit]?.[cls] || { j: 30, p: 15 };
+              const absTL = getAbsolutePojok(cTL.juz || cTL.j, cTL.pojokan || cTL.p);
+              const ketLembaga = (isKhatam || (absTL > 0 && s.maxZiyadahAbs >= absTL)) ? 'Y' : 'N';
+              
+              rincianRowsHTML += `
+              <tr class="hover:bg-slate-50 transition border-b border-slate-300 text-center text-slate-800">
+                  <td class="p-1 border border-slate-300 font-mono text-[9px]">${idx + 1}</td>
+                  <td class="p-1 border border-slate-300 font-bold text-left text-[9px] truncate max-w-[120px] whitespace-nowrap overflow-hidden">${s.nama || s.nama_siswa}</td>
+                  <td class="p-1 border border-slate-300 text-[9px]">${cls}</td>
+                  <td class="p-1 border border-slate-300 text-[9px]">${s.status || 'Ziyadah'}</td>
+                  <td class="p-1 border border-slate-300 text-[9px]">${s.kamar || '-'}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] truncate max-w-[100px] whitespace-nowrap overflow-hidden">${s.halaqoh || '-'}</td>
+                  
+                  <!-- Ziyadah -->
+                  <td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td>
+                  <td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td>
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold">${s.maxZiyadahJuz || '-'}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] font-bold">${s.maxZiyadahPojok || '-'}</td>
+                  <td class="p-1 border border-slate-300 font-black bg-emerald-50 text-emerald-800 text-[9px]">${capPojokBulan}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] font-black ${ketPojok==='Y'?'text-emerald-600 bg-emerald-50/50':'text-rose-600 bg-rose-50/50'}">${ketPojok}</td>
+                  
+                  <!-- Pantauan Lembaga -->
+                  <td class="p-1 border border-slate-300 text-[9px] font-black ${ketLembaga==='Y'?'text-blue-600 bg-blue-50/50':'text-rose-600 bg-rose-50/50'}">${ketLembaga}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] bg-amber-50/30" colspan="2">Juz ${cTL.juz||cTL.j||'-'} P.${cTL.pojokan||cTL.p||'-'}</td>
+                  
+                  <!-- Deresan A & B -->
+                  <td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td><td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td>
+                  <td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td><td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td>
+                  <td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td><td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td>
+                  <td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td><td class="p-1 border border-slate-300 text-[9px] text-slate-400">-</td>
+                  
+                  <td class="p-1 border border-slate-300 font-black bg-blue-50 text-blue-800 text-[9px]">${capDeresanBulan}</td>
+                  <td class="p-1 border border-slate-300 text-[9px] font-black ${ketDeresan==='Y'?'text-blue-600 bg-blue-50/50':'text-rose-600 bg-rose-50/50'}">${ketDeresan}</td>
+              </tr>`;
+          });
+
+          pagesHTML += `
+          <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+          <div class="page-break a4-landscape-page page-sheet p-4 sm:p-6 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+              <div>
+                  <div class="kop-border pb-2 mb-3 flex items-center gap-4">
+                      <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" class="w-12 h-12 object-contain shrink-0" />
+                      <div class="flex-1 text-center pr-6">
+                          <h1 class="text-sm font-black text-slate-900 tracking-tight font-serif uppercase">PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP</h1>
+                          <p class="text-[9px] text-slate-600 mt-0.5">Periode Evaluasi: ${bInfo.lengkap}</p>
+                      </div>
+                  </div>
+                  
+                  <div class="text-center mb-2">
+                      <h2 class="text-xs font-black uppercase text-slate-900 tracking-wider">RINCIAN DATA PERKEMBANGAN HAFALAN SANTRI</h2>
+                  </div>
+                  
+                  <div class="overflow-x-auto">
+                      <table class="tahfidh-table w-full">
+                          <thead>
+                              <tr style="background-color: #f1f5f9;">
+                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">NO</th>
+                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">NAMA</th>
+                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">KLS</th>
+                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">STATUS</th>
+                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">KMR</th>
+                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">HALAQOH</th>
+                                  <th colspan="5" class="border border-slate-300 p-1 text-[9px] bg-green-100 text-green-900">ZIYADAH</th>
+                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px] bg-green-100 text-green-900">TARGET<br>POJOK</th>
+                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px] bg-yellow-100 text-amber-900">PANTAUAN<br>LEMBAGA</th>
+                                  <th colspan="2" rowspan="2" class="border border-slate-300 p-1 text-[9px] bg-yellow-100 text-amber-900">TARGET<br>LEMBAGA</th>
+                                  <th colspan="4" class="border border-slate-300 p-1 text-[9px] bg-blue-100 text-blue-900">DERESAN A</th>
+                                  <th colspan="4" class="border border-slate-300 p-1 text-[9px] bg-blue-100 text-blue-900">DERESAN B</th>
+                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px] bg-blue-100 text-blue-900">TOTAL<br>DERES</th>
+                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px] bg-blue-100 text-blue-900">TARGET<br>DERES</th>
+                              </tr>
+                              <tr style="background-color: #f1f5f9;">
+                                  <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-green-50">AWAL</th>
+                                  <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-green-50">AKHIR</th>
+                                  <th rowspan="2" class="border border-slate-300 p-1 text-[9px] bg-green-50">JML</th>
+                                  
+                                  <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-blue-50">AWAL</th>
+                                  <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-blue-50">AKHIR</th>
+                                  <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-blue-50">AWAL</th>
+                                  <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-blue-50">AKHIR</th>
+                              </tr>
+                              <tr style="background-color: #f1f5f9;">
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-green-50">Jz</th>
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-green-50">Pj</th>
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-green-50">Jz</th>
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-green-50">Pj</th>
+                                  
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-amber-50">Jz</th>
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-amber-50">Pj</th>
+                                  
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Jz</th>
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Pj</th>
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Jz</th>
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Pj</th>
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Jz</th>
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Pj</th>
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Jz</th>
+                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Pj</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              ${rincianRowsHTML}
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
+              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">\${pageNumberCounter++}</div>
+          </div>
+          `;  
         }
 
         const tabunganData = getTabunganReportData();
