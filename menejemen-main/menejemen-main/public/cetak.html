@@ -1168,24 +1168,35 @@
         targetStats.deresan.total[k] = tot;
       });
 
-      // 2. MATRIKS DISTRIBUSI PEROLEHAN JUZ PER KELAS
+      // 2. MATRIKS DISTRIBUSI PEROLEHAN JUZ PER KELAS (Termasuk Komparasi Bulan Kemarin)
       const juzMatrix = { khotimin: {}, khatam: {}, juz: {}, belumSetor: {}, total: {} };
+      const juzMatrixPrev = { khotimin: {}, khatam: {}, juz: {}, belumSetor: {}, total: {} };
 
       KELAS_KEYS_TAHFIDH.forEach(k => {
         juzMatrix.khotimin[k] = targetStats.lembaga.khotimin[k];
         juzMatrix.khatam[k] = targetStats.lembaga.khatam[k];
         juzMatrix.total[k] = (santriMap[k] || []).length;
         juzMatrix.belumSetor[k] = 0;
+
+        juzMatrixPrev.khotimin[k] = 0;
+        juzMatrixPrev.khatam[k] = 0;
+        juzMatrixPrev.total[k] = (santriMap[k] || []).length;
+        juzMatrixPrev.belumSetor[k] = 0;
       });
 
       for (let j = 1; j <= 30; j++) {
         juzMatrix.juz[j] = {};
-        KELAS_KEYS_TAHFIDH.forEach(k => { juzMatrix.juz[j][k] = 0; });
+        juzMatrixPrev.juz[j] = {};
+        KELAS_KEYS_TAHFIDH.forEach(k => { 
+            juzMatrix.juz[j][k] = 0;
+            juzMatrixPrev.juz[j][k] = 0;
+        });
       }
 
       KELAS_KEYS_TAHFIDH.forEach(k => {
         const sList = santriMap[k] || [];
         sList.forEach(s => {
+          // --- Hitung Matriks Bulan Ini ---
           const isKhatam = s.hasKhatamLog || s.maxZiyadahAbs >= (29 * POJOK_PER_JUZ);
           if (!isKhatam) {
             if (s.maxZiyadahAbs === 0) {
@@ -1195,6 +1206,22 @@
               if (juzMatrix.juz[j]) juzMatrix.juz[j][k]++;
               else juzMatrix.belumSetor[k]++;
             }
+          }
+
+          // --- Hitung Matriks Bulan Lalu ---
+          const isKhatamPrev = s.maxZiyadahAbsPrev >= (29 * POJOK_PER_JUZ);
+          if (isKhatamPrev) {
+             juzMatrixPrev.khatam[k]++;
+             if (k === '12') juzMatrixPrev.khotimin[k]++;
+          } else {
+             if (s.maxZiyadahAbsPrev === 0) {
+                juzMatrixPrev.belumSetor[k]++;
+             } else {
+                let jPrev = Math.floor((s.maxZiyadahAbsPrev - 1) / POJOK_PER_JUZ);
+                if (jPrev === 0) jPrev = 30; 
+                if (juzMatrixPrev.juz[jPrev]) juzMatrixPrev.juz[jPrev][k]++;
+                else juzMatrixPrev.belumSetor[k]++;
+             }
           }
         });
       });
@@ -1297,7 +1324,7 @@
         // 2. Jika kelasnya sama, urutkan berdasarkan Nama Abjad
         return a.nama.localeCompare(b.nama);
       });
-     return { targetStats, juzMatrix, halaqohRows, santriById };
+     rreturn { targetStats, juzMatrix, juzMatrixPrev, halaqohRows, santriById };
     } // <--- TAMBAHKAN KURUNG KURAWAL TUTUP INI DI SINI
     
     function getTabunganReportData() {
@@ -1750,23 +1777,35 @@
              return `<span class="text-slate-400 font-bold">-</span>`;
           };
 
+          const jmW = tahfidhData.juzMatrix;
+          const jmWPrev = tahfidhData.juzMatrixPrev;
+
           let juzRowsHTML = '';
           DISPLAY_JUZ_ORDER.forEach(j => {
-            const rowTot = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (juzMatrix.juz[j][k] || 0), 0);
+            const rowTot = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.juz[j][k] || 0), 0);
+            const rowTotPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.juz[j][k] || 0), 0);
             juzRowsHTML += `
               <tr class="${j === 30 ? 'bg-amber-50/70 font-semibold' : ''}">
                 <td class="text-center font-bold font-mono text-[10.5px] p-1 border border-slate-300">Juz ${j}</td>
                 ${KELAS_KEYS_TAHFIDH.map(k => {
-                  const val = juzMatrix.juz[j][k] || 0;
-                  return `<td class="text-center font-mono text-[10.5px] p-1 border border-slate-300 ${val > 0 ? 'font-bold bg-emerald-50 text-emerald-800' : 'text-slate-400'}">${val}</td>`;
+                  const val = jmW.juz[j][k] || 0;
+                  const valPrev = jmWPrev.juz[j][k] || 0;
+                  return `<td class="text-center font-mono text-[10.5px] p-1 border border-slate-300 ${val > 0 ? 'font-bold bg-emerald-50 text-emerald-800' : 'text-slate-400'}">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-slate-50">${formatIPDiff(val - valPrev)}</td>`;
                 }).join('')}
                 <td class="text-center font-bold font-mono text-[10.5px] p-1 border border-slate-300 bg-slate-100">${rowTot}</td>
+                <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-slate-100">${formatIPDiff(rowTot - rowTotPrev)}</td>
               </tr>
             `;
           });
 
-          const totBelumSetor = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (juzMatrix.belumSetor[k] || 0), 0);
-          const totSantriAktif = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (juzMatrix.total[k] || 0), 0);
+          const tKhotimin = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.khotimin[k] || 0), 0);
+          const tKhotiminPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.khotimin[k] || 0), 0);
+          const tKhatam = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.khatam[k] || 0), 0);
+          const tKhatamPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.khatam[k] || 0), 0);
+          const tBelumSetor = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.belumSetor[k] || 0), 0);
+          const tBelumSetorPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.belumSetor[k] || 0), 0);
+          const tSantriAktif = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.total[k] || 0), 0);
+          const tSantriAktifPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.total[k] || 0), 0);
 
           // Halaman Tahfidh 1: Evaluasi 3 Target
           pagesHTML += `
@@ -1956,8 +1995,7 @@
                   </div>
                 </div>
               </div>
-
-              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
+              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">\${pageNumberCounter++}</div>
             </div>
 
             <!-- Halaman Tahfidh 2: Pendapatan Juz Hafalan -->
@@ -1966,29 +2004,17 @@
             <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
               <div>
                 <div class="kop-border pb-3 mb-3 flex items-center gap-5">
-                  <img 
-                    src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" 
-                    alt="Logo" 
-                    class="w-16 h-16 object-contain shrink-0"
-                  />
+                  <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" class="w-16 h-16 object-contain shrink-0" />
                   <div class="flex-1 text-center pr-6">
                     <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
-                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
-                      PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                    </h1>
-                    <p class="text-[10px] text-slate-600 mt-0.5">
-                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                    </p>
+                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP</h1>
+                    <p class="text-[10px] text-slate-600 mt-0.5">Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id</p>
                   </div>
                 </div>
 
                 <div class="text-center mb-2">
-                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
-                    REKAPITULASI PENDAPATAN HAFALAN SANTRI  PER KELAS
-                  </h2>
-                  <p class="text-xs font-semibold text-slate-600 mt-0.5">
-                    Unit Kerja: <span class="text-blue-700 font-bold">Pondok Tahfidh</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
-                  </p>
+                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">REKAPITULASI PENDAPATAN HAFALAN SANTRI PER KELAS</h2>
+                  <p class="text-xs font-semibold text-slate-600 mt-0.5">Unit Kerja: <span class="text-blue-700 font-bold">Pondok Tahfidh</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span></p>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -1996,40 +2022,60 @@
                     <thead>
                       <tr>
                         <th class="th-tahfidh-orange" style="width: 120px; text-align: center;">KETERANGAN / JUZ</th>
-                        ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-orange">Kelas ${k}</th>`).join('')}
+                        ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-orange">Kelas ${k}</th><th class="th-tahfidh-orange" style="width: 35px;">IP</th>`).join('')}
                         <th class="th-tahfidh-orange" style="width: 100px; text-align: center;">JUMLAH SANTRI</th>
+                        <th class="th-tahfidh-orange" style="width: 40px; text-align: center;">IP</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr class="bg-yellow-100 font-bold">
                         <td class="text-center p-1 border border-slate-300 text-[10px]">Khotimin</td>
-                        ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${juzMatrix.khotimin[k] || 0}</td>`).join('')}
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${sumLembagaKhotimin}</td>
+                        ${KELAS_KEYS_TAHFIDH.map(k => {
+                          const val = jmW.khotimin[k] || 0;
+                          const valPrev = jmWPrev.khotimin[k] || 0;
+                          return `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-yellow-50">${formatIPDiff(val - valPrev)}</td>`;
+                        }).join('')}
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${tKhotimin}</td>
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-yellow-50">${formatIPDiff(tKhotimin - tKhotiminPrev)}</td>
                       </tr>
                       <tr class="bg-blue-100 font-bold">
                         <td class="text-center p-1 border border-slate-300 text-[10px]">Khatam</td>
-                        ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${juzMatrix.khatam[k] || 0}</td>`).join('')}
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${sumLembagaKhatam}</td>
+                        ${KELAS_KEYS_TAHFIDH.map(k => {
+                          const val = jmW.khatam[k] || 0;
+                          const valPrev = jmWPrev.khatam[k] || 0;
+                          return `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-blue-50">${formatIPDiff(val - valPrev)}</td>`;
+                        }).join('')}
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${tKhatam}</td>
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-blue-50">${formatIPDiff(tKhatam - tKhatamPrev)}</td>
                       </tr>
                       ${juzRowsHTML}
                       <tr class="bg-rose-50 font-bold text-rose-800">
                         <td class="text-center p-1 border border-slate-300 text-[10px]">Belum Setor</td>
-                        ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${juzMatrix.belumSetor[k] || 0}</td>`).join('')}
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${totBelumSetor}</td>
+                        ${KELAS_KEYS_TAHFIDH.map(k => {
+                          const val = jmW.belumSetor[k] || 0;
+                          const valPrev = jmWPrev.belumSetor[k] || 0;
+                          return `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(val - valPrev)}</td>`;
+                        }).join('')}
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${tBelumSetor}</td>
+                        <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(tBelumSetor - tBelumSetorPrev)}</td>
                       </tr>
                     </tbody>
                     <tfoot>
                       <tr class="bg-slate-200 font-black text-slate-900">
-                        <td class="text-center p-1.5 border border-slate-300 text-[10.5px]">JUMLAH SANTRI  AKTIF</td>
-                        ${KELAS_KEYS_TAHFIDH.map(k => `<td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${juzMatrix.total[k] || 0}</td>`).join('')}
-                        <td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${totSantriAktif}</td>
+                        <td class="text-center p-1.5 border border-slate-300 text-[10.5px]">JUMLAH SANTRI AKTIF</td>
+                        ${KELAS_KEYS_TAHFIDH.map(k => {
+                          const val = jmW.total[k] || 0;
+                          const valPrev = jmWPrev.total[k] || 0;
+                          return `<td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(val - valPrev)}</td>`;
+                        }).join('')}
+                        <td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${tSantriAktif}</td>
+                        <td class="text-center font-mono p-1.5 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(tSantriAktif - tSantriAktifPrev)}</td>
                       </tr>
                     </tfoot>
                   </table>
                 </div>
               </div>
-
-              <div class="text-center text-[10px] text-slate-400 font-serif pt-3">${pageNumberCounter++}</div>
+              <div class="text-center text-[10px] text-slate-400 font-serif pt-3">\${pageNumberCounter++}</div>
             </div>
           `; // <--- PASTIKAN BARIS INI ADA
           
