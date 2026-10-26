@@ -2299,14 +2299,14 @@
               };
 
               // 1. Kalkulasi Ziyadah JML (Menggunakan rumus hitung jarak matematis)
-              let capPojokBulan = hitungJarakPojok(awalJuz, awalPojok, akhirJuz, akhirPojok);
+              capPojokBulan = hitungJarakPojok(awalJuz, awalPojok, akhirJuz, akhirPojok);
               if (capPojokBulan === 0 && s.totalZiyadahBulan > 0) {
                   capPojokBulan = Math.round(s.totalZiyadahBulan); // Fallback darurat jika ustadz tidak isi Awal sama sekali
               }
 
               // 2. Kalkulasi Total Deresan JML (Dibiarkan menggunakan akumulasi asli dari database)
-              let capDeresanBulanNum = s.totalMurojaahBulan || 0;
-              let capDeresanBulan = Number.isInteger(capDeresanBulanNum) ? capDeresanBulanNum : parseFloat(capDeresanBulanNum.toFixed(2));
+              capDeresanBulanNum = s.totalMurojaahBulan || 0;
+              capDeresanBulan = Number.isInteger(capDeresanBulanNum) ? capDeresanBulanNum : parseFloat(capDeresanBulanNum.toFixed(2));
               // -------------------------------------------------------------
 
               // Evaluasi Pojok & Deresan (Y/N)
