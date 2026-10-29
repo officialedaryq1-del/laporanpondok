@@ -89,14 +89,7 @@
       return '7';
     }
 
-    function getAbsPj(j, p) {
-      const jz = parseInt(j)||0, pj = parseInt(p)||0;
-      if (jz >= 1 && jz <= 30) {
-        let validPj = Math.max(0, Math.min(pj, POJOK_PER_JUZ));
-        return (jz === 30 ? 0 : jz) * POJOK_PER_JUZ + validPj;
-      }
-      return 0;
-    }
+   function getAbsolutePojok(j, p) {const jz = parseInt(j)||0, pj = parseInt(p)||0; if (jz >= 1 && jz <= 30) {let validPj = Math.max(0, Math.min(pj, POJOK_PER_JUZ)); return (jz === 30 ? 0 : jz) * POJOK_PER_JUZ + validPj; } return 0; }
 
     function safeNum(v) {
       if(!v) return 0;
