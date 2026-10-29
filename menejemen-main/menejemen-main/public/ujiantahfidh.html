@@ -7,6 +7,8 @@
   
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Library SheetJS untuk Export Excel -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
   <style>
     @page { size: A4 landscape; margin: 8mm 10mm; }
@@ -38,9 +40,15 @@
         <p class="text-xs text-slate-500">Kelas 7 sampai 12</p>
       </div>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex flex-wrap items-center gap-2">
       <input type="month" id="selectBulan" onchange="loadData()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold outline-none cursor-pointer" />
-      <button onclick="window.print()" class="px-4 py-1.5 bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs rounded-lg shadow transition flex items-center gap-1.5">
+      
+      <!-- Tombol EXCEL Baru -->
+      <button onclick="exportToExcel()" class="px-3 py-1.5 bg-green-700 hover:bg-green-800 text-white font-bold text-xs rounded-lg shadow transition flex items-center gap-1.5">
+        <i class="fas fa-file-excel"></i> Excel (XLSX)
+      </button>
+
+      <button onclick="window.print()" class="px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs rounded-lg shadow transition flex items-center gap-1.5">
         <i class="fas fa-print"></i> Cetak PDF
       </button>
     </div>
@@ -51,6 +59,7 @@
   </div>
 
   <div id="printableArea" class="hidden"></div>
+  <div id="excelArea" class="hidden"></div> <!-- Wadah Tersembunyi Khusus Excel -->
 
   <script>
     // Konfigurasi Supabase Khusus Tahfidh (URL KEDUA)
@@ -89,7 +98,14 @@
       return '7';
     }
 
-   function getAbsolutePojok(j, p) {const jz = parseInt(j)||0, pj = parseInt(p)||0; if (jz >= 1 && jz <= 30) {let validPj = Math.max(0, Math.min(pj, POJOK_PER_JUZ)); return (jz === 30 ? 0 : jz) * POJOK_PER_JUZ + validPj; } return 0; }
+    function getAbsolutePojok(j, p) {
+      const jz = parseInt(j)||0, pj = parseInt(p)||0;
+      if (jz >= 1 && jz <= 30) {
+        let validPj = Math.max(0, Math.min(pj, POJOK_PER_JUZ));
+        return (jz === 30 ? 0 : jz) * POJOK_PER_JUZ + validPj;
+      }
+      return 0;
+    }
 
     function safeNum(v) {
       if(!v) return 0;
@@ -127,6 +143,7 @@
     async function loadData() {
       document.getElementById('loadingState').classList.remove('hidden');
       document.getElementById('printableArea').classList.add('hidden');
+      document.getElementById('excelArea').innerHTML = ''; // Kosongkan wadah excel
       
       const bVal = document.getElementById('selectBulan').value;
       const [thn, bln] = bVal.split('-');
@@ -195,6 +212,8 @@
       });
 
       let rows = '';
+      let excelRows = ''; // Variabel khusus menampung baris untuk excel (tanpa styling class berlebih)
+
       sorted.forEach((s, idx) => {
           let zAwalLog=null, zAwalD='9999', zAkLog=null, zAkD='0000';
           let daAwalLog=null, daAwalD='9999', daAkLog=null, daAkD='0000';
@@ -245,7 +264,7 @@
               }
           });
 
-          const gV = (obj, k) => (obj && safeNum(obj[k])>0) ? safeNum(obj[k]) : '-';
+          const gV = (obj, key) => (obj && safeNum(obj[key])>0) ? safeNum(obj[key]) : '-';
           let awJz = gV(zAwalLog,'juz_awal'), awPj = gV(zAwalLog,'pojok_awal');
           let akJz = gV(zAkLog,'juz_akhir'), akPj = gV(zAkLog,'pojok_akhir');
           if(akJz==='-') akJz = s.maxZiyadahJuz; if(akPj==='-') akPj = s.maxZiyadahPojok;
@@ -275,9 +294,9 @@
           let kp = cPojok >= minPj ? 'Y' : 'N';
           let kd = cDeres >= minDr ? 'Y' : 'N';
           let kl = isKLembaga ? 'Y' : 'N';
-
-          rows += `
-          <tr class="text-center text-slate-800">
+          
+          // Row Untuk HTML Cetak
+          let rowData = `
               <td class="p-1 border border-slate-300 text-[9px]">${idx+1}</td>
               <td class="p-1 border border-slate-300 font-bold text-left text-[9px] truncate max-w-[120px] whitespace-nowrap overflow-hidden">${s.nama||s.nama_siswa}</td>
               <td class="p-1 border border-slate-300 text-[9px]">${s.cls}</td>
@@ -308,13 +327,51 @@
               <td class="p-1 border border-slate-300 font-black bg-blue-50 text-[9px]">${cDeres}</td>
               <td class="p-1 border border-slate-300 text-[9px] font-black ${kd==='Y'?'text-blue-600 bg-blue-50':'text-rose-600 bg-rose-50'}">${kd}</td>
               
-              <!-- KOLOM TAMBAHAN KEHADIRAN (TS, S, I, A) -->
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-amber-600">${cTS > 0 ? cTS : '-'}</td>
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-600">${cS > 0 ? cS : '-'}</td>
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-600">${cI > 0 ? cI : '-'}</td>
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-rose-600">${cA > 0 ? cA : '-'}</td>
-          </tr>`;
+          `;
+
+          rows += `<tr class="text-center text-slate-800">${rowData}</tr>`;
+          excelRows += `<tr>${rowData}</tr>`; // Khusus Excel, tanpa class baris khusus
       });
+
+      // --- PEMBUATAN TABEL UNTUK EXCEL (Hidden) ---
+      let excelHTML = `
+      <table id="exportTable">
+          <thead>
+              <tr><th colspan="28" style="font-size:16pt; font-weight:bold; text-align:center;">RINCIAN DATA PERKEMBANGAN HAFALAN SANTRI</th></tr>
+              <tr><th colspan="28" style="text-align:center;">Periode: ${blnTeks}</th></tr>
+              <tr><th colspan="28"></th></tr>
+              <tr>
+                  <th rowspan="3">NO</th><th rowspan="3">NAMA</th><th rowspan="3">KLS</th><th rowspan="3">STATUS</th><th rowspan="3">KMR</th><th rowspan="3">HALAQOH</th>
+                  <th colspan="5">ZIYADAH</th><th rowspan="3">TARGET POJOK</th>
+                  <th rowspan="3">PANTAUAN LEMBAGA</th><th colspan="2" rowspan="2">TARGET LEMBAGA</th>
+                  <th colspan="4">DERESAN A</th><th colspan="4">DERESAN B</th>
+                  <th rowspan="3">TOTAL DERES</th><th rowspan="3">TARGET DERES</th>
+                  <th colspan="4">REKAP ALPA</th>
+              </tr>
+              <tr>
+                  <th colspan="2">AWAL</th><th colspan="2">AKHIR</th><th rowspan="2">JML</th>
+                  <th colspan="2">AWAL</th><th colspan="2">AKHIR</th><th colspan="2">AWAL</th><th colspan="2">AKHIR</th>
+                  <th rowspan="2">TS</th><th rowspan="2">S</th><th rowspan="2">I</th><th rowspan="2">A</th>
+              </tr>
+              <tr>
+                  <th>Jz</th><th>Pj</th><th>Jz</th><th>Pj</th>
+                  <th>Jz</th><th>Pj</th>
+                  <th>Jz</th><th>Pj</th><th>Jz</th><th>Pj</th>
+                  <th>Jz</th><th>Pj</th><th>Jz</th><th>Pj</th>
+              </tr>
+          </thead>
+          <tbody>
+              ${excelRows}
+          </tbody>
+      </table>
+      `;
+      document.getElementById('excelArea').innerHTML = excelHTML;
+      // ---------------------------------------------
+
       // Pagination Chunking
       let allRows = rows.split('</tr>').filter(r => r.trim() !== '');
       let html = '';
@@ -322,7 +379,7 @@
 
       for(let i=0; i<allRows.length; i+=rpp) {
           let chunk = allRows.slice(i, i+rpp).join('</tr>') + '</tr>';
-         html += `
+          html += `
           <div class="a4-landscape-page page-sheet p-6 mb-8 rounded-2xl shadow-lg border border-slate-300 flex flex-col justify-between" ${i>0 ? 'style="page-break-before:always;"' : ''}>
               <div>
                   <div class="kop-border pb-2 mb-3 flex items-center gap-4">
@@ -366,6 +423,24 @@
       document.getElementById('printableArea').innerHTML = html;
       document.getElementById('loadingState').classList.add('hidden');
       document.getElementById('printableArea').classList.remove('hidden');
+    }
+
+    // Fungsi Export ke Excel Menggunakan SheetJS
+    function exportToExcel() {
+        const table = document.getElementById("exportTable");
+        if(!table || table.innerHTML.trim() === '') {
+            return alert("Data belum dimuat secara sempurna. Silakan tunggu sebentar.");
+        }
+        
+        // Buat workbook & worksheet dari tabel tersembunyi
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Rincian Tahfidh", raw: false });
+        
+        // Dapatkan nama bulan untuk penamaan file
+        const bVal = document.getElementById('selectBulan').value;
+        const fileName = `Rekap_Rincian_Tahfidh_Santri_${bVal}.xlsx`;
+        
+        // Mulai Download File
+        XLSX.writeFile(wb, fileName);
     }
 
     // Set Default Bulan
