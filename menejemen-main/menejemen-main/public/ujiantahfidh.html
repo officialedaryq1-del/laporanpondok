@@ -199,16 +199,36 @@
           let zAwalLog=null, zAwalD='9999', zAkLog=null, zAkD='0000';
           let daAwalLog=null, daAwalD='9999', daAkLog=null, daAkD='0000';
           let dbAwalLog=null, dbAwalD='9999', dbAkLog=null, dbAkD='0000';
+          
+          // Variabel penampung kehadiran
+          let cTS = 0, cS = 0, cI = 0, cA = 0;
 
           logsData.forEach(l => {
               if(isSantriMatch(l, s)) {
                   let dt = String(l.tanggal||'').split(' ')[0];
                   let lb = dt.split('-')[1];
+                  
                   if(lb === blnDigit) {
                       let kr = String(l.kegiatan||'').toLowerCase();
                       let k = kr.replace(/[^a-z0-9]/g, '');
                       let hAw = safeNum(l.juz_awal)>0, hAk = safeNum(l.juz_akhir)>0;
                       
+                      // --- CEK KEHADIRAN (TS, S, I, A) ---
+                      let ketV = String(l.keterangan||'').toLowerCase().trim();
+                      let stsV = String(l.status||'').toLowerCase().trim();
+                      let kegV = kr.trim();
+                      
+                      let isTS = kegV === 'tidak setor' || kegV === 'ts' || stsV === 'tidak setor' || stsV === 'ts' || ketV.includes('tidak setor');
+                      let isS = kegV === 'sakit' || kegV === 's' || stsV === 'sakit' || stsV === 's' || ketV.includes('sakit');
+                      let isI = kegV === 'izin' || kegV === 'ijin' || kegV === 'i' || stsV === 'izin' || stsV === 'i' || ketV.includes('izin') || ketV.includes('ijin');
+                      let isA = kegV === 'alpa' || kegV === 'alpha' || kegV === 'a' || stsV === 'alpa' || stsV === 'a' || stsV === 'alpha' || ketV.includes('alpa') || ketV.includes('alpha');
+
+                      if(isTS) cTS++;
+                      else if(isS) cS++;
+                      else if(isI) cI++;
+                      else if(isA) cA++;
+                      // ----------------------------------
+
                       if(k.includes('ziyadah') || k==='' || k.includes('tambah')) {
                           if(hAw && dt < zAwalD) { zAwalLog=l; zAwalD=dt; }
                           if(hAk && dt >= zAkD) { zAkLog=l; zAkD=dt; }
@@ -273,7 +293,7 @@
               <td class="p-1 border border-slate-300 text-[9px] font-black ${kp==='Y'?'text-emerald-600 bg-emerald-50':'text-rose-600 bg-rose-50'}">${kp}</td>
               
               <td class="p-1 border border-slate-300 text-[9px] font-black ${kl==='Y'?'text-blue-600 bg-blue-50':'text-rose-600 bg-rose-50'}">${kl}</td>
-              <td class="p-1 border border-slate-300 text-[9px] bg-amber-50" colspan="2">Juz ${cTL.juz||cTL.j||'-'} P.${cTL.pojokan||cTL.p||'-'}</td>
+              <td class="p-1 border border-slate-300 text-[9px] bg-amber-50" colspan="2">Juz ${cTL.juz\vert{}\vert{}cTL.j\vert{}\vert{}'-'} P.${cTL.pojokan||cTL.p||'-'}</td>
               
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAwJz}</td>
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAwPj}</td>
@@ -287,9 +307,14 @@
               
               <td class="p-1 border border-slate-300 font-black bg-blue-50 text-[9px]">${cDeres}</td>
               <td class="p-1 border border-slate-300 text-[9px] font-black ${kd==='Y'?'text-blue-600 bg-blue-50':'text-rose-600 bg-rose-50'}">${kd}</td>
+              
+              <!-- KOLOM TAMBAHAN KEHADIRAN (TS, S, I, A) -->
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-amber-600">${cTS > 0 ? cTS : '-'}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-600">${cS > 0 ? cS : '-'}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-600">${cI > 0 ? cI : '-'}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-rose-600">${cA > 0 ? cA : '-'}</td>
           </tr>`;
       });
-
       // Pagination Chunking
       let allRows = rows.split('</tr>').filter(r => r.trim() !== '');
       let html = '';
@@ -297,7 +322,7 @@
 
       for(let i=0; i<allRows.length; i+=rpp) {
           let chunk = allRows.slice(i, i+rpp).join('</tr>') + '</tr>';
-          html += `
+         html += `
           <div class="a4-landscape-page page-sheet p-6 mb-8 rounded-2xl shadow-lg border border-slate-300 flex flex-col justify-between" ${i>0 ? 'style="page-break-before:always;"' : ''}>
               <div>
                   <div class="kop-border pb-2 mb-3 flex items-center gap-4">
@@ -316,10 +341,12 @@
                               <th rowspan="3" class="bg-yellow-100">PANTAUAN<br>LEMBAGA</th><th colspan="2" rowspan="2" class="bg-yellow-100">TARGET<br>LEMBAGA</th>
                               <th colspan="4" class="bg-blue-100">DERESAN A</th><th colspan="4" class="bg-blue-100">DERESAN B</th>
                               <th rowspan="3" class="bg-blue-100">TOTAL<br>DERES</th><th rowspan="3" class="bg-blue-100">TARGET<br>DERES</th>
+                              <th colspan="4" class="bg-rose-100">REKAP ALPA</th>
                           </tr>
                           <tr class="bg-slate-100">
                               <th colspan="2" class="bg-green-50">AWAL</th><th colspan="2" class="bg-green-50">AKHIR</th><th rowspan="2" class="bg-green-50">JML</th>
                               <th colspan="2" class="bg-blue-50">AWAL</th><th colspan="2" class="bg-blue-50">AKHIR</th><th colspan="2" class="bg-blue-50">AWAL</th><th colspan="2" class="bg-blue-50">AKHIR</th>
+                              <th rowspan="2" class="bg-rose-50 text-amber-700">TS</th><th rowspan="2" class="bg-rose-50 text-purple-700">S</th><th rowspan="2" class="bg-rose-50 text-blue-700">I</th><th rowspan="2" class="bg-rose-50 text-rose-700">A</th>
                           </tr>
                           <tr class="bg-slate-100">
                               <th class="bg-green-50">Jz</th><th class="bg-green-50">Pj</th><th class="bg-green-50">Jz</th><th class="bg-green-50">Pj</th>
