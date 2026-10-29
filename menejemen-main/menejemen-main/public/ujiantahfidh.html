@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laporan Ujian & Rincian Tahfidh Santri (Kelas 7 - 12)</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    @page { size: A4 landscape; margin: 8mm 10mm; }
+    @media print {
+      .no-print { display: none !important; }
+      body { background-color: #ffffff !important; -webkit-print-color-adjust: exact; }
+      .page-sheet { box-shadow: none !important; border: none !important; padding: 0 !important; width: 100% !important; }
+      .page-break { page-break-before: always !important; break-before: page !important; }
+    }
+    .kop-border { border-bottom: 3px double #1e293b; }
+    .a4-landscape-page { width: 297mm; min-height: 200mm; margin: 0 auto; background: white; }
+    
+    .tahfidh-table { border-collapse: collapse; width: 100%; font-size: 8.5px; border: 1.5px solid #000; }
+    .tahfidh-table th, .tahfidh-table td { border: 1px solid #000; padding: 3px 2px; vertical-align: middle; }
+    
+    @media screen and (max-width: 1200px) { .a4-landscape-page { width: 100%; } }
+  </style>
+</head>
+<body class="bg-slate-200 text-slate-800 font-sans min-h-screen py-6 px-3">
+
+  <!-- Action Bar -->
+  <div class="no-print max-w-5xl mx-auto mb-6 bg-white p-4 rounded-xl shadow-md border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg">
+        <i class="fas fa-quran"></i>
+      </div>
+      <div>
+        <h2 class="font-bold text-slate-900 text-sm">Rincian Capaian Tahfidh Santri</h2>
+        <p class="text-xs text-slate-500">Kelas 7 sampai 12</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <input type="month" id="selectBulan" onchange="loadData()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold outline-none cursor-pointer" />
+      <button onclick="window.print()" class="px-4 py-1.5 bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs rounded-lg shadow transition flex items-center gap-1.5">
+        <i class="fas fa-print"></i> Cetak PDF
+      </button>
+    </div>
+  </div>
+
+  <div id="loadingState" class="max-w-5xl mx-auto text-center p-10 bg-white rounded-xl shadow font-bold text-slate-500">
+    <i class="fas fa-spinner fa-spin mr-2"></i> Memuat data dari server Supabase...
+  </div>
+
+  <div id="printableArea" class="hidden"></div>
+
+  <script>
+    // Konfigurasi Supabase Khusus Tahfidh (URL KEDUA)
+    const SUPABASE_URL = 'https://nkirqdfmppziridabvwb.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5raXJxZGZtcHB6aXJpZGFidndiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5MDU5MDgsImV4cCI6MjEwNDQ4MTkwOH0.ctqZ3aw4j9_jSBI9uF2NO2YWJ1PpeM2yo_HU-yZUjXI';
+    
+    const reqHeaders = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' };
+
+    const POJOK_PER_JUZ = 20;
+    const KELAS_KEYS = ['7', '8', '9', '10', '11', '12'];
+    
+    // Target Defaults
+    const DefLembaga = {
+      "07": { "7": {j:30,p:6}, "8": {j:5,p:6}, "9": {j:10,p:6}, "10": {j:15,p:6}, "11": {j:20,p:6}, "12": {j:25,p:6} },
+      "08": { "7": {j:30,p:15},"8": {j:5,p:15},"9": {j:10,p:15},"10": {j:15,p:15},"11": {j:20,p:15},"12": {j:25,p:15} },
+      "09": { "7": {j:1,p:5},  "8": {j:6,p:5},  "9": {j:11,p:5}, "10": {j:16,p:5}, "11": {j:21,p:5}, "12": {j:26,p:5} },
+      "10": { "7": {j:1,p:16}, "8": {j:6,p:16}, "9": {j:11,p:16},"10": {j:16,p:16},"11": {j:21,p:16},"12": {j:26,p:16} },
+      "11": { "7": {j:2,p:7},  "8": {j:7,p:7},  "9": {j:12,p:7}, "10": {j:17,p:7}, "11": {j:22,p:7}, "12": {j:27,p:7} },
+      "12": { "7": {j:2,p:18}, "8": {j:7,p:18}, "9": {j:12,p:18},"10": {j:17,p:18},"11": {j:22,p:18},"12": {j:27,p:18} },
+      "all":{ "7": {j:4,p:20}, "8": {j:9,p:20}, "9": {j:14,p:20},"10": {j:19,p:20},"11": {j:24,p:20},"12": {j:29,p:20} }
+    };
+    const DefPojok = { all: { "7":20, "8":20, "9":20, "10":20, "11":20, "12":20 } };
+    const DefDeresan = { all: { "7":20, "8":30, "9":30, "10":40, "11":40, "12":40 } };
+
+    let santriData = [], logsData = [], custLembaga = {}, custPojok = {}, custDeres = {};
+    let logoB64 = 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png';
+
+    function mapKls(c) {
+      if(!c) return '7';
+      let s = String(c).toUpperCase();
+      if(s.includes('12')||s.includes('XII')) return '12';
+      if(s.includes('11')||s.includes('XI')) return '11';
+      if(s.includes('10')||s.includes('X')) return '10';
+      if(s.includes('9')||s.includes('IX')) return '9';
+      if(s.includes('8')||s.includes('VIII')) return '8';
+      return '7';
+    }
+
+    function getAbsPj(j, p) {
+      const jz = parseInt(j)||0, pj = parseInt(p)||0;
+      if (jz >= 1 && jz <= 30) {
+        let validPj = Math.max(0, Math.min(pj, POJOK_PER_JUZ));
+        return (jz === 30 ? 0 : jz) * POJOK_PER_JUZ + validPj;
+      }
+      return 0;
+    }
+
+    function safeNum(v) {
+      if(!v) return 0;
+      const m = String(v).match(/\d+/);
+      return m ? parseInt(m[0], 10) : 0;
+    }
+
+    function isSantriMatch(log, s) {
+      if(!log || !s) return false;
+      const ls = String(log.santri_id||'').trim(), sid = String(s.id||'').trim(), snis = String(s.nis||'').trim();
+      if(ls && ls !== 'null' && ls !== 'undefined') {
+        if(sid && ls === sid) return true;
+        if(snis && ls === snis) return true;
+        if(snis.length >= 4 && ls.includes(snis)) return true;
+      }
+      const ln = String(log.nama_santri||log.nama||'').toLowerCase().trim();
+      const sn = String(s.nama||s.nama_siswa||'').toLowerCase().trim();
+      return (ln && sn && ln === sn) || (ls && sn && ls.toLowerCase() === sn);
+    }
+
+    async function fetchAPI(table, select = '*') {
+      let all = [], offset = 0, limit = 1000, more = true;
+      while(more) {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=${select}&limit=${limit}&offset=${offset}`, {headers: reqHeaders});
+          if(!res.ok) break;
+          const data = await res.json();
+          all = all.concat(data);
+          if(data.length < limit) more = false; else offset += limit;
+        } catch(e) { break; }
+      }
+      return all;
+    }
+
+    async function loadData() {
+      document.getElementById('loadingState').classList.remove('hidden');
+      document.getElementById('printableArea').classList.add('hidden');
+      
+      const bVal = document.getElementById('selectBulan').value;
+      const [thn, bln] = bVal.split('-');
+      const blnDigit = bln;
+      const blnTeks = new Date(thn, parseInt(bln)-1, 1).toLocaleDateString('id-ID', {month:'long', year:'numeric'});
+
+      if(santriData.length === 0) {
+        let sRes = await fetchAPI('santri_rows');
+        if(sRes.length === 0) sRes = await fetchAPI('data_santri');
+        // Filter HANYA 7-12
+        santriData = sRes.filter(s => KELAS_KEYS.includes(mapKls(s.kelas)));
+        logsData = await fetchAPI('log_setoran_rows');
+        
+        const [tL, tP, tD] = await Promise.all([
+          fetchAPI('target_lembaga_rows'), fetchAPI('target_pojokan_rows'), fetchAPI('target_deresan_rows')
+        ]);
+        tL.forEach(r => custLembaga[`${String(r.bulan).padStart(2,'0')}_${String(r.kelas).trim()}`] = {juz: Number(r.juz)||0, pojokan: Number(r.pojokan)||0});
+        tP.forEach(r => custPojok[`${String(r.bulan).padStart(2,'0')}_${String(r.kelas).trim()}`] = Number(r.jumlah_pojokan)||0);
+        tD.forEach(r => custDeres[`${String(r.bulan).padStart(2,'0')}_${String(r.kelas).trim()}`] = Number(r.jumlah_pojokan)||0);
+      }
+
+      // Pre-kalkulasi Max Ziyadah sampai bulan ini untuk target lembaga
+      let sMap = {};
+      santriData.forEach(s => {
+        s.cls = mapKls(s.kelas);
+        s.maxZiyadahAbs = 0; s.maxZiyadahJuz = '-'; s.maxZiyadahPojok = '-'; s.hasKhatamLog = false;
+        s.totZ = 0; s.totM = 0;
+        sMap[s.id || s.nis] = s;
+      });
+
+      logsData.forEach(l => {
+        let lb = (l.tanggal||'').split('-')[1];
+        let kRaw = String(l.kegiatan||'').toLowerCase();
+        let k = kRaw.replace(/[^a-z0-9]/g, '');
+        let isZ = k.includes('ziyadah') || k === '' || k.includes('tambah');
+        let isM = k.includes('muroja') || k.includes('deresan') || k.includes('ulang');
+        
+        let target = Object.values(sMap).find(s => isSantriMatch(l, s));
+        if(target) {
+            let pAwal = getAbsolutePojok(l.juz_awal, l.pojok_awal);
+            let pAkhir = getAbsolutePojok(l.juz_akhir, l.pojok_akhir);
+            let h = Math.max(0, pAkhir - pAwal + 1) || safeNum(l.jumlah_halaman);
+
+            if(lb === blnDigit) {
+                if(isZ) target.totZ += h;
+                if(isM) target.totM += h;
+            }
+            if(kRaw.includes('30 juz') || kRaw.includes('khatam')) target.hasKhatamLog = true;
+            if(isZ && lb <= blnDigit) {
+                let jAk = safeNum(l.juz_akhir), pAk = safeNum(l.pojok_akhir);
+                if(jAk >= 1 && jAk <= 30) {
+                    let abs = getAbsolutePojok(jAk, pAk);
+                    if(abs > target.maxZiyadahAbs) {
+                        target.maxZiyadahAbs = abs; target.maxZiyadahJuz = jAk; target.maxZiyadahPojok = pAk;
+                    }
+                }
+            }
+        }
+      });
+
+      let sorted = Object.values(sMap).sort((a,b) => {
+          if(a.cls !== b.cls) return a.cls.localeCompare(b.cls, undefined, {numeric:true});
+          let hA = String(a.halaqoh||'').trim(), hB = String(b.halaqoh||'').trim();
+          if(hA !== hB) return hA.localeCompare(hB);
+          return String(a.nama||a.nama_siswa||'').localeCompare(String(b.nama||b.nama_siswa||''));
+      });
+
+      let rows = '';
+      sorted.forEach((s, idx) => {
+          let zAwalLog=null, zAwalD='9999', zAkLog=null, zAkD='0000';
+          let daAwalLog=null, daAwalD='9999', daAkLog=null, daAkD='0000';
+          let dbAwalLog=null, dbAwalD='9999', dbAkLog=null, dbAkD='0000';
+
+          logsData.forEach(l => {
+              if(isSantriMatch(l, s)) {
+                  let dt = String(l.tanggal||'').split(' ')[0];
+                  let lb = dt.split('-')[1];
+                  if(lb === blnDigit) {
+                      let kr = String(l.kegiatan||'').toLowerCase();
+                      let k = kr.replace(/[^a-z0-9]/g, '');
+                      let hAw = safeNum(l.juz_awal)>0, hAk = safeNum(l.juz_akhir)>0;
+                      
+                      if(k.includes('ziyadah') || k==='' || k.includes('tambah')) {
+                          if(hAw && dt < zAwalD) { zAwalLog=l; zAwalD=dt; }
+                          if(hAk && dt >= zAkD) { zAkLog=l; zAkD=dt; }
+                      } else if(k.includes('muroja') || k.includes('deresan')) {
+                          if(kr.includes(' b')||kr.includes('lama')||kr.includes('sabqi')||kr.includes('manzil')) {
+                              if(hAw && dt < dbAwalD) { dbAwalLog=l; dbAwalD=dt; }
+                              if(hAk && dt >= dbAkD) { dbAkLog=l; dbAkD=dt; }
+                          } else {
+                              if(hAw && dt < daAwalD) { daAwalLog=l; daAwalD=dt; }
+                              if(hAk && dt >= daAkD) { daAkLog=l; daAkD=dt; }
+                          }
+                      }
+                  }
+              }
+          });
+
+          const gV = (obj, k) => (obj && safeNum(obj[k])>0) ? safeNum(obj[k]) : '-';
+          let awJz = gV(zAwalLog,'juz_awal'), awPj = gV(zAwalLog,'pojok_awal');
+          let akJz = gV(zAkLog,'juz_akhir'), akPj = gV(zAkLog,'pojok_akhir');
+          if(akJz==='-') akJz = s.maxZiyadahJuz; if(akPj==='-') akPj = s.maxZiyadahPojok;
+
+          let daAwJz = gV(daAwalLog,'juz_awal'), daAwPj = gV(daAwalLog,'pojok_awal');
+          let daAkJz = gV(daAkLog,'juz_akhir'), daAkPj = gV(daAkLog,'pojok_akhir');
+          let dbAwJz = gV(dbAwalLog,'juz_awal'), dbAwPj = gV(dbAwalLog,'pojok_awal');
+          let dbAkJz = gV(dbAkLog,'juz_akhir'), dbAkPj = gV(dbAkLog,'pojok_akhir');
+
+          const ht = (j1, p1, j2, p2) => {
+              if(j1!=='-' && p1!=='-' && j2!=='-' && p2!=='-') {
+                  let start = getAbsolutePojok(j1, p1), end = getAbsolutePojok(j2, p2);
+                  if(end >= start) return (end-start)+1;
+              } return 0;
+          };
+
+          let cPojok = ht(awJz, awPj, akJz, akPj) || Math.round(s.totZ);
+          let cDeres = s.totM;
+
+          let minPj = custPojok[`${blnDigit}_${s.cls}`] || DefPojok.all[s.cls] || 20;
+          let minDr = custDeres[`${blnDigit}_${s.cls}`] || DefDeresan.all[s.cls] || 30;
+          
+          let cTL = custLembaga[`${blnDigit}_${s.cls}`] || DefLembaga[blnDigit]?.[s.cls] || DefLembaga.all[s.cls];
+          let absTL = getAbsolutePojok(cTL.juz||cTL.j, cTL.pojokan||cTL.p);
+          let isKLembaga = s.hasKhatamLog || s.maxZiyadahAbs >= (29*20) || (absTL>0 && s.maxZiyadahAbs>=absTL);
+
+          let kp = cPojok >= minPj ? 'Y' : 'N';
+          let kd = cDeres >= minDr ? 'Y' : 'N';
+          let kl = isKLembaga ? 'Y' : 'N';
+
+          rows += `
+          <tr class="text-center text-slate-800">
+              <td class="p-1 border border-slate-300 text-[9px]">${idx+1}</td>
+              <td class="p-1 border border-slate-300 font-bold text-left text-[9px] truncate max-w-[120px] whitespace-nowrap overflow-hidden">${s.nama||s.nama_siswa}</td>
+              <td class="p-1 border border-slate-300 text-[9px]">${s.cls}</td>
+              <td class="p-1 border border-slate-300 text-[9px]">${s.status||'Ziyadah'}</td>
+              <td class="p-1 border border-slate-300 text-[9px]">${s.kamar||'-'}</td>
+              <td class="p-1 border border-slate-300 text-[9px] truncate max-w-[90px] whitespace-nowrap overflow-hidden">${s.halaqoh||'-'}</td>
+              
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-700">${awJz}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-700">${awPj}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-emerald-700">${akJz}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-emerald-700">${akPj}</td>
+              <td class="p-1 border border-slate-300 font-black bg-emerald-50 text-[9px]">${cPojok}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-black ${kp==='Y'?'text-emerald-600 bg-emerald-50':'text-rose-600 bg-rose-50'}">${kp}</td>
+              
+              <td class="p-1 border border-slate-300 text-[9px] font-black ${kl==='Y'?'text-blue-600 bg-blue-50':'text-rose-600 bg-rose-50'}">${kl}</td>
+              <td class="p-1 border border-slate-300 text-[9px] bg-amber-50" colspan="2">Juz ${cTL.juz||cTL.j||'-'} P.${cTL.pojokan||cTL.p||'-'}</td>
+              
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAwJz}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAwPj}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAkJz}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAkPj}</td>
+              
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${dbAwJz}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${dbAwPj}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${dbAkJz}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${dbAkPj}</td>
+              
+              <td class="p-1 border border-slate-300 font-black bg-blue-50 text-[9px]">${cDeres}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-black ${kd==='Y'?'text-blue-600 bg-blue-50':'text-rose-600 bg-rose-50'}">${kd}</td>
+          </tr>`;
+      });
+
+      // Pagination Chunking
+      let allRows = rows.split('</tr>').filter(r => r.trim() !== '');
+      let html = '';
+      const rpp = 35; // Rows per page
+
+      for(let i=0; i<allRows.length; i+=rpp) {
+          let chunk = allRows.slice(i, i+rpp).join('</tr>') + '</tr>';
+          html += `
+          <div class="a4-landscape-page page-sheet p-6 mb-8 rounded-2xl shadow-lg border border-slate-300 flex flex-col justify-between" ${i>0 ? 'style="page-break-before:always;"' : ''}>
+              <div>
+                  <div class="kop-border pb-2 mb-3 flex items-center gap-4">
+                      <img src="${logoB64}" alt="Logo" class="w-12 h-12 object-contain" />
+                      <div class="flex-1 text-center pr-6">
+                          <h1 class="text-sm font-black text-slate-900 tracking-tight font-serif uppercase">PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA (SMP - SMA)</h1>
+                          <p class="text-[10px] text-slate-600 mt-0.5">Laporan Ujian dan Rekapitulasi Rincian Tahfidh Santri • Periode: ${blnTeks}</p>
+                      </div>
+                  </div>
+                  
+                  <table class="tahfidh-table w-full">
+                      <thead>
+                          <tr class="bg-slate-100">
+                              <th rowspan="3">NO</th><th rowspan="3">NAMA</th><th rowspan="3">KLS</th><th rowspan="3">STATUS</th><th rowspan="3">KMR</th><th rowspan="3">HALAQOH</th>
+                              <th colspan="5" class="bg-green-100">ZIYADAH</th><th rowspan="3" class="bg-green-100">TARGET<br>POJOK</th>
+                              <th rowspan="3" class="bg-yellow-100">PANTAUAN<br>LEMBAGA</th><th colspan="2" rowspan="2" class="bg-yellow-100">TARGET<br>LEMBAGA</th>
+                              <th colspan="4" class="bg-blue-100">DERESAN A</th><th colspan="4" class="bg-blue-100">DERESAN B</th>
+                              <th rowspan="3" class="bg-blue-100">TOTAL<br>DERES</th><th rowspan="3" class="bg-blue-100">TARGET<br>DERES</th>
+                          </tr>
+                          <tr class="bg-slate-100">
+                              <th colspan="2" class="bg-green-50">AWAL</th><th colspan="2" class="bg-green-50">AKHIR</th><th rowspan="2" class="bg-green-50">JML</th>
+                              <th colspan="2" class="bg-blue-50">AWAL</th><th colspan="2" class="bg-blue-50">AKHIR</th><th colspan="2" class="bg-blue-50">AWAL</th><th colspan="2" class="bg-blue-50">AKHIR</th>
+                          </tr>
+                          <tr class="bg-slate-100">
+                              <th class="bg-green-50">Jz</th><th class="bg-green-50">Pj</th><th class="bg-green-50">Jz</th><th class="bg-green-50">Pj</th>
+                              <th class="bg-amber-50">Jz</th><th class="bg-amber-50">Pj</th>
+                              <th class="bg-blue-50">Jz</th><th class="bg-blue-50">Pj</th><th class="bg-blue-50">Jz</th><th class="bg-blue-50">Pj</th>
+                              <th class="bg-blue-50">Jz</th><th class="bg-blue-50">Pj</th><th class="bg-blue-50">Jz</th><th class="bg-blue-50">Pj</th>
+                          </tr>
+                      </thead>
+                      <tbody>${chunk}</tbody>
+                  </table>
+              </div>
+              <div class="text-center text-[9px] text-slate-400 font-serif pt-2">Hal. ${Math.floor(i/rpp)+1} dari ${Math.ceil(allRows.length/rpp)}</div>
+          </div>
+          `;
+      }
+
+      document.getElementById('printableArea').innerHTML = html;
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('printableArea').classList.remove('hidden');
+    }
+
+    // Set Default Bulan
+    const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().slice(0, 7);
+    document.getElementById('selectBulan').value = localISOTime;
+    
+    window.onload = loadData;
+  </script>
+</body>
+</html>
