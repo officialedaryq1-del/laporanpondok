@@ -4425,20 +4425,40 @@ const rekapSantriData = useMemo(() => {
                 </div>
               )}
               
-              {/* === KONTEN 4: LAPORAN REKAP === */}
+             {/* === KONTEN 4: LAPORAN REKAP === */}
               {kebersihanSubTab === 'rekap' && (
-                <div className="space-y-4">
+                <div className="space-y-4 print:space-y-0">
                   
-                  {/* --- HEADER & TOMBOL CETAK --- */}
-                  <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                  {/* --- HEADER KHUSUS CETAK (Hanya Tampil di PDF) --- */}
+                  <div className="hidden print:block text-center mb-6 pb-4 border-b-2 border-slate-800">
+                    <h1 className="text-lg font-black text-slate-900 uppercase tracking-wide">
+                      LAPORAN MONITORING KETIDAKBERSIHAN KAMAR SANTRI {
+                        rekapFilterMode === 'bulan' 
+                          ? `BULAN ${new Date(Number(rekapBulanTahun.split('-')[0]), Number(rekapBulanTahun.split('-')[1]) - 1, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase()}`
+                          : rekapFilterMode === 'hari_ini'
+                          ? `TANGGAL ${rekapStartDate.split('-').reverse().join('/')}`
+                          : ''
+                      }
+                    </h1>
+                    <h2 className="text-sm font-bold text-slate-800 mt-1">
+                      Sistem Kontrol Disiplin & Kebersihan Lingkungan Asrama Pesantren
+                    </h2>
+                    <div className="text-xs font-semibold text-slate-700 mt-2 flex flex-col items-center gap-1">
+                      <p>Periode Pemeriksaan: {rekapStartDate.split('-').reverse().join('/')} s/d {rekapEndDate.split('-').reverse().join('/')}</p>
+                      <p>Jenjang: Semua Jenjang</p>
+                    </div>
+                  </div>
+
+                  {/* --- HEADER & TOMBOL CETAK (Sembunyikan saat cetak) --- */}
+                  <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm print:hidden">
                     <h3 className="font-bold text-sm text-slate-800">Data Rekapitulasi Kebersihan</h3>
                     <button onClick={() => window.print()} className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2 px-4 py-2 rounded-xl transition-all shadow-md">
                       <FileText className="w-4 h-4" /> Cetak PDF
                     </button>
                   </div>
 
-                  {/* --- FILTER WAKTU (BARU) --- */}
-                  <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xs border border-slate-200 flex flex-col lg:flex-row lg:items-center gap-4 mt-4">
+                  {/* --- FILTER WAKTU (Sembunyikan saat cetak) --- */}
+                  <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xs border border-slate-200 flex flex-col lg:flex-row lg:items-center gap-4 mt-4 print:hidden">
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
                         <History className="w-5 h-5" />
@@ -4482,35 +4502,35 @@ const rekapSantriData = useMemo(() => {
                     </div>
                   </div>
 
-                  {/* --- TABEL DATA & SORTIR (BARU) --- */}
+                  {/* --- TABEL DATA & SORTIR --- */}
                   {(() => {
                     const getSortIcon = (key: string) => {
-                      if (rekapSortConfig.key !== key) return <span className="text-slate-300 opacity-50 ml-1">↕</span>;
-                      return rekapSortConfig.direction === 'asc' ? <span className="text-emerald-600 ml-1 font-black">↑</span> : <span className="text-emerald-600 ml-1 font-black">↓</span>;
+                      if (rekapSortConfig.key !== key) return <span className="text-slate-300 opacity-50 ml-1 print:hidden">↕</span>;
+                      return rekapSortConfig.direction === 'asc' ? <span className="text-emerald-600 ml-1 font-black print:hidden">↑</span> : <span className="text-emerald-600 ml-1 font-black print:hidden">↓</span>;
                     };
 
                     return (
-                      <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm mt-4">
-                          <table className="w-full text-sm text-left">
-                              <thead className="text-xs uppercase bg-slate-50 text-slate-500">
+                      <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm mt-4 print:border-none print:shadow-none print:mt-0">
+                          <table className="w-full text-sm text-left print:text-black">
+                              <thead className="text-xs uppercase bg-slate-50 text-slate-500 print:bg-white print:text-slate-900 print:border-b-2 print:border-slate-800">
                                   <tr>
-                                      <th className="px-4 py-3 text-center border-b border-slate-200">No</th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200" onClick={() => handleSortRekap('kamar')}>
-                                          <div className="flex items-center gap-1 group-hover:text-emerald-700">Nama Kamar {getSortIcon('kamar')}</div>
+                                      <th className="px-4 py-3 text-center border-b border-slate-200 print:border-slate-800">No</th>
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border-slate-800" onClick={() => handleSortRekap('kamar')}>
+                                          <div className="flex items-center gap-1 group-hover:text-emerald-700 print:text-slate-900">Nama Kamar {getSortIcon('kamar')}</div>
                                       </th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200" onClick={() => handleSortRekap('jenjang')}>
-                                          <div className="flex items-center gap-1 group-hover:text-emerald-700">Jenjang {getSortIcon('jenjang')}</div>
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border-slate-800 print:hidden" onClick={() => handleSortRekap('jenjang')}>
+                                          <div className="flex items-center gap-1 group-hover:text-emerald-700 print:text-slate-900">Jenjang {getSortIcon('jenjang')}</div>
                                       </th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200" onClick={() => handleSortRekap('wali')}>
-                                          <div className="flex items-center gap-1 group-hover:text-emerald-700">Wali Halaqoh {getSortIcon('wali')}</div>
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border-slate-800" onClick={() => handleSortRekap('wali')}>
+                                          <div className="flex items-center gap-1 group-hover:text-emerald-700 print:text-slate-900">Wali Halaqoh {getSortIcon('wali')}</div>
                                       </th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center" onClick={() => handleSortRekap('kasus')}>
-                                          <div className="flex items-center justify-center gap-1 group-hover:text-emerald-700">Tidak Bersih {getSortIcon('kasus')}</div>
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center print:border-slate-800" onClick={() => handleSortRekap('kasus')}>
+                                          <div className="flex items-center justify-center gap-1 group-hover:text-emerald-700 print:text-slate-900">Tidak Bersih {getSortIcon('kasus')}</div>
                                       </th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center" onClick={() => handleSortRekap('persentase')}>
-                                          <div className="flex items-center justify-center gap-1 group-hover:text-emerald-700">% Kebersihan {getSortIcon('persentase')}</div>
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center print:border-slate-800" onClick={() => handleSortRekap('persentase')}>
+                                          <div className="flex items-center justify-center gap-1 group-hover:text-emerald-700 print:text-slate-900">% Kebersihan {getSortIcon('persentase')}</div>
                                       </th>
-                                      <th className="px-4 py-3 border-b border-slate-200">Keterangan / Catatan Ketidakbersihan</th>
+                                      <th className="px-4 py-3 border-b border-slate-200 print:border-slate-800">Keterangan / Catatan Ketidakbersihan</th>
                                   </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-100 text-xs">
@@ -4519,24 +4539,27 @@ const rekapSantriData = useMemo(() => {
                                   ) : (
                                       processedRekapKamar.map((k, idx) => {
                                           return (
-                                              <tr key={k.nama_kamar || idx} className="hover:bg-slate-50">
-                                                  <td className="px-4 py-3 text-center font-mono text-slate-500">{idx + 1}</td>
+                                              <tr key={k.nama_kamar || idx} className="hover:bg-slate-50 print:border-b print:border-slate-200 print:break-inside-avoid">
+                                                  <td className="px-4 py-3 text-center font-mono text-slate-500 print:text-slate-800">{idx + 1}</td>
                                                   <td className="px-4 py-3 font-bold text-slate-900">{k.nama_kamar}</td>
-                                                  <td className="px-4 py-3">
+                                                  <td className="px-4 py-3 print:hidden">
                                                       <span className="bg-slate-100 px-2 py-0.5 rounded font-bold text-[10px]">{k.jenjang}</span>
                                                   </td>
-                                                  <td className="px-4 py-3 text-slate-600">{k.wali_halaqoh}</td>
+                                                  <td className="px-4 py-3 text-slate-600 print:text-slate-800">{k.wali_halaqoh}</td>
+                                                  
                                                   <td className="px-4 py-3 text-center">
-                                                      <button onClick={() => setDetailKamarModal(k.nama_kamar)} className={`px-3 py-1 rounded-full font-bold text-[10px] transition shadow-sm hover:shadow-md cursor-pointer ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`} title="Klik untuk melihat rincian kasus">
-                                                          {k.totalKasus} Kasus
+                                                      <button onClick={() => setDetailKamarModal(k.nama_kamar)} className={`px-3 py-1 rounded-full font-bold text-[10px] transition shadow-sm hover:shadow-md cursor-pointer print:shadow-none print:bg-transparent print:p-0 print:text-slate-900 ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`} title="Klik untuk melihat rincian kasus">
+                                                          {k.totalKasus} {k.totalKasus > 0 ? 'Kali' : 'Kali'}
                                                       </button>
                                                   </td>
+                                                  
                                                   <td className="px-4 py-3 text-center">
-                                                      <span className={`px-3 py-1 rounded-full font-bold text-[10px] ${k.persentase < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                      <span className={`px-3 py-1 rounded-full font-bold text-[10px] print:bg-transparent print:p-0 print:text-slate-900 ${k.persentase < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
                                                           {k.persentase.toFixed(1)}%
                                                       </span>
                                                   </td>
-                                                  <td className="px-4 py-3 text-slate-700 text-[11px] leading-relaxed">
+                                                  
+                                                  <td className="px-4 py-3 text-slate-700 print:text-slate-900 text-[11px] leading-relaxed">
                                                       {k.riwayatKasus && k.riwayatKasus.length > 0 ? (
                                                           <ul className="space-y-1 pl-3 list-disc">
                                                               {k.riwayatKasus.map((riwayat: any, i: number) => {
@@ -4549,7 +4572,7 @@ const rekapSantriData = useMemo(() => {
                                                               })}
                                                           </ul>
                                                       ) : (
-                                                          <span className="italic text-slate-400">Tidak ada catatan</span>
+                                                          <span className="italic text-slate-400">Bersih</span>
                                                       )}
                                                   </td>
                                               </tr>
