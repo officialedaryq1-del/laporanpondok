@@ -2560,6 +2560,14 @@ const rekapSantriData = useMemo(() => {
     const hiddenElements = element.querySelectorAll('.print\\:hidden');
     hiddenElements.forEach(el => el.classList.add('hidden'));
 
+    // --- TRIK: HILANGKAN WARNA KAPSUL KHUSUS DI PDF AGAR RAPI SEPERTI EXCEL ---
+    const pillElements = element.querySelectorAll('.pill-pdf-clean');
+    pillElements.forEach(el => {
+      el.classList.add('bg-transparent', 'text-black', 'p-0', 'shadow-none', 'font-black');
+      el.classList.remove('bg-rose-100', 'text-rose-700', 'bg-emerald-100', 'text-emerald-700', 'rounded-full', 'px-3', 'py-1');
+    });
+    // ---------------------------------------------------------------------
+
     // 3. Opsi html2pdf
     const opt = {
       margin:       [0.4, 0.4, 0.4, 0.4], 
@@ -2578,6 +2586,13 @@ const rekapSantriData = useMemo(() => {
         headerEl.classList.remove('block');
       }
       hiddenElements.forEach(el => el.classList.remove('hidden'));
+      
+      // Kembalikan kelas warna seperti semula di layar web
+      pillElements.forEach(el => {
+        el.classList.remove('bg-transparent', 'text-black', 'p-0', 'shadow-none', 'font-black');
+        // Warna akan otomatis kembali dibaca dari state dinamis
+      });
+      window.location.reload(); // Refresh ringan untuk mengembalikan state tampilan web
     });
   };
   
@@ -4607,15 +4622,15 @@ const rekapSantriData = useMemo(() => {
                                                   <td className="px-4 py-3 text-slate-600 print:text-black print:border print:border-black">{k.wali_halaqoh}</td>
                                                   
                                                   <td className="px-4 py-3 text-center align-middle print:border print:border-black">
-                                                      {/* Kapsul Warna: Akan transparan dan tak punya padding/margin saat masuk PDF */}
-                                                      <button onClick={() => setDetailKamarModal(k.nama_kamar)} className={`inline-block min-w-[60px] px-3 py-1 rounded-full font-bold text-[10px] text-center transition shadow-sm hover:shadow-md cursor-pointer print:shadow-none print:bg-transparent print:p-0 print:text-black print:font-black ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`} title="Klik untuk melihat rincian kasus">
+                                                      {/* Ditambahkan class "pill-pdf-clean" */}
+                                                      <button onClick={() => setDetailKamarModal(k.nama_kamar)} className={`pill-pdf-clean inline-block min-w-[60px] px-3 py-1 rounded-full font-bold text-[10px] text-center transition shadow-sm cursor-pointer ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`} title="Klik untuk melihat rincian kasus">
                                                           {k.totalKasus} Kali
                                                       </button>
                                                   </td>
                                                   
                                                   <td className="px-4 py-3 text-center align-middle print:border print:border-black">
-                                                      {/* Kapsul Warna: Akan transparan dan tak punya padding/margin saat masuk PDF */}
-                                                      <span className={`inline-block min-w-[60px] px-3 py-1 rounded-full font-bold text-[10px] text-center print:bg-transparent print:p-0 print:text-black print:font-black ${k.persentase < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                      {/* Ditambahkan class "pill-pdf-clean" */}
+                                                      <span className={`pill-pdf-clean inline-block min-w-[60px] px-3 py-1 rounded-full font-bold text-[10px] text-center ${k.persentase < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
                                                           {k.persentase.toFixed(1)}%
                                                       </span>
                                                   </td>
@@ -4633,7 +4648,7 @@ const rekapSantriData = useMemo(() => {
                                                               })}
                                                           </ul>
                                                       ) : (
-                                                          <span className="italic text-slate-400 print:text-black print:not-italic font-bold">Bersih</span>
+                                                          <span className="italic text-slate-400 print:text-black font-bold">Bersih</span>
                                                       )}
                                                   </td>
                                               </tr>
