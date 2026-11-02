@@ -400,15 +400,49 @@ const filteredRiwayatKebersihan = useMemo(() => {
   });
 }, [laporanKebersihanList, riwayatStartDate, riwayatEndDate]);
   
-  // State untuk Filter & Sort Laporan Rekap
-  const [rekapStartDate, setRekapStartDate] = useState<string>('');
-  const [rekapEndDate, setRekapEndDate] = useState<string>('');
-  const [rekapSort, setRekapSort] = useState<'kamar' | 'terbanyak'>('kamar');
+ // State untuk Filter & Sort Laporan Rekap Kebersihan
+  const [rekapFilterMode, setRekapFilterMode] = useState<'hari_ini' | 'bulan' | 'rentang'>('bulan');
+  const [rekapBulanTahun, setRekapBulanTahun] = useState<string>(() => new Date().toISOString().slice(0, 7));
+  const [rekapStartDate, setRekapStartDate] = useState<string>(() => {
+    const date = new Date();
+    return new Date(date.getFullYear(), date.getMonth(), 1).toISOString().slice(0, 10);
+  });
+  const [rekapEndDate, setRekapEndDate] = useState<string>(() => {
+    const date = new Date();
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString().slice(0, 10);
+  });
+
+  // State untuk menentukan Kolom apa yang disortir & Arahnya (Naik/Turun)
+  const [rekapSortConfig, setRekapSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'kasus', direction: 'desc' });
+
+  // Efek Sinkronisasi Tanggal Otomatis
+  useEffect(() => {
+    if (rekapFilterMode === 'hari_ini') {
+      const today = new Date().toISOString().slice(0, 10);
+      setRekapStartDate(today);
+      setRekapEndDate(today);
+    } else if (rekapFilterMode === 'bulan') {
+      const [year, month] = rekapBulanTahun.split('-');
+      const firstDay = new Date(Number(year), Number(month) - 1, 1);
+      const lastDay = new Date(Number(year), Number(month), 0);
+      setRekapStartDate(`${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-01`);
+      setRekapEndDate(`${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`);
+    }
+  }, [rekapFilterMode, rekapBulanTahun]);
+
+  // Fungsi Toggle Sortir
+  const handleSortRekap = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (rekapSortConfig && rekapSortConfig.key === key && rekapSortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setRekapSortConfig({ key, direction });
+  };
 
   // State untuk Modal Riwayat Kotor di Rekap
   const [detailKamarModal, setDetailKamarModal] = useState<string | null>(null);
   
-  // Data rekapitulasi kamar yang sudah diproses (Filter Rentang Waktu & Sortir)
+  // Data rekapitulasi kamar yang sudah diproses (Filter Rentang Waktu & Sortir Dinamis)
   const processedRekapKamar = useMemo(() => {
     let filteredLaporan = laporanKebersihanList;
 
@@ -424,24 +458,50 @@ const filteredRiwayatKebersihan = useMemo(() => {
       });
     }
 
-    // 2. Gabungkan data dengan daftar kamar
+    // 2. Gabungkan data dengan daftar kamar dan hitung persentase
     let mapped = kamarList.map(k => {
       const riwayat = filteredLaporan.filter(l => l.kamar === k.nama_kamar);
+      const asumsiTotalHari = 31;
+      const persentase = Math.max(0, ((asumsiTotalHari - riwayat.length) / asumsiTotalHari) * 100);
       return {
         ...k,
         totalKasus: riwayat.length,
+        persentase: persentase, // Disimpan untuk sorting
         riwayatKasus: riwayat
       };
     });
 
-    // 3. Sortir data
-    if (rekapSort === 'terbanyak') {
-      mapped.sort((a, b) => b.totalKasus - a.totalKasus);
-    }
+    // 3. Sortir data dinamis berdasarkan klik kolom
+    mapped.sort((a, b) => {
+      const { key, direction } = rekapSortConfig;
+      let valA, valB;
+
+      switch (key) {
+        case 'kamar':
+          const numA = parseInt((a.nama_kamar || '').replace(/\D/g, '')) || 0;
+          const numB = parseInt((b.nama_kamar || '').replace(/\D/g, '')) || 0;
+          if (numA !== numB) { valA = numA; valB = numB; } 
+          else { valA = a.nama_kamar; valB = b.nama_kamar; }
+          break;
+        case 'jenjang':
+          valA = a.jenjang; valB = b.jenjang; break;
+        case 'wali':
+          valA = a.wali_halaqoh; valB = b.wali_halaqoh; break;
+        case 'kasus':
+          valA = a.totalKasus; valB = b.totalKasus; break;
+        case 'persentase':
+          valA = a.persentase; valB = b.persentase; break;
+        default:
+          valA = a.totalKasus; valB = b.totalKasus;
+      }
+
+      if (valA < valB) return direction === 'asc' ? -1 : 1;
+      if (valA > valB) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
 
     return mapped;
-  }, [kamarList, laporanKebersihanList, rekapStartDate, rekapEndDate, rekapSort]);
-  
+  }, [kamarList, laporanKebersihanList, rekapStartDate, rekapEndDate, rekapSortConfig]);
   
   // State untuk Edit Laporan Kebersihan
   const [isEditKebersihanModalOpen, setIsEditKebersihanModalOpen] = useState(false);
@@ -4377,98 +4437,159 @@ const rekapSantriData = useMemo(() => {
             </button>
         </div>
         {/* ---------------------------------------------- */}
-        
-        {/* Filter & Sortir Controls */}
-        <div className="flex flex-col md:flex-row gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-            <div className="flex-1">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Mulai Tanggal</label>
-                <input type="date" value={rekapStartDate} onChange={(e) => setRekapStartDate(e.target.value)} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
+        {/* Filter Analytics Rekap Kebersihan */}
+        <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xs border border-slate-200 flex flex-col lg:flex-row lg:items-center gap-4 mt-4">
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+              <History className="w-5 h-5" />
             </div>
-            <div className="flex-1">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Sampai Tanggal</label>
-                <input type="date" value={rekapEndDate} onChange={(e) => setRekapEndDate(e.target.value)} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" />
+            <div>
+              <h4 className="font-bold text-slate-800 text-xs uppercase">Filter Waktu</h4>
+              <p className="text-[10px] text-slate-400">Rentang data rekapitulasi</p>
             </div>
-            <div className="flex-1">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Sortir Berdasarkan</label>
-                <select value={rekapSort} onChange={(e) => setRekapSort(e.target.value as 'kamar' | 'terbanyak')} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" >
-                    <option value="kamar">Urutan Kamar</option>
-                    <option value="terbanyak">Kasus Terbanyak</option>
-                </select>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-4 flex-1">
+            {/* Opsi Tab Mode Filter */}
+            <div className="flex bg-slate-100 p-1 rounded-xl shrink-0 w-full sm:w-auto">
+              <button
+                onClick={() => setRekapFilterMode('hari_ini')}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-[11px] font-bold transition-all ${rekapFilterMode === 'hari_ini' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Hari Ini
+              </button>
+              <button
+                onClick={() => setRekapFilterMode('bulan')}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-[11px] font-bold transition-all ${rekapFilterMode === 'bulan' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Bulan
+              </button>
+              <button
+                onClick={() => setRekapFilterMode('rentang')}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-[11px] font-bold transition-all ${rekapFilterMode === 'rentang' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Rentang Waktu
+              </button>
             </div>
+            
+            {/* Input Dinamis Berdasarkan Mode */}
+            <div className="flex-1 w-full flex items-center justify-end gap-3">
+              {rekapFilterMode === 'hari_ini' && (
+                <div className="px-4 py-2 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl text-xs font-bold w-full sm:w-auto text-center">
+                  {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </div>
+              )}
+              {rekapFilterMode === 'bulan' && (
+                <input
+                  type="month"
+                  value={rekapBulanTahun}
+                  onChange={(e) => setRekapBulanTahun(e.target.value)}
+                  className="w-full sm:w-auto px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                />
+              )}
+              {rekapFilterMode === 'rentang' && (
+                <div className="flex items-center gap-2 w-full">
+                  <input
+                    type="date"
+                    value={rekapStartDate}
+                    onChange={(e) => setRekapStartDate(e.target.value)}
+                    className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                  />
+                  <span className="text-slate-400 font-bold">-</span>
+                  <input
+                    type="date"
+                    value={rekapEndDate}
+                    onChange={(e) => setRekapEndDate(e.target.value)}
+                    className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Tabel Rekapitulasi Utama */}
-        <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <table className="w-full text-sm text-left">
-                <thead className="text-xs uppercase bg-slate-50 text-slate-500">
-                    <tr>
-                        <th className="px-4 py-3 text-center">No</th>
-                        <th className="px-4 py-3">Nama Kamar</th>
-                        <th className="px-4 py-3">Jenjang</th>
-                        <th className="px-4 py-3">Wali Halaqoh</th>
-                        <th className="px-4 py-3 text-center">Jumlah Tidak Bersih</th>
-                        <th className="px-4 py-3 text-center">Persentase Kebersihan</th>
-                        <th className="px-4 py-3">Keterangan / Catatan Ketidakbersihan</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-xs">
-                    {processedRekapKamar.length === 0 ? (
-                        <tr><td colSpan={7} className="px-4 py-6 text-center text-slate-400">Belum ada data kamar.</td></tr>
-                    ) : (
-                        processedRekapKamar.map((k, idx) => {
-                            const asumsiTotalHari = 31;
-                            const persentase = Math.max(0, ((asumsiTotalHari - k.totalKasus) / asumsiTotalHari) * 100).toFixed(1);
-                            
-                            return (
-                                <tr key={k.nama_kamar || idx} className="hover:bg-slate-50">
-                                    <td className="px-4 py-3 text-center font-mono text-slate-500">{idx + 1}</td>
-                                    <td className="px-4 py-3 font-bold text-slate-900">{k.nama_kamar}</td>
-                                    <td className="px-4 py-3">
-                                        <span className="bg-slate-100 px-2 py-0.5 rounded font-bold text-[10px]">{k.jenjang}</span>
-                                    </td>
-                                    <td className="px-4 py-3 text-slate-600">{k.wali_halaqoh}</td>
-                                    
-                                    {/* Kolom Jumlah Tidak Bersih */}
-                                    <td className="px-4 py-3 text-center">
-                                        <button onClick={() => setDetailKamarModal(k.nama_kamar)} className={`px-3 py-1 rounded-full font-bold text-[10px] transition shadow-sm hover:shadow-md cursor-pointer ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`} title="Klik untuk melihat rincian kasus">
-                                            {k.totalKasus} Kasus
-                                        </button>
-                                    </td>
-                                    
-                                    {/* Kolom Persentase Kebersihan */}
-                                    <td className="px-4 py-3 text-center">
-                                        <span className={`px-3 py-1 rounded-full font-bold text-[10px] ${Number(persentase) < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                            {persentase}%
-                                        </span>
-                                    </td>
-                                    
-                                    {/* Kolom Keterangan / Catatan Ketidakbersihan */}
-                                    <td className="px-4 py-3 text-slate-700 text-[11px] leading-relaxed">
-                                        {k.riwayatKasus && k.riwayatKasus.length > 0 ? (
-                                            <ul className="space-y-1 pl-3 list-disc">
-                                                {k.riwayatKasus.map((riwayat: any, i: number) => {
-                                                    // Kode yang sebelumnya terpotong sudah diperbaiki di sini
-                                                    const formatTanggal = riwayat.tanggal.split('-').reverse().join('/');
-                                                    return (
-                                                        <li key={i}>
-                                                            <span className="font-bold">[{formatTanggal}]</span> {riwayat.keterangan}
-                                                        </li>
-                                                    );
-                                                })}
-                                            </ul>
-                                        ) : (
-                                            <span className="italic text-slate-400">Tidak ada catatan</span>
-                                        )}
-                                    </td>
-                                </tr>
-                            );
-                        })
-                    )}
-                </tbody>
-            </table>
-        </div>
-    </div>
-)}
+        {/* Tabel Rekapitulasi Utama dengan Sort Header */}
+        {(() => {
+          const getSortIcon = (key: string) => {
+            if (rekapSortConfig.key !== key) return <span className="text-slate-300 opacity-50 ml-1">↕</span>;
+            return rekapSortConfig.direction === 'asc' ? <span className="text-emerald-600 ml-1 font-black">↑</span> : <span className="text-emerald-600 ml-1 font-black">↓</span>;
+          };
+
+          return (
+            <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm mt-4">
+                <table className="w-full text-sm text-left">
+                    <thead className="text-xs uppercase bg-slate-50 text-slate-500">
+                        <tr>
+                            <th className="px-4 py-3 text-center border-b border-slate-200">No</th>
+                            <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200" onClick={() => handleSortRekap('kamar')}>
+                                <div className="flex items-center gap-1 group-hover:text-emerald-700">Nama Kamar {getSortIcon('kamar')}</div>
+                            </th>
+                            <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200" onClick={() => handleSortRekap('jenjang')}>
+                                <div className="flex items-center gap-1 group-hover:text-emerald-700">Jenjang {getSortIcon('jenjang')}</div>
+                            </th>
+                            <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200" onClick={() => handleSortRekap('wali')}>
+                                <div className="flex items-center gap-1 group-hover:text-emerald-700">Wali Halaqoh {getSortIcon('wali')}</div>
+                            </th>
+                            <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center" onClick={() => handleSortRekap('kasus')}>
+                                <div className="flex items-center justify-center gap-1 group-hover:text-emerald-700">Tidak Bersih {getSortIcon('kasus')}</div>
+                            </th>
+                            <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center" onClick={() => handleSortRekap('persentase')}>
+                                <div className="flex items-center justify-center gap-1 group-hover:text-emerald-700">% Kebersihan {getSortIcon('persentase')}</div>
+                            </th>
+                            <th className="px-4 py-3 border-b border-slate-200">Keterangan / Catatan Ketidakbersihan</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-xs">
+                        {processedRekapKamar.length === 0 ? (
+                            <tr><td colSpan={7} className="px-4 py-6 text-center text-slate-400">Belum ada data kamar.</td></tr>
+                        ) : (
+                            processedRekapKamar.map((k, idx) => {
+                                return (
+                                    <tr key={k.nama_kamar || idx} className="hover:bg-slate-50">
+                                        <td className="px-4 py-3 text-center font-mono text-slate-500">{idx + 1}</td>
+                                        <td className="px-4 py-3 font-bold text-slate-900">{k.nama_kamar}</td>
+                                        <td className="px-4 py-3">
+                                            <span className="bg-slate-100 px-2 py-0.5 rounded font-bold text-[10px]">{k.jenjang}</span>
+                                        </td>
+                                        <td className="px-4 py-3 text-slate-600">{k.wali_halaqoh}</td>
+                                        
+                                        <td className="px-4 py-3 text-center">
+                                            <button onClick={() => setDetailKamarModal(k.nama_kamar)} className={`px-3 py-1 rounded-full font-bold text-[10px] transition shadow-sm hover:shadow-md cursor-pointer ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`} title="Klik untuk melihat rincian kasus">
+                                                {k.totalKasus} Kasus
+                                            </button>
+                                        </td>
+                                        
+                                        <td className="px-4 py-3 text-center">
+                                            <span className={`px-3 py-1 rounded-full font-bold text-[10px] ${k.persentase < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                {k.persentase.toFixed(1)}%
+                                            </span>
+                                        </td>
+                                        
+                                        <td className="px-4 py-3 text-slate-700 text-[11px] leading-relaxed">
+                                            {k.riwayatKasus && k.riwayatKasus.length > 0 ? (
+                                                <ul className="space-y-1 pl-3 list-disc">
+                                                    {k.riwayatKasus.map((riwayat: any, i: number) => {
+                                                        const formatTanggal = riwayat.tanggal.split('-').reverse().join('/');
+                                                        return (
+                                                            <li key={i}>
+                                                                <span className="font-bold">[{formatTanggal}]</span> {riwayat.keterangan}
+                                                            </li>
+                                                        );
+                                                    })}
+                                                </ul>
+                                            ) : (
+                                                <span className="italic text-slate-400">Tidak ada catatan</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })
+                        )}
+                    </tbody>
+                </table>
+            </div>
+          );
+        })()}
               {/* MODAL EDIT LAPORAN KEBERSIHAN */}
               {isEditKebersihanModalOpen && (
                 <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
