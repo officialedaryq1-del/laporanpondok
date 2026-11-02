@@ -4425,7 +4425,7 @@ const rekapSantriData = useMemo(() => {
                 </div>
               )}
               
-             {{/* === KONTEN 4: LAPORAN REKAP === */}
+            {/* === KONTEN 4: LAPORAN REKAP === */}
               {kebersihanSubTab === 'rekap' && (
                 <div className="space-y-4 print:space-y-0">
                   
