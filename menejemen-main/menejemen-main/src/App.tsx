@@ -2566,7 +2566,7 @@ const rekapSantriData = useMemo(() => {
       filename:     namaFile,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { scale: 2, useCORS: true },
-      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' } // <--- Ubah kata 'portrait' menjadi 'landscape'
     };
 
     // 4. Eksekusi Download
