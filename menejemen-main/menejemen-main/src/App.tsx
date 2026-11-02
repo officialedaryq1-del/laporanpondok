@@ -4607,15 +4607,15 @@ const rekapSantriData = useMemo(() => {
                                                   <td className="px-4 py-3 text-slate-600 print:text-slate-800 print:border print:border-slate-400">{k.wali_halaqoh}</td>
                                                   
                                                   <td className="px-4 py-3 text-center align-middle print:border print:border-slate-400">
-                                                      {/* Diberi inline-flex, justify-center, dan leading-none agar posisi teks terkunci di tengah warna */}
-                                                      <button onClick={() => setDetailKamarModal(k.nama_kamar)} className={`inline-flex items-center justify-center min-w-[50px] px-3 py-1.5 rounded-full font-bold text-[10px] leading-none transition shadow-sm hover:shadow-md cursor-pointer print:shadow-none ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`} title="Klik untuk melihat rincian kasus">
+                                                      {/* PERBAIKAN: Menggunakan inline-block dan padding standar (py-1) agar teks 100% rata tengah saat jadi PDF */}
+                                                      <button onClick={() => setDetailKamarModal(k.nama_kamar)} className={`inline-block min-w-[60px] px-3 py-1 rounded-full font-bold text-[10px] text-center transition shadow-sm hover:shadow-md cursor-pointer print:shadow-none ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`} title="Klik untuk melihat rincian kasus">
                                                           {k.totalKasus} Kali
                                                       </button>
                                                   </td>
                                                   
                                                   <td className="px-4 py-3 text-center align-middle print:border print:border-slate-400">
-                                                      {/* Diberi inline-flex, justify-center, dan leading-none agar posisi teks terkunci di tengah warna */}
-                                                      <span className={`inline-flex items-center justify-center min-w-[50px] px-3 py-1.5 rounded-full font-bold text-[10px] leading-none ${k.persentase < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                      {/* PERBAIKAN: Menggunakan inline-block dan padding standar (py-1) agar teks 100% rata tengah saat jadi PDF */}
+                                                      <span className={`inline-block min-w-[60px] px-3 py-1 rounded-full font-bold text-[10px] text-center ${k.persentase < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
                                                           {k.persentase.toFixed(1)}%
                                                       </span>
                                                   </td>
