@@ -2532,7 +2532,7 @@ const rekapSantriData = useMemo(() => {
     return Object.values(stats).sort((a, b) => b.totalKasus - a.totalKasus);
 }, [filteredPelanggaran]);
 
-  // Fungsi Ekspor PDF Langsung Download
+ // Fungsi Ekspor PDF Langsung Download
   const handleEksporPDF = () => {
     const element = document.getElementById('area-cetak-pdf');
     if (!element) return;
@@ -2567,12 +2567,12 @@ const rekapSantriData = useMemo(() => {
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { scale: 2, useCORS: true },
       jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' },
-      pagebreak:    { mode: ['css', 'legacy'], avoid: 'tr' } // <--- TAMBAHKAN BARIS INI
+      pagebreak:    { mode: ['css', 'legacy'], avoid: 'tr' }
     };
 
     // 4. Eksekusi Download
     html2pdf().set(opt).from(element).save().then(() => {
-      // 5. Kembalikan DOM seperti semula setelah selesai download
+      // 5. Kembalikan DOM seperti semula
       if (headerEl) {
         headerEl.classList.add('hidden', 'print:block');
         headerEl.classList.remove('block');
@@ -4571,25 +4571,25 @@ const rekapSantriData = useMemo(() => {
                     return (
                       <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm mt-4 print:border-none print:shadow-none print:mt-0 print:pt-4">
                           <table className="w-full text-sm text-left print:text-black print:border-collapse">
-                              <thead className="text-xs uppercase bg-slate-50 text-slate-500 print:bg-slate-100 print:text-slate-900">
+                              <thead className="text-xs uppercase bg-slate-50 text-slate-500 print:bg-white print:text-black">
                                   <tr>
-                                      <th className="px-4 py-3 text-center border-b border-slate-200 print:border print:border-slate-400">No</th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border print:border-slate-400" onClick={() => handleSortRekap('kamar')}>
-                                          <div className="flex items-center gap-1 group-hover:text-emerald-700 print:text-slate-900">Nama Kamar {getSortIcon('kamar')}</div>
+                                      <th className="px-4 py-3 text-center border-b border-slate-200 print:border print:border-black print:font-black">No</th>
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border print:border-black" onClick={() => handleSortRekap('kamar')}>
+                                          <div className="flex items-center gap-1 group-hover:text-emerald-700 print:text-black print:font-black">Nama Kamar {getSortIcon('kamar')}</div>
                                       </th>
                                       <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:hidden" onClick={() => handleSortRekap('jenjang')}>
                                           <div className="flex items-center gap-1 group-hover:text-emerald-700">Jenjang {getSortIcon('jenjang')}</div>
                                       </th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border print:border-slate-400" onClick={() => handleSortRekap('wali')}>
-                                          <div className="flex items-center gap-1 group-hover:text-emerald-700 print:text-slate-900">Wali Halaqoh {getSortIcon('wali')}</div>
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border print:border-black" onClick={() => handleSortRekap('wali')}>
+                                          <div className="flex items-center gap-1 group-hover:text-emerald-700 print:text-black print:font-black">Wali Halaqoh {getSortIcon('wali')}</div>
                                       </th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center print:border print:border-slate-400" onClick={() => handleSortRekap('kasus')}>
-                                          <div className="flex items-center justify-center gap-1 group-hover:text-emerald-700 print:text-slate-900">Tidak Bersih {getSortIcon('kasus')}</div>
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center print:border print:border-black" onClick={() => handleSortRekap('kasus')}>
+                                          <div className="flex items-center justify-center gap-1 group-hover:text-emerald-700 print:text-black print:font-black">Tidak Bersih {getSortIcon('kasus')}</div>
                                       </th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center print:border print:border-slate-400" onClick={() => handleSortRekap('persentase')}>
-                                          <div className="flex items-center justify-center gap-1 group-hover:text-emerald-700 print:text-slate-900">% Kebersihan {getSortIcon('persentase')}</div>
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center print:border print:border-black" onClick={() => handleSortRekap('persentase')}>
+                                          <div className="flex items-center justify-center gap-1 group-hover:text-emerald-700 print:text-black print:font-black">% Kebersihan {getSortIcon('persentase')}</div>
                                       </th>
-                                      <th className="px-4 py-3 border-b border-slate-200 print:border print:border-slate-400">Keterangan / Catatan Ketidakbersihan</th>
+                                      <th className="px-4 py-3 border-b border-slate-200 print:border print:border-black print:font-black">Keterangan / Catatan Ketidakbersihan</th>
                                   </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-100 text-xs">
@@ -4599,28 +4599,28 @@ const rekapSantriData = useMemo(() => {
                                       processedRekapKamar.map((k, idx) => {
                                           return (
                                               <tr key={k.nama_kamar || idx} className="hover:bg-slate-50 print:break-inside-avoid">
-                                                  <td className="px-4 py-3 text-center font-mono text-slate-500 print:text-slate-800 print:border print:border-slate-400">{idx + 1}</td>
-                                                  <td className="px-4 py-3 font-bold text-slate-900 print:border print:border-slate-400">{k.nama_kamar}</td>
+                                                  <td className="px-4 py-3 text-center font-mono text-slate-500 print:text-black print:border print:border-black">{idx + 1}</td>
+                                                  <td className="px-4 py-3 font-bold text-slate-900 print:text-black print:border print:border-black">{k.nama_kamar}</td>
                                                   <td className="px-4 py-3 print:hidden">
                                                       <span className="bg-slate-100 px-2 py-0.5 rounded font-bold text-[10px]">{k.jenjang}</span>
                                                   </td>
-                                                  <td className="px-4 py-3 text-slate-600 print:text-slate-800 print:border print:border-slate-400">{k.wali_halaqoh}</td>
+                                                  <td className="px-4 py-3 text-slate-600 print:text-black print:border print:border-black">{k.wali_halaqoh}</td>
                                                   
-                                                  <td className="px-4 py-3 text-center align-middle print:border print:border-slate-400">
-                                                      {/* PERBAIKAN: Menggunakan inline-block dan padding standar (py-1) agar teks 100% rata tengah saat jadi PDF */}
-                                                      <button onClick={() => setDetailKamarModal(k.nama_kamar)} className={`inline-block min-w-[60px] px-3 py-1 rounded-full font-bold text-[10px] text-center transition shadow-sm hover:shadow-md cursor-pointer print:shadow-none ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`} title="Klik untuk melihat rincian kasus">
+                                                  <td className="px-4 py-3 text-center align-middle print:border print:border-black">
+                                                      {/* Kapsul Warna: Akan transparan dan tak punya padding/margin saat masuk PDF */}
+                                                      <button onClick={() => setDetailKamarModal(k.nama_kamar)} className={`inline-block min-w-[60px] px-3 py-1 rounded-full font-bold text-[10px] text-center transition shadow-sm hover:shadow-md cursor-pointer print:shadow-none print:bg-transparent print:p-0 print:text-black print:font-black ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`} title="Klik untuk melihat rincian kasus">
                                                           {k.totalKasus} Kali
                                                       </button>
                                                   </td>
                                                   
-                                                  <td className="px-4 py-3 text-center align-middle print:border print:border-slate-400">
-                                                      {/* PERBAIKAN: Menggunakan inline-block dan padding standar (py-1) agar teks 100% rata tengah saat jadi PDF */}
-                                                      <span className={`inline-block min-w-[60px] px-3 py-1 rounded-full font-bold text-[10px] text-center ${k.persentase < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                  <td className="px-4 py-3 text-center align-middle print:border print:border-black">
+                                                      {/* Kapsul Warna: Akan transparan dan tak punya padding/margin saat masuk PDF */}
+                                                      <span className={`inline-block min-w-[60px] px-3 py-1 rounded-full font-bold text-[10px] text-center print:bg-transparent print:p-0 print:text-black print:font-black ${k.persentase < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
                                                           {k.persentase.toFixed(1)}%
                                                       </span>
                                                   </td>
                                                   
-                                                  <td className="px-4 py-3 text-slate-700 print:text-slate-900 text-[11px] leading-relaxed print:border print:border-slate-400">
+                                                  <td className="px-4 py-3 text-slate-700 print:text-black text-[11px] leading-relaxed print:border print:border-black">
                                                       {k.riwayatKasus && k.riwayatKasus.length > 0 ? (
                                                           <ul className="space-y-1 pl-3 list-disc">
                                                               {k.riwayatKasus.map((riwayat: any, i: number) => {
@@ -4633,7 +4633,7 @@ const rekapSantriData = useMemo(() => {
                                                               })}
                                                           </ul>
                                                       ) : (
-                                                          <span className="italic text-slate-400">Bersih</span>
+                                                          <span className="italic text-slate-400 print:text-black print:not-italic font-bold">Bersih</span>
                                                       )}
                                                   </td>
                                               </tr>
