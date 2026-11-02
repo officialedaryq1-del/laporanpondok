@@ -4425,13 +4425,14 @@ const rekapSantriData = useMemo(() => {
                 </div>
               )}
               
-             {/* === KONTEN 4: LAPORAN REKAP === */}
+             {{/* === KONTEN 4: LAPORAN REKAP === */}
               {kebersihanSubTab === 'rekap' && (
                 <div className="space-y-4 print:space-y-0">
                   
                   {/* --- HEADER KHUSUS CETAK (Hanya Tampil di PDF) --- */}
-                  <div className="hidden print:block text-center mb-6 pb-4 border-b-2 border-slate-800">
-                    <h1 className="text-lg font-black text-slate-900 uppercase tracking-wide">
+                  {/* Diubah menjadi Rata Kiri, Latar Hijau Tua, Teks Putih sesuai permintaan */}
+                  <div className="hidden print:block mb-6 p-6 bg-emerald-700 text-white rounded-t-xl print:m-0 print:rounded-none">
+                    <h1 className="text-xl font-black uppercase tracking-wider leading-snug">
                       LAPORAN MONITORING KETIDAKBERSIHAN KAMAR SANTRI {
                         rekapFilterMode === 'bulan' 
                           ? `BULAN ${new Date(Number(rekapBulanTahun.split('-')[0]), Number(rekapBulanTahun.split('-')[1]) - 1, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase()}`
@@ -4440,12 +4441,11 @@ const rekapSantriData = useMemo(() => {
                           : ''
                       }
                     </h1>
-                    <h2 className="text-sm font-bold text-slate-800 mt-1">
+                    <h2 className="text-sm font-bold mt-1 text-emerald-50">
                       Sistem Kontrol Disiplin & Kebersihan Lingkungan Asrama Pesantren
                     </h2>
-                    <div className="text-xs font-semibold text-slate-700 mt-2 flex flex-col items-center gap-1">
+                    <div className="text-xs font-medium mt-3 flex flex-col gap-0.5 text-emerald-100">
                       <p>Periode Pemeriksaan: {rekapStartDate.split('-').reverse().join('/')} s/d {rekapEndDate.split('-').reverse().join('/')}</p>
-                      <p>Jenjang: Semua Jenjang</p>
                     </div>
                   </div>
 
@@ -4510,7 +4510,7 @@ const rekapSantriData = useMemo(() => {
                     };
 
                     return (
-                      <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm mt-4 print:border-none print:shadow-none print:mt-0">
+                      <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm mt-4 print:border-none print:shadow-none print:mt-0 print:pt-4">
                           <table className="w-full text-sm text-left print:text-black">
                               <thead className="text-xs uppercase bg-slate-50 text-slate-500 print:bg-white print:text-slate-900 print:border-b-2 print:border-slate-800">
                                   <tr>
@@ -4518,8 +4518,9 @@ const rekapSantriData = useMemo(() => {
                                       <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border-slate-800" onClick={() => handleSortRekap('kamar')}>
                                           <div className="flex items-center gap-1 group-hover:text-emerald-700 print:text-slate-900">Nama Kamar {getSortIcon('kamar')}</div>
                                       </th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border-slate-800 print:hidden" onClick={() => handleSortRekap('jenjang')}>
-                                          <div className="flex items-center gap-1 group-hover:text-emerald-700 print:text-slate-900">Jenjang {getSortIcon('jenjang')}</div>
+                                      {/* Kolom Jenjang disembunyikan HANYA di tampilan Cetak PDF */}
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:hidden" onClick={() => handleSortRekap('jenjang')}>
+                                          <div className="flex items-center gap-1 group-hover:text-emerald-700">Jenjang {getSortIcon('jenjang')}</div>
                                       </th>
                                       <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border-slate-800" onClick={() => handleSortRekap('wali')}>
                                           <div className="flex items-center gap-1 group-hover:text-emerald-700 print:text-slate-900">Wali Halaqoh {getSortIcon('wali')}</div>
