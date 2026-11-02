@@ -635,6 +635,40 @@ const filteredDashboardPelanggaran = useMemo(() => {
   }, [pelanggaranList]);
   // ------------------------------------------
   
+  // --- STATE UNTUK GRAFIK KEBERSIHAN PER BULAN ---
+  const [dataKebersihanPerBulan, setDataKebersihanPerBulan] = useState<any[]>([]);
+
+  useEffect(() => {
+    const stats: Record<string, number> = {};
+    
+    // Siapkan wadah untuk 6 bulan terakhir sebagai default
+    for(let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const monthName = d.toLocaleDateString('id-ID', { month: 'short' });
+      const yearStr = d.getFullYear().toString().slice(-2);
+      stats[`${monthName} '${yearStr}`] = 0;
+    }
+
+    // Hitung data kebersihan dari laporanKebersihanList
+    laporanKebersihanList.forEach(k => {
+      if(k.tanggal) {
+        const d = new Date(k.tanggal);
+        const monthName = d.toLocaleDateString('id-ID', { month: 'short' });
+        const yearStr = d.getFullYear().toString().slice(-2);
+        const key = `${monthName} '${yearStr}`;
+        
+        if(stats[key] !== undefined) {
+           stats[key] += 1;
+        }
+      }
+    });
+
+    const chartData = Object.entries(stats).map(([bulan, total]) => ({ bulan, total }));
+    setDataKebersihanPerBulan(chartData);
+  }, [laporanKebersihanList]);
+  // ------------------------------------------------
+  
   // State untuk Modal Klik Kartu Dashboard Pelanggaran
 const [dashCardModal, setDashCardModal] = useState<{ title: string; subtitle: string; data: any[] } | null>(null);
 const [searchDashCardModal, setSearchDashCardModal] = useState('');
@@ -4051,9 +4085,10 @@ const rekapSantriData = useMemo(() => {
         const donutStyle = { background: `conic-gradient(${gradientStops})` };
 
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          // Layout diubah jadi 2 kolom: Kamar di atas penuh, Donat & Bar Bulan di bawah
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             
-            {/* --- KARTU BAR CHART (KIRI) --- */}
+            {/* --- KARTU BAR CHART KAMAR (ATAS, LEBAR PENUH) --- */}
             <div className="lg:col-span-2 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col">
               <h4 className="font-bold text-slate-800 text-sm mb-6 flex items-center gap-2">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-emerald-600">
@@ -4062,8 +4097,7 @@ const rekapSantriData = useMemo(() => {
                 Kasus Ketidakbersihan Per Kamar
               </h4>
               
-              <div className="relative flex-1 min-h-[260px] w-full overflow-x-auto overflow-y-hidden pb-8 pt-2">
-                {/* Label Y-Axis & Garis Latar */}
+              <div className="relative flex-1 min-h-[260px] w-full overflow-x-auto overflow-y-hidden pb-8 pt-2 custom-scrollbar">
                 <div className="absolute left-0 top-2 bottom-12 w-6 flex flex-col justify-between text-[10px] font-bold text-slate-400 text-right pr-2">
                   <span>{maxChartBar}</span>
                   <span>{Math.ceil(maxChartBar * 0.75)}</span>
@@ -4078,22 +4112,18 @@ const rekapSantriData = useMemo(() => {
                   ))}
                 </div>
 
-                {/* Container Balok Bar Chart */}
                 <div className="absolute left-6 top-2 bottom-12 flex items-end gap-1.5 sm:gap-2 px-2 min-w-max">
                   {kamarChartData.length === 0 ? (
                     <div className="w-full h-full flex items-center justify-center text-xs text-slate-400 italic">Belum ada data</div>
                   ) : (
                     kamarChartData.map((d, i) => (
-                      <div key={i} className="flex flex-col items-center h-full justify-end group w-5 sm:w-6 relative">
-                        {/* Balok Grafik */}
+                      <div key={i} className="flex flex-col items-center h-full justify-end group w-6 relative">
                         <div className="w-full bg-[#4ade80] rounded-t-sm relative transition-all duration-300 hover:bg-emerald-500"
                              style={{ height: `${Math.max((d.total / maxChartBar) * 100, 2)}%` }}>
-                          {/* Tooltip Hover */}
                           <span className="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-0.5 px-2 rounded font-bold transition-opacity z-20">
                             {d.total}
                           </span>
                         </div>
-                        {/* Label X-Axis (Kamar) */}
                         <span className="text-[9px] font-bold text-slate-500 -rotate-45 origin-top-left mt-3 absolute -bottom-5 left-1/2">
                           {d.kamar}
                         </span>
@@ -4104,7 +4134,7 @@ const rekapSantriData = useMemo(() => {
               </div>
             </div>
 
-            {/* --- KARTU DONUT CHART (KANAN) --- */}
+            {/* --- KARTU DONUT CHART KATEGORI (KIRI BAWAH) --- */}
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-center">
               <h4 className="font-bold text-slate-800 text-sm w-full mb-6 flex items-center gap-2">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-emerald-600">
@@ -4114,16 +4144,13 @@ const rekapSantriData = useMemo(() => {
               </h4>
               
               <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full">
-                {/* Donut Shape */}
                 <div className="relative w-44 h-44 rounded-full flex items-center justify-center shadow-inner" style={donutStyle}>
-                  {/* Lingkaran Putih Tengah */}
                   <div className="w-24 h-24 bg-white rounded-full shadow-sm flex flex-col items-center justify-center">
                     <span className="text-xl font-black text-slate-800">{filteredLaporanKebersihan.length}</span>
                     <span className="text-[9px] font-bold text-slate-400 uppercase">Total</span>
                   </div>
                 </div>
 
-                {/* Legend Kategori */}
                 <div className="flex flex-wrap items-center justify-center gap-3 text-[10px] font-bold text-slate-500 px-2">
                   <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#f59e0b]"></span>Sampah</div>
                   <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#3b82f6]"></span>Pakaian</div>
@@ -4131,6 +4158,46 @@ const rekapSantriData = useMemo(() => {
                   <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#10b981]"></span>Lantai</div>
                   <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#94a3b8]"></span>Lain-lain</div>
                 </div>
+              </div>
+            </div>
+
+            {/* --- KARTU GRAFIK KASUS PER BULAN (KANAN BAWAH) --- */}
+            <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col">
+              <h4 className="font-bold text-slate-800 text-sm mb-6 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-emerald-600" />
+                Total Kasus Per Bulan
+              </h4>
+              
+              <div className="relative flex-1 min-h-[220px] w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dataKebersihanPerBulan} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="bulan" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} 
+                      dy={10} 
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} 
+                    />
+                    <Tooltip
+                      cursor={{ fill: '#f8fafc' }}
+                      contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                      itemStyle={{ color: '#0f172a' }}
+                    />
+                    <Bar 
+                      dataKey="total" 
+                      name="Jumlah Kamar Kotor" 
+                      fill="#10b981" 
+                      radius={[4, 4, 0, 0]} 
+                      barSize={28} 
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
