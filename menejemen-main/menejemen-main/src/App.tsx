@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo, Component } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+// @ts-ignore
+import html2pdf from 'html2pdf.js';
 
 // ============================================================================
 // KOMPONEN IKON NATIVE SVG (Mencegah Blank Screen & Ketergantungan Eksternal)
@@ -2529,6 +2531,54 @@ const rekapSantriData = useMemo(() => {
     
     return Object.values(stats).sort((a, b) => b.totalKasus - a.totalKasus);
 }, [filteredPelanggaran]);
+
+  // Fungsi Ekspor PDF Langsung Download
+  const handleEksporPDF = () => {
+    const element = document.getElementById('area-cetak-pdf');
+    if (!element) return;
+
+    // 1. Buat nama file dinamis sesuai filter
+    let namaFile = 'Laporan_Kebersihan';
+    if (rekapFilterMode === 'bulan') {
+      const [year, month] = rekapBulanTahun.split('-');
+      const namaBulan = new Date(Number(year), Number(month) - 1, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).replace(' ', '_');
+      namaFile += `_Bulan_${namaBulan}`;
+    } else if (rekapFilterMode === 'hari_ini') {
+      namaFile += `_${rekapStartDate}`;
+    } else {
+      namaFile += `_Rentang_${rekapStartDate}_sd_${rekapEndDate}`;
+    }
+    namaFile += '.pdf';
+
+    // 2. Manipulasi DOM sementara (Tampilkan Kop, Sembunyikan Tombol)
+    const headerEl = document.getElementById('header-cetak-pdf');
+    if (headerEl) {
+      headerEl.classList.remove('hidden', 'print:block');
+      headerEl.classList.add('block');
+    }
+    
+    const hiddenElements = element.querySelectorAll('.print\\:hidden');
+    hiddenElements.forEach(el => el.classList.add('hidden'));
+
+    // 3. Opsi html2pdf
+    const opt = {
+      margin:       [0.4, 0.4, 0.4, 0.4], 
+      filename:     namaFile,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+
+    // 4. Eksekusi Download
+    html2pdf().set(opt).from(element).save().then(() => {
+      // 5. Kembalikan DOM seperti semula setelah selesai download
+      if (headerEl) {
+        headerEl.classList.add('hidden', 'print:block');
+        headerEl.classList.remove('block');
+      }
+      hiddenElements.forEach(el => el.classList.remove('hidden'));
+    });
+  };
   
   return (
     <div className="h-screen w-full flex overflow-hidden bg-slate-50 font-sans text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
@@ -4427,18 +4477,17 @@ const rekapSantriData = useMemo(() => {
               
             {/* === KONTEN 4: LAPORAN REKAP === */}
               {kebersihanSubTab === 'rekap' && (
-                <div className="space-y-4 print:space-y-0">
+                <div className="space-y-4 print:space-y-0" id="area-cetak-pdf">
                   
                   {/* --- HEADER KHUSUS CETAK (Hanya Tampil di PDF) --- */}
-                  {/* Diubah menjadi Rata Kiri, Latar Hijau Tua, Teks Putih sesuai permintaan */}
-                  <div className="hidden print:block mb-6 p-6 bg-emerald-700 text-white rounded-t-xl print:m-0 print:rounded-none">
+                  <div id="header-cetak-pdf" className="hidden print:block mb-6 p-6 bg-emerald-700 text-white rounded-t-xl print:m-0 print:rounded-none">
                     <h1 className="text-xl font-black uppercase tracking-wider leading-snug">
                       LAPORAN MONITORING KETIDAKBERSIHAN KAMAR SANTRI {
                         rekapFilterMode === 'bulan' 
                           ? `BULAN ${new Date(Number(rekapBulanTahun.split('-')[0]), Number(rekapBulanTahun.split('-')[1]) - 1, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase()}`
                           : rekapFilterMode === 'hari_ini'
                           ? `TANGGAL ${rekapStartDate.split('-').reverse().join('/')}`
-                          : ''
+                          : `PERIODE ${rekapStartDate.split('-').reverse().join('/')} - ${rekapEndDate.split('-').reverse().join('/')}`
                       }
                     </h1>
                     <h2 className="text-sm font-bold mt-1 text-emerald-50">
@@ -4452,9 +4501,18 @@ const rekapSantriData = useMemo(() => {
                   {/* --- HEADER & TOMBOL CETAK (Sembunyikan saat cetak) --- */}
                   <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm print:hidden">
                     <h3 className="font-bold text-sm text-slate-800">Data Rekapitulasi Kebersihan</h3>
-                    <button onClick={() => window.print()} className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2 px-4 py-2 rounded-xl transition-all shadow-md">
-                      <FileText className="w-4 h-4" /> Cetak PDF
-                    </button>
+                    
+                    <div className="flex items-center gap-2">
+                      {/* Tombol Cetak Browser Lama */}
+                      <button onClick={() => window.print()} className="text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 flex items-center gap-2 px-4 py-2 rounded-xl transition-all shadow-sm">
+                        <FileText className="w-4 h-4" /> Cetak (Dialog)
+                      </button>
+                      
+                      {/* Tombol Ekspor PDF Langsung Download Baru */}
+                      <button onClick={handleEksporPDF} className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2 px-4 py-2 rounded-xl transition-all shadow-md">
+                        <FileText className="w-4 h-4" /> Ekspor PDF
+                      </button>
+                    </div>
                   </div>
 
                   {/* --- FILTER WAKTU (Sembunyikan saat cetak) --- */}
@@ -4502,7 +4560,7 @@ const rekapSantriData = useMemo(() => {
                     </div>
                   </div>
 
-                  {/* --- TABEL DATA & SORTIR --- */}
+                  {/* --- TABEL DATA & SORTIR (Dengan Grid ala Excel di PDF) --- */}
                   {(() => {
                     const getSortIcon = (key: string) => {
                       if (rekapSortConfig.key !== key) return <span className="text-slate-300 opacity-50 ml-1 print:hidden">↕</span>;
@@ -4511,27 +4569,26 @@ const rekapSantriData = useMemo(() => {
 
                     return (
                       <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm mt-4 print:border-none print:shadow-none print:mt-0 print:pt-4">
-                          <table className="w-full text-sm text-left print:text-black">
-                              <thead className="text-xs uppercase bg-slate-50 text-slate-500 print:bg-white print:text-slate-900 print:border-b-2 print:border-slate-800">
+                          <table className="w-full text-sm text-left print:text-black print:border-collapse">
+                              <thead className="text-xs uppercase bg-slate-50 text-slate-500 print:bg-slate-100 print:text-slate-900">
                                   <tr>
-                                      <th className="px-4 py-3 text-center border-b border-slate-200 print:border-slate-800">No</th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border-slate-800" onClick={() => handleSortRekap('kamar')}>
+                                      <th className="px-4 py-3 text-center border-b border-slate-200 print:border print:border-slate-400">No</th>
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border print:border-slate-400" onClick={() => handleSortRekap('kamar')}>
                                           <div className="flex items-center gap-1 group-hover:text-emerald-700 print:text-slate-900">Nama Kamar {getSortIcon('kamar')}</div>
                                       </th>
-                                      {/* Kolom Jenjang disembunyikan HANYA di tampilan Cetak PDF */}
                                       <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:hidden" onClick={() => handleSortRekap('jenjang')}>
                                           <div className="flex items-center gap-1 group-hover:text-emerald-700">Jenjang {getSortIcon('jenjang')}</div>
                                       </th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border-slate-800" onClick={() => handleSortRekap('wali')}>
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 print:border print:border-slate-400" onClick={() => handleSortRekap('wali')}>
                                           <div className="flex items-center gap-1 group-hover:text-emerald-700 print:text-slate-900">Wali Halaqoh {getSortIcon('wali')}</div>
                                       </th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center print:border-slate-800" onClick={() => handleSortRekap('kasus')}>
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center print:border print:border-slate-400" onClick={() => handleSortRekap('kasus')}>
                                           <div className="flex items-center justify-center gap-1 group-hover:text-emerald-700 print:text-slate-900">Tidak Bersih {getSortIcon('kasus')}</div>
                                       </th>
-                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center print:border-slate-800" onClick={() => handleSortRekap('persentase')}>
+                                      <th className="px-4 py-3 cursor-pointer hover:bg-slate-200 transition select-none group border-b border-slate-200 text-center print:border print:border-slate-400" onClick={() => handleSortRekap('persentase')}>
                                           <div className="flex items-center justify-center gap-1 group-hover:text-emerald-700 print:text-slate-900">% Kebersihan {getSortIcon('persentase')}</div>
                                       </th>
-                                      <th className="px-4 py-3 border-b border-slate-200 print:border-slate-800">Keterangan / Catatan Ketidakbersihan</th>
+                                      <th className="px-4 py-3 border-b border-slate-200 print:border print:border-slate-400">Keterangan / Catatan Ketidakbersihan</th>
                                   </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-100 text-xs">
@@ -4540,27 +4597,27 @@ const rekapSantriData = useMemo(() => {
                                   ) : (
                                       processedRekapKamar.map((k, idx) => {
                                           return (
-                                              <tr key={k.nama_kamar || idx} className="hover:bg-slate-50 print:border-b print:border-slate-200 print:break-inside-avoid">
-                                                  <td className="px-4 py-3 text-center font-mono text-slate-500 print:text-slate-800">{idx + 1}</td>
-                                                  <td className="px-4 py-3 font-bold text-slate-900">{k.nama_kamar}</td>
+                                              <tr key={k.nama_kamar || idx} className="hover:bg-slate-50 print:break-inside-avoid">
+                                                  <td className="px-4 py-3 text-center font-mono text-slate-500 print:text-slate-800 print:border print:border-slate-400">{idx + 1}</td>
+                                                  <td className="px-4 py-3 font-bold text-slate-900 print:border print:border-slate-400">{k.nama_kamar}</td>
                                                   <td className="px-4 py-3 print:hidden">
                                                       <span className="bg-slate-100 px-2 py-0.5 rounded font-bold text-[10px]">{k.jenjang}</span>
                                                   </td>
-                                                  <td className="px-4 py-3 text-slate-600 print:text-slate-800">{k.wali_halaqoh}</td>
+                                                  <td className="px-4 py-3 text-slate-600 print:text-slate-800 print:border print:border-slate-400">{k.wali_halaqoh}</td>
                                                   
-                                                  <td className="px-4 py-3 text-center">
+                                                  <td className="px-4 py-3 text-center print:border print:border-slate-400">
                                                       <button onClick={() => setDetailKamarModal(k.nama_kamar)} className={`px-3 py-1 rounded-full font-bold text-[10px] transition shadow-sm hover:shadow-md cursor-pointer print:shadow-none print:bg-transparent print:p-0 print:text-slate-900 ${k.totalKasus > 0 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`} title="Klik untuk melihat rincian kasus">
                                                           {k.totalKasus} {k.totalKasus > 0 ? 'Kali' : 'Kali'}
                                                       </button>
                                                   </td>
                                                   
-                                                  <td className="px-4 py-3 text-center">
+                                                  <td className="px-4 py-3 text-center print:border print:border-slate-400">
                                                       <span className={`px-3 py-1 rounded-full font-bold text-[10px] print:bg-transparent print:p-0 print:text-slate-900 ${k.persentase < 70 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
                                                           {k.persentase.toFixed(1)}%
                                                       </span>
                                                   </td>
                                                   
-                                                  <td className="px-4 py-3 text-slate-700 print:text-slate-900 text-[11px] leading-relaxed">
+                                                  <td className="px-4 py-3 text-slate-700 print:text-slate-900 text-[11px] leading-relaxed print:border print:border-slate-400">
                                                       {k.riwayatKasus && k.riwayatKasus.length > 0 ? (
                                                           <ul className="space-y-1 pl-3 list-disc">
                                                               {k.riwayatKasus.map((riwayat: any, i: number) => {
