@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, Component } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // ============================================================================
 // KOMPONEN IKON NATIVE SVG (Mencegah Blank Screen & Ketergantungan Eksternal)
@@ -598,6 +599,42 @@ const filteredDashboardPelanggaran = useMemo(() => {
   }, [filteredDashboardPelanggaran, santriList]);
   // ----------------------------------------------------------------
 
+  // --- STATE UNTUK GRAFIK KASUS PER BULAN ---
+  // Format bulan untuk memastikan kita menampilkan bulan-bulan terkini
+  const [dataKasusPerBulan, setDataKasusPerBulan] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Mengolah data pelanggaran untuk membuat grafik per bulan
+    const stats: Record<string, number> = {};
+    
+    // Ambil data 6 bulan terakhir sebagai template default (agar grafik tidak kosong)
+    for(let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const monthName = d.toLocaleDateString('id-ID', { month: 'short' });
+      const yearStr = d.getFullYear().toString().slice(-2);
+      stats[`${monthName} '${yearStr}`] = 0;
+    }
+
+    // Hitung dari raw data
+    pelanggaranList.forEach(p => {
+      if(p.tanggal) {
+        const d = new Date(p.tanggal);
+        const monthName = d.toLocaleDateString('id-ID', { month: 'short' });
+        const yearStr = d.getFullYear().toString().slice(-2);
+        const key = `${monthName} '${yearStr}`;
+        
+        if(stats[key] !== undefined) {
+           stats[key] += 1;
+        }
+      }
+    });
+
+    const chartData = Object.entries(stats).map(([bulan, total]) => ({ bulan, total }));
+    setDataKasusPerBulan(chartData);
+  }, [pelanggaranList]);
+  // ------------------------------------------
+  
   // State untuk Modal Klik Kartu Dashboard Pelanggaran
 const [dashCardModal, setDashCardModal] = useState<{ title: string; subtitle: string; data: any[] } | null>(null);
 const [searchDashCardModal, setSearchDashCardModal] = useState('');
@@ -4686,9 +4723,10 @@ const rekapSantriData = useMemo(() => {
                     </div>
 
                     {/* --- BAGIAN GRAFIK (CHARTS) --- */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Mengubah layout agar grafik Per Bulan bisa masuk */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       
-                      {/* Donut Chart: Distribusi Status SP */}
+                      {/* Donut Chart: Distribusi Status SP (Kolom 1) */}
                       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center">
                         <h4 className="font-bold text-slate-800 text-sm w-full mb-6 flex items-center gap-2">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-emerald-700">
@@ -4714,7 +4752,7 @@ const rekapSantriData = useMemo(() => {
                         </div>
                       </div>
 
-                      {/* Bar Chart: Kasus Per Halaqoh */}
+                      {/* Bar Chart: Kasus Per Halaqoh (Kolom 2) */}
                       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
                         <h4 className="font-bold text-slate-800 text-sm mb-6 flex items-center gap-2">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-emerald-700">
@@ -4724,6 +4762,7 @@ const rekapSantriData = useMemo(() => {
                         </h4>
                         
                         <div className="relative flex-1 min-h-[260px] w-full overflow-x-auto overflow-y-hidden pb-8 pt-2">
+                          {/* SISA KODE Kasus Per Halaqoh SAMA SEPERTI ASLINYA */}
                           <div className="absolute left-0 top-2 bottom-12 w-6 flex flex-col justify-between text-[10px] font-bold text-slate-400 text-right pr-2">
                             <span>{dashboardStatsPlg.maxHalaqohChart}</span>
                             <span>{Math.ceil(dashboardStatsPlg.maxHalaqohChart * 0.75)}</span>
@@ -4761,6 +4800,47 @@ const rekapSantriData = useMemo(() => {
                           </div>
                         </div>
                       </div>
+
+                      {/* --- KARTU BARU: GRAFIK KASUS PER BULAN (Kolom 3) --- */}
+                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                        <h4 className="font-bold text-slate-800 text-sm mb-6 flex items-center gap-2">
+                          <TrendingUp className="w-5 h-5 text-emerald-700" />
+                          Total Kasus Per Bulan
+                        </h4>
+                        
+                        <div className="relative flex-1 min-h-[260px] w-full pt-2">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={dataKasusPerBulan} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                              <XAxis 
+                                dataKey="bulan" 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} 
+                                dy={10} 
+                              />
+                              <YAxis 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} 
+                              />
+                              <Tooltip
+                                cursor={{ fill: '#f8fafc' }}
+                                contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                                itemStyle={{ color: '#0f172a' }}
+                              />
+                              <Bar 
+                                dataKey="total" 
+                                name="Jumlah Pelanggaran" 
+                                fill="#0ea5e9" // Menggunakan warna biru muda agar kontras dengan hijau halaqoh
+                                radius={[4, 4, 0, 0]} 
+                                barSize={28} 
+                              />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                      {/* --- AKHIR KARTU BARU --- */}
 
                     </div>
                   </div>
