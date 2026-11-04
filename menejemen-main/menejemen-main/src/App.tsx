@@ -2073,6 +2073,56 @@ const handleSaveImportAsatidz = async () => {
     }
   };
 
+  // ==========================================
+  // FUNGSI EDIT RIWAYAT CEKLIS (DIVISI IKU)
+  // ==========================================
+  const [isEditSubmissionModalOpen, setIsEditSubmissionModalOpen] = useState(false);
+  const [editSubmissionData, setEditSubmissionData] = useState<any>({});
+
+  const handleOpenEditSubmission = (sub: Submission) => {
+    setEditSubmissionData({
+      id: sub.id,
+      pj_name: sub.pj_name || '',
+      target_class: sub.target_class || '',
+      target_person: sub.target_person || '',
+      target_time_slot: sub.target_time_slot || '',
+      absent_students: sub.absent_students || '',
+      general_notes: sub.general_notes || ''
+    });
+    setIsEditSubmissionModalOpen(true);
+  };
+
+  const handleUpdateSubmission = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        pj_name: editSubmissionData.pj_name,
+        target_class: editSubmissionData.target_class,
+        target_person: editSubmissionData.target_person,
+        target_time_slot: editSubmissionData.target_time_slot,
+        absent_students: editSubmissionData.absent_students,
+        general_notes: editSubmissionData.general_notes,
+      };
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/submissions?id=eq.${editSubmissionData.id}`, {
+        method: 'PATCH',
+        headers: reqHeaders,
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        showToast('Data riwayat berhasil diperbarui!', 'success');
+        setIsEditSubmissionModalOpen(false);
+        fetchSupabaseData(); // Refresh data dari server otomatis
+      } else {
+        showToast('Gagal memperbarui data', 'error');
+      }
+    } catch (err) {
+      showToast('Terjadi kesalahan koneksi', 'error');
+    }
+  };
+  // ==========================================
+  
   const handleDeleteSubmission = async (id: number) => {
   if (!window.confirm('Apakah Anda yakin ingin menghapus data riwayat ini?')) return;
 
@@ -3454,7 +3504,7 @@ const rekapSantriData = useMemo(() => {
                                   </td>
                                   <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
                                     <div className="flex items-center justify-center gap-1.5">
-                                      {/* Tombol Detail (Sudah ada sebelumnya) */}
+                                      {/* Tombol Detail */}
                                       <button 
                                         onClick={() => handleOpenSubmissionDetail(sub)}
                                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-bold text-[11px] transition shadow-2xs"
@@ -3464,7 +3514,20 @@ const rekapSantriData = useMemo(() => {
                                         <span>Detail</span>
                                       </button>
                                       
-                                      {/* Tombol Hapus (Baru) */}
+                                      {/* Tombol Edit (BARU) */}
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleOpenEditSubmission(sub);
+                                        }}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white font-bold text-[11px] transition shadow-2xs"
+                                        title="Edit Data Riwayat"
+                                      >
+                                        <Edit className="w-3.5 h-3.5" />
+                                        <span>Edit</span>
+                                      </button>
+                                      
+                                      {/* Tombol Hapus */}
                                       <button 
                                         onClick={(e) => {
                                           e.stopPropagation();
@@ -6823,6 +6886,69 @@ const rekapSantriData = useMemo(() => {
             </div>
           )}
 
+        {/* ================================================= */}
+      {/* MODAL EDIT RIWAYAT PENGAWASAN (DIVISI IKU)        */}
+      {/* ================================================= */}
+      {isEditSubmissionModalOpen && (
+        <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div className="bg-amber-500 px-6 py-4 flex items-center justify-between text-white">
+              <div>
+                <h3 className="font-bold text-base">Edit Data Riwayat</h3>
+                <p className="text-xs text-amber-100">Perbarui rincian metadata laporan pengawasan</p>
+              </div>
+              <button onClick={() => setIsEditSubmissionModalOpen(false)} className="text-amber-100 hover:text-white transition">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateSubmission} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal</label>
+                  <input type="date" value={editSubmissionData.target_class.slice(0,10)} onChange={(e) => setEditSubmissionData({...editSubmissionData, target_class: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Petugas (PJ)</label>
+                  <input type="text" value={editSubmissionData.pj_name} onChange={(e) => setEditSubmissionData({...editSubmissionData, pj_name: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Ustadz / Target</label>
+                  <input type="text" value={editSubmissionData.target_person} onChange={(e) => setEditSubmissionData({...editSubmissionData, target_person: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pengampu / Jam</label>
+                  <input type="text" value={editSubmissionData.target_time_slot} onChange={(e) => setEditSubmissionData({...editSubmissionData, target_time_slot: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Keterangan / Absen</label>
+                <input type="text" value={editSubmissionData.absent_students} onChange={(e) => setEditSubmissionData({...editSubmissionData, absent_students: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Catatan Tambahan</label>
+                <textarea rows={3} value={editSubmissionData.general_notes} onChange={(e) => setEditSubmissionData({...editSubmissionData, general_notes: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                <button type="button" onClick={() => setIsEditSubmissionModalOpen(false)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+                  Batal
+                </button>
+                <button type="submit" className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-md transition">
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* ================================================= */}
+        
       </main>
 
       {selectedSubmissionForDetail && (
