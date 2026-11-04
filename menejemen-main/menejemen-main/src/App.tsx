@@ -6052,48 +6052,49 @@ const rekapSantriData = useMemo(() => {
           })()}
 
           {navTab === 'laporan' && (
-            <div className="max-w-7xl mx-auto w-full space-y-6">
+            <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6 px-1 sm:px-0">
               
-              {/* Header Banner */}
-              <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 rounded-3xl p-6 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+              {/* Header Banner - Disesuaikan agar responsif di HP */}
+              <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-white shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-black tracking-tight flex items-center gap-2.5">
-                    <FileSpreadsheet className="w-6 h-6" />
+                  <h2 className="text-lg sm:text-xl font-black tracking-tight flex items-center gap-2.5">
+                    <FileSpreadsheet className="w-5 h-5 sm:w-6 sm:h-6" />
                     Dashboard Laporan Pondok
                   </h2>
-                  <p className="text-xs text-purple-100 mt-1">
+                  <p className="text-[11px] sm:text-xs text-purple-100 mt-1">
                     Pantau capaian IKU dan tuliskan catatan evaluasi per kegiatan tiap bulan
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3 flex-wrap">
-                  {/* Pemilih Bulan Catatan & Laporan */}
-                  <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5 border border-white/30 text-white text-xs font-bold">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full lg:w-auto">
+                  {/* Pemilih Bulan */}
+                  <div className="flex items-center justify-between sm:justify-start gap-2 bg-white/20 backdrop-blur-md rounded-xl px-3 py-2 sm:py-1.5 border border-white/30 text-white text-xs font-bold w-full sm:w-auto">
                     <span className="text-[10px] uppercase tracking-wider text-purple-200">BULAN:</span>
                     <input
                       type="month"
                       value={laporanBulan}
                       onChange={(e) => setLaporanBulan(e.target.value)}
-                      className="bg-transparent text-white font-bold outline-none cursor-pointer [color-scheme:dark]"
+                      className="bg-transparent text-white font-bold outline-none cursor-pointer [color-scheme:dark] w-auto text-right sm:text-left"
                     />
                   </div>
 
-                  {/* Tombol Cetak yang mengarah ke berkas public/cetak.html */}
+                  {/* Tombol Cetak */}
                   <a
                     href="cetak.html"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition border border-white/20 flex items-center gap-1.5"
+                    className="w-full sm:w-auto px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition border border-white/20 flex items-center justify-center gap-1.5"
                   >
                     <FileText className="w-4 h-4" /> Cetak
                   </a>
 
-                  <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-1.5 text-slate-800 text-xs font-bold shadow-md">
+                  {/* Pemilih Unit */}
+                  <div className="flex items-center justify-between sm:justify-start gap-2 bg-white rounded-xl px-3 py-2 sm:py-1.5 text-slate-800 text-xs font-bold shadow-md w-full sm:w-auto">
                     <span className="text-[10px] text-slate-400 uppercase font-semibold">UNIT:</span>
                     <select
                       value={activeDivisionId}
                       onChange={(e) => setActiveDivisionId(Number(e.target.value))}
-                      className="bg-transparent text-xs font-bold text-slate-900 outline-none cursor-pointer"
+                      className="bg-transparent text-xs font-bold text-slate-900 outline-none cursor-pointer flex-1 sm:flex-none text-right sm:text-left truncate max-w-[180px] sm:max-w-[200px]"
                     >
                       {divisions.map(d => (
                         <option key={d.id} value={d.id}>{d.name}</option>
@@ -6103,12 +6104,14 @@ const rekapSantriData = useMemo(() => {
                 </div>
               </div>
 
-              {/* Spreadsheet Table with RowSpan */}
-              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
+              {/* Spreadsheet Table with RowSpan - Dilengkapi pembatasan lebar dan Scroll untuk HP */}
+              <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm overflow-hidden w-full max-w-[100vw] sm:max-w-none">
+                {/* overflow-x-auto memungkinkan tabel di-scroll ke samping secara mandiri tanpa menarik layar HP */}
+                <div className="overflow-x-auto w-full custom-scrollbar">
+                  {/* min-w-[768px] memastikan kolom tidak tergencet/gepeng saat layar HP kecil */}
+                  <table className="w-full text-left text-xs border-collapse min-w-[768px]">
                     <thead>
-                      <tr className="bg-slate-50 text-slate-600 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
+                      <tr className="bg-slate-50 text-slate-600 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
                         <th className="py-2.5 px-2 w-8 text-center">NO</th>
                         <th className="py-2.5 px-2 w-[125px] min-w-[115px] max-w-[130px]">INDIKATOR (IKU)</th>
                         <th className="py-2.5 px-1 text-center w-14 min-w-[50px]">TARGET</th>
@@ -6116,7 +6119,7 @@ const rekapSantriData = useMemo(() => {
                         <th className="py-2.5 px-1 text-center w-14 min-w-[50px] bg-emerald-50/70 text-emerald-800">YAYASAN</th>
                         <th className="py-2.5 px-2 w-[125px] min-w-[115px] max-w-[130px]">KEGIATAN</th>
                         <th className="py-2.5 px-1 text-center w-16 min-w-[55px]">WAKTU</th>
-                        <th className="py-2.5 px-3 min-w-[340px]">CATATAN ({laporanBulan})</th>
+                        <th className="py-2.5 px-3 min-w-[240px] sm:min-w-[340px]">CATATAN ({laporanBulan})</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -6189,7 +6192,7 @@ const rekapSantriData = useMemo(() => {
                                 <td className="py-2.5 px-1 text-center text-slate-500 font-medium text-[10px]">
                                   {tpl.timeframe || 'Bulanan'}
                                 </td>
-                                <td className="py-2.5 px-3 min-w-[340px]">
+                                <td className="py-2.5 px-3 min-w-[240px] sm:min-w-[340px]">
                                   <div className="flex items-start justify-between gap-2 group">
                                     <span className={`text-[11px] leading-relaxed flex-1 ${catatanTpl ? 'text-slate-700 font-medium' : 'text-slate-400 italic'}`}>
                                       {catatanTpl || '(Belum ada catatan)'}
