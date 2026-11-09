@@ -3401,7 +3401,7 @@ const rekapSantriData = useMemo(() => {
                       ) : (
                         <div className="overflow-x-auto w-full custom-scrollbar">
                           <table className="w-full text-left text-xs border-collapse min-w-[900px]">
-                            {/* ===== HEADER TABEL DINAMIS ===== */}
+                           {/* ===== HEADER TABEL DINAMIS ===== */}
                             <thead>
                               <tr className="bg-slate-50/80 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
                                 <th className="py-3 px-4 w-12 text-center">NO</th>
@@ -3440,8 +3440,8 @@ const rekapSantriData = useMemo(() => {
                                 
                                 <th className="py-3 px-4 text-center min-w-[90px]">SKOR</th>
                                 <th className="py-3 px-5 min-w-[200px]">CATATAN</th>
-                                {/* Kolom aksi dibuat sticky agar menempel di sisi kanan layar saat di-scroll */}
                                 <th className="py-3 px-4 text-center min-w-[80px]">AKSI</th>
+                              </tr>
                             </thead>
                             
                             {/* ===== ISI TABEL (DATA) ===== */}
