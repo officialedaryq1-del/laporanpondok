@@ -555,6 +555,7 @@ const filteredRiwayatKebersihan = useMemo(() => {
   const [formIzinStatus, setFormIzinStatus] = useState('Aktif (masih di luar)');
   const [formIzinKeterangan, setFormIzinKeterangan] = useState('');
   const [formIzinSearchSantri, setFormIzinSearchSantri] = useState('');
+  const [detailIzinModal, setDetailIzinModal] = useState<PerizinanRecord | null>(null);
 
   // Logika Filter Tabel Perizinan
   const filteredPerizinan = useMemo(() => {
@@ -6244,7 +6245,7 @@ const rekapSantriData = useMemo(() => {
                                             <span className={p.status === 'Aktif' ? 'text-orange-500' : 'text-emerald-600'}>{p.status}</span>
                                           </td>
                                           <td className="px-5 py-3 text-right whitespace-nowrap">
-                                              <button className="text-[10px] font-bold text-slate-400 hover:text-slate-600 mr-3 transition">Detail</button>
+                                              <button onClick={() => setDetailIzinModal(p)} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 mr-3 transition">Detail</button>
                                               {p.status === 'Aktif' && (
                                                 <button onClick={() => handleSetIzinKembali(p.id)} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 transition">Kembali</button>
                                               )}
@@ -6330,7 +6331,7 @@ const rekapSantriData = useMemo(() => {
                                                 <span className={p.status === 'Aktif' ? 'text-orange-500' : 'text-emerald-600'}>{p.status}</span>
                                               </td>
                                               <td className="px-5 py-4 text-right whitespace-nowrap">
-                                                  <button className="text-[10px] font-bold text-slate-400 hover:text-slate-600 mr-3 transition">Detail</button>
+                                                  <button onClick={() => setDetailIzinModal(p)} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 mr-3 transition">Detail</button>
                                                   {p.status === 'Aktif' && (
                                                     <button onClick={() => handleSetIzinKembali(p.id)} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 transition">Kembali</button>
                                                   )}
@@ -6473,6 +6474,110 @@ const rekapSantriData = useMemo(() => {
 
             </div>
           )}
+
+        {/* MODAL DETAIL PERIZINAN */}
+              {detailIzinModal && (
+                <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+                  <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col">
+                    
+                    {/* Header Modal */}
+                    <div className="p-5 sm:p-6 border-b border-slate-100 flex items-start justify-between bg-white relative">
+                      <div>
+                        <div className="text-[9px] sm:text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1.5">
+                          DETAIL PERIZINAN SANTRI
+                        </div>
+                        <h3 className="text-lg sm:text-xl font-black text-slate-900 uppercase">
+                          {detailIzinModal.nama_santri}
+                        </h3>
+                        <p className="text-xs text-slate-500 font-medium mt-0.5">
+                          Kelas {detailIzinModal.kelas} - {detailIzinModal.halaqoh || 'Tanpa Halaqoh'}
+                        </p>
+                      </div>
+                      <button 
+                        onClick={() => setDetailIzinModal(null)} 
+                        className="p-2 text-slate-400 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Konten Grid */}
+                    <div className="p-5 sm:p-6 bg-slate-50/50 flex-1 overflow-y-auto">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        
+                        <div className="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm">
+                          <span className="text-[10px] font-bold text-slate-400 block mb-1">Tanggal Izin</span>
+                          <span className="text-sm font-bold text-slate-800">{detailIzinModal.tanggal_izin.split('-').reverse().join('/')}</span>
+                        </div>
+                        
+                        <div className="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm">
+                          <span className="text-[10px] font-bold text-slate-400 block mb-1">Rencana Kembali</span>
+                          <span className="text-sm font-bold text-slate-800">{detailIzinModal.tanggal_kembali.split('-').reverse().join('/')}</span>
+                        </div>
+                        
+                        <div className="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm">
+                          <span className="text-[10px] font-bold text-slate-400 block mb-1">Jenis Izin</span>
+                          <span className="text-sm font-bold text-slate-800">{detailIzinModal.jenis_izin}</span>
+                        </div>
+                        
+                        <div className="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm">
+                          <span className="text-[10px] font-bold text-slate-400 block mb-1">Bulan Rekap</span>
+                          <span className="text-sm font-bold text-slate-800">
+                            {new Date(detailIzinModal.tanggal_izin).toLocaleDateString('id-ID', { month: 'short', year: '2-digit' })}
+                          </span>
+                        </div>
+                        
+                        <div className="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm">
+                          <span className="text-[10px] font-bold text-slate-400 block mb-1">ID Santri</span>
+                          <span className="text-xs font-mono font-bold text-slate-600 truncate block">{detailIzinModal.santri_id}</span>
+                        </div>
+                        
+                        <div className="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm">
+                          <span className="text-[10px] font-bold text-slate-400 block mb-1">PJ</span>
+                          <span className="text-sm font-bold text-slate-800">{detailIzinModal.pj}</span>
+                        </div>
+
+                        <div className="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm sm:col-span-2">
+                          <span className="text-[10px] font-bold text-slate-400 block mb-1">Status</span>
+                          <span className={`text-sm font-bold ${detailIzinModal.status === 'Aktif' ? 'text-orange-500' : 'text-emerald-600'}`}>
+                            {detailIzinModal.status} {detailIzinModal.status === 'Aktif' ? '• Masih di luar' : '• Sudah kembali'}
+                          </span>
+                        </div>
+
+                        <div className="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm sm:col-span-2">
+                          <span className="text-[10px] font-bold text-slate-400 block mb-1">Keterangan</span>
+                          <p className="text-sm text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">
+                            {detailIzinModal.keterangan || '-'}
+                          </p>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    {/* Footer Tombol */}
+                    <div className="p-4 sm:p-5 border-t border-slate-100 bg-white flex justify-end gap-3">
+                      {detailIzinModal.status === 'Aktif' && (
+                        <button 
+                          onClick={() => {
+                            handleSetIzinKembali(detailIzinModal.id);
+                            setDetailIzinModal(null);
+                          }}
+                          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-md"
+                        >
+                          Tandai Sudah Kembali
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => setDetailIzinModal(null)} 
+                        className="px-6 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold transition"
+                      >
+                        Tutup
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              )}
         
           {/* ========================================================= */}
           {/* MENU DASHBOARD UTAMA (JANGAN DIHAPUS)                       */}
