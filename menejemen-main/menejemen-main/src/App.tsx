@@ -553,6 +553,7 @@ const filteredRiwayatKebersihan = useMemo(() => {
   const [formIzinJenis, setFormIzinJenis] = useState('Izin Pulang');
   const [formIzinStatus, setFormIzinStatus] = useState('Aktif (masih di luar)');
   const [formIzinKeterangan, setFormIzinKeterangan] = useState('');
+  const [formIzinSearchSantri, setFormIzinSearchSantri] = useState('');
 
   // Logika Filter Tabel Perizinan
   const filteredPerizinan = useMemo(() => {
@@ -6360,8 +6361,8 @@ const rekapSantriData = useMemo(() => {
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter Kelas</label>
-                              <select value={formIzinKelas} onChange={e => setFormIzinKelas(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                <option>Semua Kelas</option>
+                              <select value={formIzinKelas} onChange={e => setFormIzinKelas(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer">
+                                <option value="Semua Kelas">Semua Kelas</option>
                                 <option value="7">Kelas 7</option>
                                 <option value="8">Kelas 8</option>
                                 <option value="9">Kelas 9</option>
@@ -6369,29 +6370,47 @@ const rekapSantriData = useMemo(() => {
                             </div>
                             <div>
                               <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter Halaqoh</label>
-                              <select value={formIzinHalaqoh} onChange={e => setFormIzinHalaqoh(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                <option>Semua Halaqoh</option>
+                              <select value={formIzinHalaqoh} onChange={e => setFormIzinHalaqoh(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer">
+                                <option value="Semua Halaqoh">Semua Halaqoh</option>
+                                {guruList.map(g => (
+                                  <option key={g.id} value={g.nama_guru}>{g.nama_guru}</option>
+                                ))}
                               </select>
                             </div>
                          </div>
 
                          <div>
-                            <label className="block text-[10px] font-bold text-slate-800 mb-1">Nama Santri *</label>
-                            <select value={formIzinSantriId} onChange={e => setFormIzinSantriId(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
-                               <option value="">Pilih santri dari master data</option>
-                               {santriList
-                                 .filter(s => (formIzinKelas === 'Semua Kelas' || s.kelas === formIzinKelas))
-                                 .map(s => <option key={s.id} value={s.id}>{s.nama} ({s.kelas})</option>)
-                               }
-                            </select>
+                            <label className="block text-[10px] font-bold text-slate-800 mb-1">Cari & Pilih Nama Santri *</label>
+                            <div className="space-y-2">
+                               {/* Kotak Pencarian */}
+                               <input 
+                                 type="text" 
+                                 placeholder="Ketik nama santri untuk mencari dengan cepat..." 
+                                 value={formIzinSearchSantri} 
+                                 onChange={e => setFormIzinSearchSantri(e.target.value)} 
+                                 className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                               />
+                               {/* Dropdown Pilihan Santri Terfilter */}
+                               <select value={formIzinSantriId} onChange={e => setFormIzinSantriId(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" required>
+                                  <option value="">-- Pilih santri dari daftar di bawah ini --</option>
+                                  {santriList
+                                    .filter(s => (formIzinKelas === 'Semua Kelas' || s.kelas === formIzinKelas))
+                                    .filter(s => (formIzinHalaqoh === 'Semua Halaqoh' || s.halaqoh === formIzinHalaqoh))
+                                    .filter(s => s.nama.toLowerCase().includes(formIzinSearchSantri.toLowerCase()))
+                                    .map(s => <option key={s.id} value={s.id}>{s.nama} ({s.kelas} - {s.halaqoh || 'Tanpa Halaqoh'})</option>)
+                                  }
+                               </select>
+                            </div>
                          </div>
 
                          <div>
                             <label className="block text-[10px] font-bold text-slate-800 mb-1">PJ *</label>
-                            <select value={formIzinPJ} onChange={e => setFormIzinPJ(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                               <option>Pondok</option>
-                               <option>Wali Santri</option>
-                            </select>
+                            <input 
+                              type="text" 
+                              value={formIzinPJ} 
+                              readOnly 
+                              className="w-full bg-slate-100 border border-slate-200 text-slate-500 rounded-xl px-3 py-2.5 text-xs font-bold cursor-not-allowed focus:outline-none" 
+                            />
                          </div>
 
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
