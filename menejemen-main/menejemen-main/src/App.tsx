@@ -6348,7 +6348,7 @@ const rekapSantriData = useMemo(() => {
                   );
               })()}
 
-              {/* === KONTEN 4: INPUT FORM PERIZINAN === */}
+             {/* === KONTEN 4: INPUT FORM PERIZINAN === */}
               {perizinanSubTab === 'input' && (
                 <div className="px-4 sm:px-6 w-full pb-10">
                    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 max-w-3xl">
@@ -6417,15 +6417,15 @@ const rekapSantriData = useMemo(() => {
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-[10px] font-bold text-slate-800 mb-1">Tanggal Izin *</label>
-                              <input type="date" value={formIzinTgl} onChange={e => setFormIzinTgl(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" required />
+                              <input type="date" value={formIzinTgl} onChange={e => setFormIzinTgl(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" required />
                             </div>
                             <div>
                               <label className="block text-[10px] font-bold text-slate-800 mb-1">Rencana Tanggal Kembali *</label>
-                              <input type="date" value={formIzinTglKembali} onChange={e => setFormIzinTglKembali(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" required />
+                              <input type="date" value={formIzinTglKembali} onChange={e => setFormIzinTglKembali(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" required />
                             </div>
                          </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <label className="block text-[10px] font-bold text-slate-800 mb-1">Jenis Izin *</label>
                               <select value={formIzinJenis} onChange={e => setFormIzinJenis(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer">
@@ -6449,14 +6449,6 @@ const rekapSantriData = useMemo(() => {
                             <div>
                               <label className="block text-[10px] font-bold text-slate-800 mb-1">Status *</label>
                               <select value={formIzinStatus} onChange={e => setFormIzinStatus(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer">
-                                <option>Aktif (masih di luar)</option>
-                                <option>Kembali (sudah di pondok)</option>
-                              </select>
-                            </div>
-                         </div>
-                      <div>
-                              <label className="block text-[10px] font-bold text-slate-800 mb-1">Status *</label>
-                              <select value={formIzinStatus} onChange={e => setFormIzinStatus(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                 <option>Aktif (masih di luar)</option>
                                 <option>Kembali (sudah di pondok)</option>
                               </select>
