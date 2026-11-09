@@ -2087,7 +2087,8 @@ const handleSaveImportAsatidz = async () => {
       target_person: sub.target_person || '',
       target_time_slot: sub.target_time_slot || '',
       absent_students: sub.absent_students || '',
-      general_notes: sub.general_notes || ''
+      general_notes: sub.general_notes || '',
+      submission_date: sub.submission_date || sub.created_at || new Date().toISOString() // Simpan waktu asli
     });
     setIsEditSubmissionModalOpen(true);
   };
@@ -2095,6 +2096,12 @@ const handleSaveImportAsatidz = async () => {
   const handleUpdateSubmission = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Gabungkan tanggal yang baru diubah dengan jam dari data aslinya
+      const oldTime = editSubmissionData.submission_date ? editSubmissionData.submission_date.substring(10) : 'T00:00:00.000Z';
+      const newSubmissionDate = editSubmissionData.target_class 
+        ? `${editSubmissionData.target_class.slice(0, 10)}${oldTime}` 
+        : editSubmissionData.submission_date;
+
       const payload = {
         pj_name: editSubmissionData.pj_name,
         target_class: editSubmissionData.target_class,
@@ -2102,6 +2109,7 @@ const handleSaveImportAsatidz = async () => {
         target_time_slot: editSubmissionData.target_time_slot,
         absent_students: editSubmissionData.absent_students,
         general_notes: editSubmissionData.general_notes,
+        submission_date: newSubmissionDate // Mengupdate waktu di database
       };
 
       const res = await fetch(`${SUPABASE_URL}/rest/v1/submissions?id=eq.${editSubmissionData.id}`, {
@@ -6874,7 +6882,7 @@ const rekapSantriData = useMemo(() => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal</label>
-                  <input type="date" value={editSubmissionData.target_class.slice(0,10)} onChange={(e) => setEditSubmissionData({...editSubmissionData, target_class: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  <input type="date" value={editSubmissionData.target_class ? editSubmissionData.target_class.slice(0,10) : ''} onChange={(e) => setEditSubmissionData({...editSubmissionData, target_class: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Petugas (PJ)</label>
