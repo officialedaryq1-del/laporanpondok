@@ -2074,29 +2074,97 @@ const handleSaveImportAsatidz = async () => {
   };
 
   // ==========================================
-  // FUNGSI EDIT RIWAYAT CEKLIS (DIVISI IKU)
+   // FUNGSI EDIT RIWAYAT CEKLIS (DIVISI IKU)
   // ==========================================
   const [isEditSubmissionModalOpen, setIsEditSubmissionModalOpen] = useState(false);
   const [editSubmissionData, setEditSubmissionData] = useState<any>({});
+  
+  // State tambahan untuk menyimpan jawaban saat di-edit
+  const [editCheckedItems, setEditCheckedItems] = useState<Record<number, boolean>>({});
+  const [editFormAnswers, setEditFormAnswers] = useState<Record<number, string>>({});
+  const [isEditLoadingDetails, setIsEditLoadingDetails] = useState(false);
 
-  const handleOpenEditSubmission = (sub: Submission) => {
+  // Fungsi hitung skor dinamis saat mengedit form
+  const editFormScore = useMemo(() => {
+    let totalItemsCount = 0;
+    let totalPointsEarned = 0;
+    let defectCount = 0;
+
+    if (!editSubmissionData.template_id) return { percentage: 100, scale3: 3.0, totalViolations: 0 };
+
+    const sectionsForEdit = sections.filter(s => Number(s.template_id) === Number(editSubmissionData.template_id));
+
+    sectionsForEdit.forEach(sec => {
+      const secItems = getSectionItems(sec.id);
+      const isPositif = (sectionTypeMap[sec.id] || (sec as any).section_type) === 'positif';
+
+      secItems.forEach(it => {
+        totalItemsCount += 1;
+        const isChecked = !!editCheckedItems[it.id];
+
+        if (isPositif) {
+          if (isChecked) totalPointsEarned += 1;
+          else defectCount += 1;
+        } else {
+          if (!isChecked) totalPointsEarned += 1;
+          else defectCount += 1;
+        }
+      });
+    });
+
+    if (totalItemsCount === 0) return { percentage: 100, scale3: 3.0, totalViolations: 0 };
+    const percentage = Math.max(0, Math.min(100, Math.round((totalPointsEarned / totalItemsCount) * 100)));
+    const scale3 = parseFloat(((percentage / 100) * 3).toFixed(2));
+    return { percentage, scale3, totalViolations: defectCount };
+  }, [sections, items, editSubmissionData.template_id, editCheckedItems, sectionTypeMap]);
+
+  const handleOpenEditSubmission = async (sub: Submission) => {
     setEditSubmissionData({
       id: sub.id,
+      template_id: sub.template_id, // Penting untuk memanggil ulang template form
       pj_name: sub.pj_name || '',
       target_class: sub.target_class || '',
       target_person: sub.target_person || '',
       target_time_slot: sub.target_time_slot || '',
       absent_students: sub.absent_students || '',
       general_notes: sub.general_notes || '',
-      submission_date: sub.submission_date || sub.created_at || new Date().toISOString() // Simpan waktu asli
+      submission_date: sub.submission_date || sub.created_at || new Date().toISOString()
     });
+    
     setIsEditSubmissionModalOpen(true);
+    setIsEditLoadingDetails(true);
+    setEditCheckedItems({});
+    setEditFormAnswers({});
+
+    // Ambil data ceklis yang pernah diisi sebelumnya dari database
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/submission_details?submission_id=eq.${sub.id}`, { headers: reqHeaders });
+      if (res.ok) {
+        const details = await res.json();
+        const newChecked: Record<number, boolean> = {};
+        const newAnswers: Record<number, string> = {};
+        
+        details.forEach((d: any) => {
+           const matchedItem = items.find(it => it.id === d.item_id);
+           if (matchedItem && (!matchedItem.input_type || matchedItem.input_type === 'checkbox')) {
+              newChecked[d.item_id] = d.answer_value === 'true';
+           } else {
+              newAnswers[d.item_id] = d.answer_value || '';
+           }
+        });
+        setEditCheckedItems(newChecked);
+        setEditFormAnswers(newAnswers);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsEditLoadingDetails(false);
+    }
   };
 
   const handleUpdateSubmission = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Gabungkan tanggal yang baru diubah dengan jam dari data aslinya
       const oldTime = editSubmissionData.submission_date ? editSubmissionData.submission_date.substring(10) : 'T00:00:00.000Z';
       const newSubmissionDate = editSubmissionData.target_class 
         ? `${editSubmissionData.target_class.slice(0, 10)}${oldTime}` 
@@ -2109,7 +2177,9 @@ const handleSaveImportAsatidz = async () => {
         target_time_slot: editSubmissionData.target_time_slot,
         absent_students: editSubmissionData.absent_students,
         general_notes: editSubmissionData.general_notes,
-        submission_date: newSubmissionDate // Mengupdate waktu di database
+        submission_date: newSubmissionDate,
+        rate: editFormScore.percentage,
+        rata_rata: editFormScore.scale3
       };
 
       const res = await fetch(`${SUPABASE_URL}/rest/v1/submissions?id=eq.${editSubmissionData.id}`, {
@@ -2119,9 +2189,44 @@ const handleSaveImportAsatidz = async () => {
       });
 
       if (res.ok) {
-        showToast('Data riwayat berhasil diperbarui!', 'success');
+        // Hapus detail form ceklis lama
+        await fetch(`${SUPABASE_URL}/rest/v1/submission_details?submission_id=eq.${editSubmissionData.id}`, {
+            method: 'DELETE',
+            headers: reqHeaders
+        });
+
+        // Simpan detail form ceklis yang baru (yang di-edit)
+        const sectionsForEdit = sections.filter(s => Number(s.template_id) === Number(editSubmissionData.template_id));
+        const detailRecords: any[] = [];
+
+        sectionsForEdit.forEach(sec => {
+            const secItems = getSectionItems(sec.id);
+            secItems.forEach(it => {
+              let answerValue = '';
+              if (!it.input_type || it.input_type === 'checkbox') {
+                answerValue = editCheckedItems[it.id] ? 'true' : 'false';
+              } else {
+                answerValue = editFormAnswers[it.id] || '';
+              }
+              detailRecords.push({
+                submission_id: editSubmissionData.id,
+                item_id: it.id,
+                answer_value: answerValue
+              });
+            });
+        });
+
+        if (detailRecords.length > 0) {
+            await fetch(`${SUPABASE_URL}/rest/v1/submission_details`, {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(detailRecords)
+            });
+        }
+
+        showToast('Data riwayat & form ceklis berhasil diperbarui!', 'success');
         setIsEditSubmissionModalOpen(false);
-        fetchSupabaseData(); // Refresh data dari server otomatis
+        fetchSupabaseData(); // Refresh data
       } else {
         showToast('Gagal memperbarui data', 'error');
       }
@@ -2130,35 +2235,6 @@ const handleSaveImportAsatidz = async () => {
     }
   };
   // ==========================================
-  
-  const handleDeleteSubmission = async (id: number) => {
-  if (!window.confirm('Apakah Anda yakin ingin menghapus data riwayat ini?')) return;
-
-  try {
-    // Opsional: Hapus detail laporan terlebih dahulu untuk menghindari error foreign key 
-    // (jika tidak menggunakan ON DELETE CASCADE di database)
-    await fetch(`${SUPABASE_URL}/rest/v1/submission_details?submission_id=eq.${id}`, {
-      method: 'DELETE',
-      headers: reqHeaders
-    });
-
-    // Hapus data utama
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/submissions?id=eq.${id}`, {
-      method: 'DELETE',
-      headers: reqHeaders
-    });
-
-    if (res.ok) {
-      showToast('Data riwayat berhasil dihapus!', 'success');
-      // Update state lokal agar baris tabel langsung hilang
-      setSubmissions(prev => prev.filter(s => s.id !== id));
-    } else {
-      showToast('Gagal menghapus data riwayat', 'error');
-    }
-  } catch (err) {
-    showToast('Terjadi kesalahan koneksi', 'error');
-  }
-};
   
   const handleOpenSubmissionDetail = async (sub: Submission) => {
   setSelectedSubmissionForDetail(sub);
@@ -6867,59 +6943,180 @@ const rekapSantriData = useMemo(() => {
       {/* ================================================= */}
       {isEditSubmissionModalOpen && (
         <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
-            <div className="bg-amber-500 px-6 py-4 flex items-center justify-between text-white">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-amber-500 px-6 py-4 flex items-center justify-between text-white shrink-0">
               <div>
-                <h3 className="font-bold text-base">Edit Data Riwayat</h3>
-                <p className="text-xs text-amber-100">Perbarui rincian metadata laporan pengawasan</p>
+                <h3 className="font-bold text-base">Edit Data Laporan & Ceklis</h3>
+                <p className="text-xs text-amber-100">Perbarui rincian metadata dan jawaban form ceklis</p>
               </div>
-              <button onClick={() => setIsEditSubmissionModalOpen(false)} className="text-amber-100 hover:text-white transition">
+              <button onClick={() => setIsEditSubmissionModalOpen(false)} className="text-amber-100 hover:text-white transition bg-amber-600/50 p-1.5 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
-            <form onSubmit={handleUpdateSubmission} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal</label>
-                  <input type="date" value={editSubmissionData.target_class ? editSubmissionData.target_class.slice(0,10) : ''} onChange={(e) => setEditSubmissionData({...editSubmissionData, target_class: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            <div className="overflow-y-auto custom-scrollbar flex-1 bg-slate-50">
+              {isEditLoadingDetails ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <RotateCw className="w-8 h-8 text-amber-500 animate-spin mb-3" />
+                  <p className="text-sm font-bold text-slate-500">Memuat data ceklis...</p>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Petugas (PJ)</label>
-                  <input type="text" value={editSubmissionData.pj_name} onChange={(e) => setEditSubmissionData({...editSubmissionData, pj_name: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
-                </div>
-              </div>
+              ) : (
+                <form id="edit-submission-form" onSubmit={handleUpdateSubmission} className="p-4 sm:p-6 space-y-6">
+                  
+                  {/* Bagian Metadata (Informasi Pengawasan) */}
+                  <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-4">
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+                      <BookOpen className="w-4 h-4 text-amber-500 shrink-0" /> Metadata Laporan
+                    </h4>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tanggal</label>
+                        <input type="date" value={editSubmissionData.target_class ? editSubmissionData.target_class.slice(0,10) : ''} onChange={(e) => setEditSubmissionData({...editSubmissionData, target_class: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Petugas (PJ)</label>
+                        <input type="text" value={editSubmissionData.pj_name} onChange={(e) => setEditSubmissionData({...editSubmissionData, pj_name: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ustadz / Target</label>
+                        <input type="text" value={editSubmissionData.target_person} onChange={(e) => setEditSubmissionData({...editSubmissionData, target_person: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Pengampu / Jam</label>
+                        <input type="text" value={editSubmissionData.target_time_slot} onChange={(e) => setEditSubmissionData({...editSubmissionData, target_time_slot: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Keterangan / Absen</label>
+                        <input type="text" value={editSubmissionData.absent_students} onChange={(e) => setEditSubmissionData({...editSubmissionData, absent_students: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Ustadz / Target</label>
-                  <input type="text" value={editSubmissionData.target_person} onChange={(e) => setEditSubmissionData({...editSubmissionData, target_person: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pengampu / Jam</label>
-                  <input type="text" value={editSubmissionData.target_time_slot} onChange={(e) => setEditSubmissionData({...editSubmissionData, target_time_slot: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
-                </div>
-              </div>
+                  {/* Bagian Ceklis Form */}
+                  <div className="space-y-4">
+                    {sections.filter(s => Number(s.template_id) === Number(editSubmissionData.template_id)).map(sec => {
+                        const secItems = getSectionItems(sec.id);
+                        const isPositif = (sectionTypeMap[sec.id] || (sec as any).section_type) === 'positif';
 
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Keterangan / Absen</label>
-                <input type="text" value={editSubmissionData.absent_students} onChange={(e) => setEditSubmissionData({...editSubmissionData, absent_students: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
-              </div>
+                        return (
+                          <div key={sec.id} className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 gap-2">
+                              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isPositif ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                <span className="truncate">{sec.name}</span>
+                              </h4>
+                            </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Catatan Tambahan</label>
-                <textarea rows={3} value={editSubmissionData.general_notes} onChange={(e) => setEditSubmissionData({...editSubmissionData, general_notes: e.target.value})} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
-              </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                              {secItems.map(it => {
+                                const inputType = it.input_type || 'checkbox';
+                                const isChecked = !!editCheckedItems[it.id];
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-                <button type="button" onClick={() => setIsEditSubmissionModalOpen(false)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
-                  Batal
-                </button>
-                <button type="submit" className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-md transition">
-                  Simpan Perubahan
-                </button>
-              </div>
-            </form>
+                                if (inputType === 'text') {
+                                  return (
+                                    <div key={it.id} className="p-2.5 rounded-xl border bg-slate-50 border-slate-200 space-y-1">
+                                      <label className="block text-xs font-semibold text-slate-700 truncate">{it.item_text}</label>
+                                      <input type="text" value={editFormAnswers[it.id] || ''} onChange={(e) => setEditFormAnswers({ ...editFormAnswers, [it.id]: e.target.value })} className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-amber-500" />
+                                    </div>
+                                  );
+                                }
+                                if (inputType === 'textarea') {
+                                  return (
+                                    <div key={it.id} className="sm:col-span-2 p-2.5 rounded-xl border bg-slate-50 border-slate-200 space-y-1">
+                                      <label className="block text-xs font-semibold text-slate-700">{it.item_text}</label>
+                                      <textarea rows={2} value={editFormAnswers[it.id] || ''} onChange={(e) => setEditFormAnswers({ ...editFormAnswers, [it.id]: e.target.value })} className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-amber-500" />
+                                    </div>
+                                  );
+                                }
+                                if (inputType === 'number') {
+                                  return (
+                                    <div key={it.id} className="p-2.5 rounded-xl border bg-slate-50 border-slate-200 space-y-1">
+                                      <label className="block text-xs font-semibold text-slate-700 truncate">{it.item_text}</label>
+                                      <input type="number" value={editFormAnswers[it.id] || ''} onChange={(e) => setEditFormAnswers({ ...editFormAnswers, [it.id]: e.target.value })} className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-amber-500" />
+                                    </div>
+                                  );
+                                }
+                                if (inputType === 'select') {
+                                  const optionsList = safeParseOptions(it.options);
+                                  return (
+                                    <div key={it.id} className="p-2.5 rounded-xl border bg-slate-50 border-slate-200 space-y-1">
+                                      <label className="block text-xs font-semibold text-slate-700 truncate">{it.item_text}</label>
+                                      <select value={editFormAnswers[it.id] || ''} onChange={(e) => setEditFormAnswers({ ...editFormAnswers, [it.id]: e.target.value })} className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer" >
+                                        <option value="">Pilih Opsi...</option>
+                                        {optionsList.map((opt: string) => (<option key={opt} value={opt}>{opt}</option>))}
+                                      </select>
+                                    </div>
+                                  );
+                                }
+                                if (inputType === 'radio') {
+                                  const radioOptions = safeParseOptions(it.options);
+                                  return (
+                                    <div key={it.id} className="p-2.5 rounded-xl border bg-slate-50 border-slate-200 space-y-1">
+                                      <label className="block text-xs font-semibold text-slate-700">{it.item_text}</label>
+                                      <div className="flex flex-wrap gap-2 mt-1">
+                                        {radioOptions.map((opt: string) => {
+                                          const isSelected = editFormAnswers[it.id] === opt;
+                                          return (
+                                            <label key={opt} className={`px-2 py-1 rounded-lg border text-[10px] font-bold cursor-pointer transition select-none ${isSelected ? 'bg-amber-500 text-white border-amber-500' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                                              <input type="radio" name={`edit-radio-${it.id}`} value={opt} checked={isSelected} onChange={() => setEditFormAnswers({ ...editFormAnswers, [it.id]: opt })} className="hidden" />
+                                              <span>{opt}</span>
+                                            </label>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                if (inputType === 'date') {
+                                  return (
+                                    <div key={it.id} className="p-2.5 rounded-xl border bg-slate-50 border-slate-200 space-y-1">
+                                      <label className="block text-xs font-semibold text-slate-700 truncate">{it.item_text}</label>
+                                      <input type="date" value={editFormAnswers[it.id] || ''} onChange={(e) => setEditFormAnswers({ ...editFormAnswers, [it.id]: e.target.value })} className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-amber-500" />
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <label key={it.id} className={`p-2.5 rounded-xl border flex items-start gap-2.5 cursor-pointer transition select-none ${isChecked ? isPositif ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'}`} >
+                                    <input type="checkbox" checked={isChecked} onChange={(e) => setEditCheckedItems({ ...editCheckedItems, [it.id]: e.target.checked })} className={`mt-0.5 rounded cursor-pointer ${isPositif ? 'text-emerald-500 focus:ring-emerald-500' : 'text-rose-500 focus:ring-rose-500'}`} />
+                                    <span className="text-[11px] font-semibold leading-snug flex-1">
+                                      {it.item_text}
+                                    </span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                    })}
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-2">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase">Catatan Tambahan</label>
+                    <textarea rows={2} value={editSubmissionData.general_notes} onChange={(e) => setEditSubmissionData({...editSubmissionData, general_notes: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  </div>
+
+                </form>
+              )}
+            </div>
+
+            <div className="bg-white px-6 py-4 flex items-center justify-between border-t border-slate-100 shrink-0">
+               <div className="flex items-center gap-3">
+                 <span className="text-[10px] font-bold text-slate-400 uppercase">Perubahan Skor:</span>
+                 <span className="font-mono font-bold text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-lg border border-amber-200">
+                   {editFormScore.percentage}% ({editFormScore.scale3})
+                 </span>
+               </div>
+               <div className="flex items-center gap-3">
+                 <button type="button" onClick={() => setIsEditSubmissionModalOpen(false)} className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+                   Batal
+                 </button>
+                 <button type="submit" form="edit-submission-form" disabled={isEditLoadingDetails} className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-md transition disabled:opacity-50">
+                   Simpan Perubahan
+                 </button>
+               </div>
+            </div>
           </div>
         </div>
       )}
