@@ -5919,8 +5919,7 @@ const rekapSantriData = useMemo(() => {
                         <th className="py-3 px-4 text-center min-w-[100px]">KETERANGAN</th>
                         <th className="py-3 px-4 text-center min-w-[80px]">NILAI</th>
                         <th className="py-3 px-4 min-w-[180px]">CATATAN / TEMUAN</th>
-                        {/* Kolom Aksi menempel di kanan layar */}
-                        <th className="py-3 px-4 text-center min-w-[80px] sticky right-0 bg-slate-50 shadow-[-4px_0_10px_rgba(0,0,0,0.03)] z-10">AKSI</th>
+                        <th className="py-3 px-4 text-center min-w-[80px]">AKSI</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -5990,7 +5989,7 @@ const rekapSantriData = useMemo(() => {
                                   {catatanTpl}
                                 </td>
                                 
-                                {/* Kolom Aksi yang sudah dinormalkan kembali */}
+                                {/* Kolom Aksi yang sudah dinormalkan kembali (TIDAK STICKY) */}
                                 <td className="py-2.5 sm:py-3 px-3 text-center">
                                   <button
                                     onClick={() => {
