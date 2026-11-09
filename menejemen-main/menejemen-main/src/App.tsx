@@ -5850,31 +5850,43 @@ const rekapSantriData = useMemo(() => {
               {/* Summary Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 w-full max-w-[100vw] sm:max-w-none">
                 {/* Kartu Kamar Kotor */}
-                <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-4">
+                <div 
+                  onClick={() => {
+                    setNavTab('monitoring_kebersihan');
+                    setKebersihanSubTab('riwayat');
+                  }}
+                  className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-4 cursor-pointer hover:shadow-md hover:border-emerald-300 group transition-all"
+                >
                   <div className="min-w-0">
-                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Kasus Kamar Kotor</h4>
+                    <h4 className="text-[10px] font-bold text-slate-400 group-hover:text-emerald-600 uppercase tracking-wider mb-1 truncate transition-colors">Kasus Kamar Kotor</h4>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl sm:text-3xl font-black text-slate-900">{filteredLaporanKebersihan.length}</span>
+                      <span className="text-2xl sm:text-3xl font-black text-slate-900 group-hover:text-emerald-700 transition-colors">{filteredLaporanKebersihan.length}</span>
                       <span className="text-[10px] sm:text-xs font-semibold text-slate-500">Kasus</span>
                     </div>
                     <p className="text-[9px] sm:text-[10px] text-slate-400 mt-1 truncate">Berdasarkan filter tanggal dashboard</p>
                   </div>
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 group-hover:bg-emerald-100 flex items-center justify-center shrink-0 transition-colors">
                     <ClipboardCheck className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
                   </div>
                 </div>
 
                 {/* Kartu Pelanggaran */}
-                <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-4">
+                <div 
+                  onClick={() => {
+                    setNavTab('pelanggaran');
+                    setPelanggaranSubTab('laporan');
+                  }}
+                  className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-4 cursor-pointer hover:shadow-md hover:border-rose-300 group transition-all"
+                >
                   <div className="min-w-0">
-                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Kasus Pelanggaran</h4>
+                    <h4 className="text-[10px] font-bold text-slate-400 group-hover:text-rose-600 uppercase tracking-wider mb-1 truncate transition-colors">Kasus Pelanggaran</h4>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl sm:text-3xl font-black text-slate-900">{filteredDashboardPelanggaran?.length || dashboardStatsPlg?.totalKasus || 0}</span>
+                      <span className="text-2xl sm:text-3xl font-black text-slate-900 group-hover:text-rose-700 transition-colors">{filteredDashboardPelanggaran?.length || dashboardStatsPlg?.totalKasus || 0}</span>
                       <span className="text-[10px] sm:text-xs font-semibold text-slate-500">Kasus</span>
                     </div>
                     <p className="text-[9px] sm:text-[10px] text-slate-400 mt-1 truncate">Berdasarkan filter tanggal dashboard</p>
                   </div>
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-50 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-50 group-hover:bg-rose-100 flex items-center justify-center shrink-0 transition-colors">
                     <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-rose-600" />
                   </div>
                 </div>
