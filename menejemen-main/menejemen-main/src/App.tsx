@@ -3441,8 +3441,7 @@ const rekapSantriData = useMemo(() => {
                                 <th className="py-3 px-4 text-center min-w-[90px]">SKOR</th>
                                 <th className="py-3 px-5 min-w-[200px]">CATATAN</th>
                                 {/* Kolom aksi dibuat sticky agar menempel di sisi kanan layar saat di-scroll */}
-                                <th className="py-3 px-4 text-center min-w-[80px] sticky right-0 bg-slate-50/80 backdrop-blur shadow-[-4px_0_10px_rgba(0,0,0,0.03)]">AKSI</th>
-                              </tr>
+                                <th className="py-3 px-4 text-center min-w-[80px]">AKSI</th>
                             </thead>
                             
                             {/* ===== ISI TABEL (DATA) ===== */}
@@ -5993,7 +5992,7 @@ const rekapSantriData = useMemo(() => {
                                 </td>
                                 
                                 {/* Ini adalah kolom tombol "Isi" yang sudah menempel di kanan */}
-                                <td className="py-2.5 sm:py-3 px-3 text-center sticky right-0 bg-white shadow-[-4px_0_10px_rgba(0,0,0,0.03)] z-10 group-hover:bg-slate-50 transition-colors">
+                                <td className="py-2.5 sm:py-3 px-3 text-center">
                                   <button
                                     onClick={() => {
                                       setActiveDivisionId(tpl.division_id);
