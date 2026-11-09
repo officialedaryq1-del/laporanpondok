@@ -5846,13 +5846,13 @@ const rekapSantriData = useMemo(() => {
                 </div>
               </div>
 
-              {/* Summary Cards */}
+             {/* Summary Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 w-full max-w-[100vw] sm:max-w-none">
                 {/* Kartu Kamar Kotor */}
                 <div 
                   onClick={() => {
                     setNavTab('monitoring_kebersihan');
-                    setKebersihanSubTab('riwayat');
+                    setKebersihanSubTab('dashboard'); // <-- Diubah menjadi dashboard
                   }}
                   className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-4 cursor-pointer hover:shadow-md hover:border-emerald-300 group transition-all"
                 >
@@ -5873,7 +5873,7 @@ const rekapSantriData = useMemo(() => {
                 <div 
                   onClick={() => {
                     setNavTab('pelanggaran');
-                    setPelanggaranSubTab('laporan');
+                    setPelanggaranSubTab('dashboard'); // <-- Diubah menjadi dashboard
                   }}
                   className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-4 cursor-pointer hover:shadow-md hover:border-rose-300 group transition-all"
                 >
