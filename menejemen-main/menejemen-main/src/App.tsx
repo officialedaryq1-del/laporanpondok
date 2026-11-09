@@ -556,6 +556,30 @@ const filteredRiwayatKebersihan = useMemo(() => {
   const [formIzinKeterangan, setFormIzinKeterangan] = useState('');
   const [formIzinSearchSantri, setFormIzinSearchSantri] = useState('');
   const [detailIzinModal, setDetailIzinModal] = useState<PerizinanRecord | null>(null);
+  
+  // State untuk Perpanjangan Izin
+  const [perpanjangIzinModal, setPerpanjangIzinModal] = useState<PerizinanRecord | null>(null);
+  const [perpanjangTglKembali, setPerpanjangTglKembali] = useState('');
+
+  const handleSavePerpanjang = async () => {
+    if (!perpanjangIzinModal || !perpanjangTglKembali) return;
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/perizinan_santri?id=eq.${perpanjangIzinModal.id}`, {
+        method: 'PATCH',
+        headers: reqHeaders,
+        body: JSON.stringify({ tanggal_kembali: perpanjangTglKembali })
+      });
+      if (res.ok) {
+        showToast('Masa perizinan berhasil diperpanjang!', 'success');
+        setPerpanjangIzinModal(null);
+        fetchSupabaseData(); // Refresh tabel
+      } else {
+        showToast('Gagal memperpanjang izin', 'error');
+      }
+    } catch (err) {
+      showToast('Kesalahan koneksi', 'error');
+    }
+  };
 
   // Logika Filter Tabel Perizinan
   const filteredPerizinan = useMemo(() => {
@@ -6244,10 +6268,13 @@ const rekapSantriData = useMemo(() => {
                                           <td className="px-5 py-3 font-bold">
                                             <span className={p.status === 'Aktif' ? 'text-orange-500' : 'text-emerald-600'}>{p.status}</span>
                                           </td>
-                                          <td className="px-5 py-3 text-right whitespace-nowrap">
+                                         <td className="px-5 py-3 text-right whitespace-nowrap">
                                               <button onClick={() => setDetailIzinModal(p)} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 mr-3 transition">Detail</button>
                                               {p.status === 'Aktif' && (
-                                                <button onClick={() => handleSetIzinKembali(p.id)} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 transition">Kembali</button>
+                                                <>
+                                                  <button onClick={() => { setPerpanjangIzinModal(p); setPerpanjangTglKembali(p.tanggal_kembali); }} className="text-[10px] font-bold text-blue-500 hover:text-blue-700 mr-3 transition">Perpanjang</button>
+                                                  <button onClick={() => handleSetIzinKembali(p.id)} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 transition">Kembali</button>
+                                                </>
                                               )}
                                           </td>
                                       </tr>
@@ -6333,7 +6360,10 @@ const rekapSantriData = useMemo(() => {
                                               <td className="px-5 py-4 text-right whitespace-nowrap">
                                                   <button onClick={() => setDetailIzinModal(p)} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 mr-3 transition">Detail</button>
                                                   {p.status === 'Aktif' && (
-                                                    <button onClick={() => handleSetIzinKembali(p.id)} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 transition">Kembali</button>
+                                                    <>
+                                                      <button onClick={() => { setPerpanjangIzinModal(p); setPerpanjangTglKembali(p.tanggal_kembali); }} className="text-[10px] font-bold text-blue-500 hover:text-blue-700 mr-3 transition">Perpanjang</button>
+                                                      <button onClick={() => handleSetIzinKembali(p.id)} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 transition">Kembali</button>
+                                                    </>
                                                   )}
                                               </td>
                                           </tr>
@@ -6475,6 +6505,49 @@ const rekapSantriData = useMemo(() => {
             </div>
           )}
 
+        {/* MODAL PERPANJANG IZIN */}
+              {perpanjangIzinModal && (
+                <div className="fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+                  <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col">
+                    
+                    <div className="p-5 border-b border-blue-500 bg-blue-600 text-white flex justify-between items-start">
+                      <div>
+                        <h3 className="font-bold text-lg leading-tight">Perpanjang Izin</h3>
+                        <p className="text-[10px] text-blue-100 mt-1 uppercase tracking-wider">{perpanjangIzinModal.nama_santri}</p>
+                      </div>
+                      <button onClick={() => setPerpanjangIzinModal(null)} className="text-blue-200 hover:text-white bg-blue-700/50 p-2 rounded-xl transition">
+                        <X className="w-4 h-4"/>
+                      </button>
+                    </div>
+                    
+                    <div className="p-6 space-y-4">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Tanggal Kembali Baru</label>
+                        <input 
+                          type="date" 
+                          value={perpanjangTglKembali} 
+                          onChange={(e) => setPerpanjangTglKembali(e.target.value)} 
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer" 
+                        />
+                        <p className="text-[10px] text-slate-400 mt-2">
+                          Tanggal kembali sebelumnya: <strong className="text-slate-600">{perpanjangIzinModal.tanggal_kembali}</strong>
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                      <button onClick={() => setPerpanjangIzinModal(null)} className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition shadow-sm">
+                        Batal
+                      </button>
+                      <button onClick={handleSavePerpanjang} className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 shadow-md transition">
+                        Simpan Perubahan
+                      </button>
+                    </div>
+                  
+                  </div>
+                </div>
+              )}
+        
         {/* MODAL DETAIL PERIZINAN */}
               {detailIzinModal && (
                 <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
