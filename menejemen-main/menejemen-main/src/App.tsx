@@ -6010,8 +6010,7 @@ const rekapSantriData = useMemo(() => {
                 </div>
 
               </div>
-            );
-          })()}
+            )}
 
           {navTab === 'laporan' && (
             <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6 px-1 sm:px-0">
