@@ -5932,7 +5932,7 @@ const rekapSantriData = useMemo(() => {
                           </tr>
                         ) : (
                           templates.filter(t => String(t.timeframe).toLowerCase().includes('hari')).map((tpl, idx) => {
-                            const todayStr = inputAbsensiTanggal; // Mengambil tanggal dari filter dashboard
+                            const todayStr = inputAbsensiTanggal; 
                             const divName = divisions.find(d => Number(d.id) === Number(tpl.division_id))?.name || `Divisi #${tpl.division_id}`;
 
                             const subsForTplDate = submissions.filter(s => {
@@ -5948,7 +5948,6 @@ const rekapSantriData = useMemo(() => {
                               scoreText = `${Math.round(totalScore / subsForTplDate.length)}%`;
                             }
 
-                            // Ambil catatan (general_notes) HANYA dari laporan hari tersebut
                             const catatanHarian = subsForTplDate
                               .map(s => String(s.general_notes || '').trim())
                               .filter(note => note && note !== '-' && note.toLowerCase() !== 'nihil')
@@ -5991,7 +5990,7 @@ const rekapSantriData = useMemo(() => {
                                   {catatanTpl}
                                 </td>
                                 
-                                {/* Ini adalah kolom tombol "Isi" yang sudah menempel di kanan */}
+                                {/* Kolom Aksi yang sudah dinormalkan kembali */}
                                 <td className="py-2.5 sm:py-3 px-3 text-center">
                                   <button
                                     onClick={() => {
