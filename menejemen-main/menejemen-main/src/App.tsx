@@ -5913,14 +5913,15 @@ const rekapSantriData = useMemo(() => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-slate-700">
-                        {dailyTemplates.length === 0 ? (
+                        {templates.filter(t => String(t.timeframe).toLowerCase().includes('hari')).length === 0 ? (
                           <tr>
                             <td colSpan={7} className="py-8 text-center text-slate-400 italic text-xs">
                               Belum ada program kegiatan yang disetel dengan timeframe 'Harian'.
                             </td>
                           </tr>
                         ) : (
-                          dailyTemplates.map((tpl, idx) => {
+                          templates.filter(t => String(t.timeframe).toLowerCase().includes('hari')).map((tpl, idx) => {
+                            const todayStr = inputAbsensiTanggal; // Mengambil tanggal dari filter dashboard
                             const divName = divisions.find(d => Number(d.id) === Number(tpl.division_id))?.name || `Divisi #${tpl.division_id}`;
 
                             const subsForTplDate = submissions.filter(s => {
@@ -5943,6 +5944,7 @@ const rekapSantriData = useMemo(() => {
                               .join(' • ');
                             
                             const catatanTpl = catatanHarian || '-';
+                            
                             return (
                               <tr key={tpl.id} className="hover:bg-slate-50/80 transition-colors text-xs">
                                 <td className="py-2.5 sm:py-3 px-3 text-center font-mono text-slate-400">{idx + 1}</td>
@@ -5977,23 +5979,16 @@ const rekapSantriData = useMemo(() => {
                                 <td className="py-2.5 sm:py-3 px-4 text-slate-600 text-[11px] italic leading-relaxed">
                                   {catatanTpl}
                                 </td>
-                               <td className="py-2.5 sm:py-3 px-3 text-center sticky right-0 bg-white shadow-[-4px_0_10px_rgba(0,0,0,0.03)] z-10 group-hover:bg-slate-50 transition-colors">
+                                
+                                {/* Ini adalah kolom tombol "Isi" yang sudah menempel di kanan */}
+                                <td className="py-2.5 sm:py-3 px-3 text-center sticky right-0 bg-white shadow-[-4px_0_10px_rgba(0,0,0,0.03)] z-10 group-hover:bg-slate-50 transition-colors">
                                   <button
                                     onClick={() => {
-                                      // 1. Set Divisi yang sesuai
                                       setActiveDivisionId(tpl.division_id);
-                                        
-                                      // 2. Set Timeframe (Harian/Mingguan/Bulanan) sesuai kegiatan yang di-klik
                                       setActiveTimeframe(tpl.timeframe as TimeframeCategory); 
-                                        
-                                       // 3. Set Dropdown ke ID kegiatan yang tepat
                                       setSelectedTemplateId(tpl.id); 
-                                        
-                                      // 4. Arahkan langsung ke form input (Opsional, agar tidak nyangkut di riwayat)
-                                       setActiveSubTab('input'); 
-                                        
-                                      // 5. Pindah ke halaman form ceklis
-                                       setNavTab('ceklis'); 
+                                      setActiveSubTab('input'); 
+                                      setNavTab('ceklis'); 
                                      }}
                                     className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 font-bold text-[11px] transition shadow-2xs"
                                   >
