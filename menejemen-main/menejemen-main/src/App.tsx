@@ -2235,6 +2235,33 @@ const handleSaveImportAsatidz = async () => {
     }
   };
   // ==========================================
+
+  const handleDeleteSubmission = async (id: number) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus data riwayat ini?')) return;
+
+    try {
+      // Hapus detail laporan terlebih dahulu (mencegah error foreign key)
+      await fetch(`${SUPABASE_URL}/rest/v1/submission_details?submission_id=eq.${id}`, {
+        method: 'DELETE',
+        headers: reqHeaders
+      });
+
+      // Hapus data utama
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/submissions?id=eq.${id}`, {
+        method: 'DELETE',
+        headers: reqHeaders
+      });
+
+      if (res.ok) {
+        showToast('Data riwayat berhasil dihapus!', 'success');
+        setSubmissions(prev => prev.filter(s => s.id !== id));
+      } else {
+        showToast('Gagal menghapus data riwayat', 'error');
+      }
+    } catch (err) {
+      showToast('Terjadi kesalahan koneksi', 'error');
+    }
+  };
   
   const handleOpenSubmissionDetail = async (sub: Submission) => {
   setSelectedSubmissionForDetail(sub);
