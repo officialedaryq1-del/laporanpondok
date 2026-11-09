@@ -3030,23 +3030,23 @@ const rekapSantriData = useMemo(() => {
                     )}
                   </div>
 
-                  {/* TAB 1: FORM INPUT CEKLIS */}
+                 {/* TAB 1: FORM INPUT CEKLIS */}
                   {activeSubTab === 'input' && (
-                    <form onSubmit={handleSubmitCeklis} className="space-y-4 sm:space-y-6">
+                    <form onSubmit={handleSubmitCeklis} className="space-y-4 sm:space-y-6 w-full max-w-[100vw] sm:max-w-none overflow-x-hidden sm:overflow-visible px-1 sm:px-0">
                       
                       {/* Box Informasi Pengawasan (Tampil sesuai centangan customize) */}
                       {hasAnyPengawasFieldActive && (
-                        <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
+                        <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
                           <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-                            <BookOpen className="w-4 h-4 text-blue-600" />
-                            Informasi Pengawasan & Guru Terkait
+                            <BookOpen className="w-4 h-4 text-blue-600 shrink-0" />
+                            <span className="truncate">Informasi Pengawasan</span>
                           </h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             
-                            {/* 1. TANGGAL (Dipindah ke urutan pertama) */}
+                            {/* 1. TANGGAL */}
                             {currentPengawasConfig.kelas && (
-                              <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                              <div className="min-w-0">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1 truncate">
                                   {currentFieldDetails.kelas?.label || 'Tanggal'}:
                                 </label>
                                 <input
@@ -3058,19 +3058,19 @@ const rekapSantriData = useMemo(() => {
                               </div>
                             )}
                       
-                            {/* 2. PETUGAS (PJ) (Bergeser ke urutan kedua) */}
+                            {/* 2. PETUGAS (PJ) */}
                             {currentPengawasConfig.pj && (() => {
                               const detail = currentFieldDetails.pj;
                               return (
-                                <div>
-                                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                                <div className="min-w-0">
+                                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1 truncate">
                                     {detail.label}:
                                   </label>
                                   {detail.type === 'dropdown' ? (
                                     <select
                                       value={formPetugas}
                                       onChange={(e) => setFormPetugas(e.target.value)}
-                                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer truncate"
                                     >
                                       <option value="">-- Pilih --</option>
                                       {safeParseOptions(detail.options).map(opt => (
@@ -3095,8 +3095,8 @@ const rekapSantriData = useMemo(() => {
                       
                             {/* 3. USTADZ (GURU) */}
                             {currentPengawasConfig.guru && (
-                              <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                              <div className="min-w-0">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1 truncate">
                                   {currentFieldDetails.guru?.label || 'Ustadz'}:
                                 </label>
                                 <input
@@ -3111,8 +3111,8 @@ const rekapSantriData = useMemo(() => {
                       
                             {/* 4. TEMPAT (MAPEL) */}
                             {currentPengawasConfig.mapel && (
-                              <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                              <div className="min-w-0">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1 truncate">
                                   {currentFieldDetails.mapel?.label || 'Tempat'}:
                                 </label>
                                 <input
@@ -3127,8 +3127,8 @@ const rekapSantriData = useMemo(() => {
                       
                             {/* 5. PENGAMPU/PEMIMPIN (JAM) */}
                             {currentPengawasConfig.jam && (
-                              <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                              <div className="min-w-0">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1 truncate">
                                   {currentFieldDetails.jam?.label || 'Pengampu/Pemimpin'}:
                                 </label>
                                 <input
@@ -3143,8 +3143,8 @@ const rekapSantriData = useMemo(() => {
                       
                             {/* 6. KETERANGAN (ABSEN) */}
                             {currentPengawasConfig.absen && (
-                              <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                              <div className="min-w-0">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1 truncate">
                                   {currentFieldDetails.absen?.label || 'Keterangan'}:
                                 </label>
                                 <input
@@ -3163,7 +3163,7 @@ const rekapSantriData = useMemo(() => {
 
                       {/* Sections & Checklist Items */}
                       {templateSections.length === 0 ? (
-                        <div className="bg-white rounded-3xl p-8 sm:p-10 text-center border border-dashed border-slate-300">
+                        <div className="bg-white rounded-2xl sm:rounded-3xl p-8 sm:p-10 text-center border border-dashed border-slate-300">
                           <p className="text-xs text-slate-400">
                             Belum ada instrumen ceklis untuk kegiatan ini. Klik tab <strong>Customize Form</strong> untuk membuat indikator.
                           </p>
@@ -3174,17 +3174,17 @@ const rekapSantriData = useMemo(() => {
                           const isPositif = (sectionTypeMap[sec.id] || (sec as any).section_type) === 'positif';
 
                           return (
-                            <div key={sec.id} className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-3">
-                              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                                  <span className={`w-2.5 h-2.5 rounded-full ${isPositif ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                  <span>{sec.name}</span>
-                                  <span className="text-[10px] font-normal text-slate-400">
-                                    ({secItems.length} Indikator)
+                            <div key={sec.id} className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-3">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2.5 gap-2">
+                                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 min-w-0">
+                                  <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isPositif ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                  <span className="truncate">{sec.name}</span>
+                                  <span className="text-[10px] font-normal text-slate-400 shrink-0">
+                                    ({secItems.length} Item)
                                   </span>
                                 </h4>
 
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border text-center shrink-0 w-fit ${
                                   isPositif
                                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                     : 'bg-rose-50 text-rose-700 border-rose-200'
@@ -3200,14 +3200,14 @@ const rekapSantriData = useMemo(() => {
 
                                   if (inputType === 'text') {
                                     return (
-                                      <div key={it.id} className="p-3 rounded-2xl border bg-slate-50/70 border-slate-200/70 space-y-1.5">
-                                        <label className="block text-xs font-semibold text-slate-700">{it.item_text}</label>
+                                      <div key={it.id} className="p-3 rounded-xl sm:rounded-2xl border bg-slate-50/70 border-slate-200/70 space-y-1.5 min-w-0">
+                                        <label className="block text-xs font-semibold text-slate-700 truncate">{it.item_text}</label>
                                         <input
                                           type="text"
                                           value={formAnswers[it.id] || ''}
                                           onChange={(e) => setFormAnswers({ ...formAnswers, [it.id]: e.target.value })}
                                           placeholder="Ketik jawaban..."
-                                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                                          className="w-full bg-white border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                       </div>
                                     );
@@ -3215,14 +3215,14 @@ const rekapSantriData = useMemo(() => {
 
                                   if (inputType === 'textarea') {
                                     return (
-                                      <div key={it.id} className="sm:col-span-2 p-3 rounded-2xl border bg-slate-50/70 border-slate-200/70 space-y-1.5">
-                                        <label className="block text-xs font-semibold text-slate-700">{it.item_text}</label>
+                                      <div key={it.id} className="sm:col-span-2 p-3 rounded-xl sm:rounded-2xl border bg-slate-50/70 border-slate-200/70 space-y-1.5 min-w-0">
+                                        <label className="block text-xs font-semibold text-slate-700 break-words">{it.item_text}</label>
                                         <textarea
                                           rows={2}
                                           value={formAnswers[it.id] || ''}
                                           onChange={(e) => setFormAnswers({ ...formAnswers, [it.id]: e.target.value })}
                                           placeholder="Tulis uraian lengkap..."
-                                          className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                                          className="w-full bg-white border border-slate-200 rounded-lg sm:rounded-xl p-3 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                       </div>
                                     );
@@ -3230,14 +3230,14 @@ const rekapSantriData = useMemo(() => {
 
                                   if (inputType === 'number') {
                                     return (
-                                      <div key={it.id} className="p-3 rounded-2xl border bg-slate-50/70 border-slate-200/70 space-y-1.5">
-                                        <label className="block text-xs font-semibold text-slate-700">{it.item_text}</label>
+                                      <div key={it.id} className="p-3 rounded-xl sm:rounded-2xl border bg-slate-50/70 border-slate-200/70 space-y-1.5 min-w-0">
+                                        <label className="block text-xs font-semibold text-slate-700 truncate">{it.item_text}</label>
                                         <input
                                           type="number"
                                           value={formAnswers[it.id] || ''}
                                           onChange={(e) => setFormAnswers({ ...formAnswers, [it.id]: e.target.value })}
                                           placeholder="0"
-                                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                                          className="w-full bg-white border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                       </div>
                                     );
@@ -3246,12 +3246,12 @@ const rekapSantriData = useMemo(() => {
                                   if (inputType === 'select') {
                                     const optionsList = safeParseOptions(it.options);
                                     return (
-                                      <div key={it.id} className="p-3 rounded-2xl border bg-slate-50/70 border-slate-200/70 space-y-1.5">
-                                        <label className="block text-xs font-semibold text-slate-700">{it.item_text}</label>
+                                      <div key={it.id} className="p-3 rounded-xl sm:rounded-2xl border bg-slate-50/70 border-slate-200/70 space-y-1.5 min-w-0">
+                                        <label className="block text-xs font-semibold text-slate-700 truncate">{it.item_text}</label>
                                         <select
                                           value={formAnswers[it.id] || ''}
                                           onChange={(e) => setFormAnswers({ ...formAnswers, [it.id]: e.target.value })}
-                                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer font-medium"
+                                          className="w-full bg-white border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer font-medium truncate"
                                         >
                                           <option value="">Pilih Opsi...</option>
                                           {optionsList.map((opt: string) => (
@@ -3265,15 +3265,15 @@ const rekapSantriData = useMemo(() => {
                                   if (inputType === 'radio') {
                                     const radioOptions = safeParseOptions(it.options);
                                     return (
-                                      <div key={it.id} className="p-3 rounded-2xl border bg-slate-50/70 border-slate-200/70 space-y-2">
-                                        <label className="block text-xs font-semibold text-slate-700">{it.item_text}</label>
+                                      <div key={it.id} className="p-3 rounded-xl sm:rounded-2xl border bg-slate-50/70 border-slate-200/70 space-y-2 min-w-0">
+                                        <label className="block text-xs font-semibold text-slate-700 break-words">{it.item_text}</label>
                                         <div className="flex flex-wrap gap-2">
                                           {radioOptions.map((opt: string) => {
                                             const isSelected = formAnswers[it.id] === opt;
                                             return (
                                               <label
                                                 key={opt}
-                                                className={`px-3 py-1.5 rounded-xl border text-xs font-medium cursor-pointer transition select-none ${
+                                                className={`px-3 py-1.5 rounded-lg sm:rounded-xl border text-[11px] sm:text-xs font-medium cursor-pointer transition select-none ${
                                                   isSelected
                                                     ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
                                                     : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -3298,13 +3298,13 @@ const rekapSantriData = useMemo(() => {
 
                                   if (inputType === 'date') {
                                     return (
-                                      <div key={it.id} className="p-3 rounded-2xl border bg-slate-50/70 border-slate-200/70 space-y-1.5">
-                                        <label className="block text-xs font-semibold text-slate-700">{it.item_text}</label>
+                                      <div key={it.id} className="p-3 rounded-xl sm:rounded-2xl border bg-slate-50/70 border-slate-200/70 space-y-1.5 min-w-0">
+                                        <label className="block text-xs font-semibold text-slate-700 truncate">{it.item_text}</label>
                                         <input
                                           type="date"
                                           value={formAnswers[it.id] || ''}
                                           onChange={(e) => setFormAnswers({ ...formAnswers, [it.id]: e.target.value })}
-                                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                                          className="w-full bg-white border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                       </div>
                                     );
@@ -3313,7 +3313,7 @@ const rekapSantriData = useMemo(() => {
                                   return (
                                     <label
                                       key={it.id}
-                                      className={`p-3 rounded-2xl border flex items-start gap-3 cursor-pointer transition select-none ${
+                                      className={`p-3 rounded-xl sm:rounded-2xl border flex items-start gap-3 cursor-pointer transition select-none min-w-0 ${
                                         isChecked
                                           ? isPositif
                                             ? 'bg-emerald-50/80 border-emerald-200 text-emerald-950'
@@ -3325,13 +3325,13 @@ const rekapSantriData = useMemo(() => {
                                         type="checkbox"
                                         checked={isChecked}
                                         onChange={(e) => setCheckedItems({ ...checkedItems, [it.id]: e.target.checked })}
-                                        className={`mt-0.5 rounded cursor-pointer ${
+                                        className={`mt-0.5 rounded cursor-pointer shrink-0 ${
                                           isPositif
                                             ? 'text-emerald-600 focus:ring-emerald-500'
                                             : 'text-rose-600 focus:ring-rose-500'
                                         }`}
                                       />
-                                      <span className="text-xs font-semibold leading-relaxed">
+                                      <span className="text-xs font-semibold leading-relaxed break-words flex-1">
                                         {it.item_text}
                                       </span>
                                     </label>
@@ -3344,7 +3344,7 @@ const rekapSantriData = useMemo(() => {
                       )}
 
                       {/* Catatan Form & Submit Bar */}
-                      <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-3">
+                      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-3">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                           Catatan Tambahan / Rekomendasi:
                         </label>
@@ -3358,7 +3358,7 @@ const rekapSantriData = useMemo(() => {
 
                         <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                           <div className="flex items-center justify-between sm:justify-start gap-3">
-                            <span className="text-xs text-slate-500 font-semibold">
+                            <span className="text-[11px] sm:text-xs text-slate-500 font-semibold">
                               Skor Terkalkulasi:
                             </span>
                             <span className="font-mono font-bold text-sm sm:text-base text-blue-600 bg-blue-50 px-3 py-1 rounded-xl border border-blue-200">
@@ -3370,7 +3370,7 @@ const rekapSantriData = useMemo(() => {
                             type="submit"
                             className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/30 transition flex items-center justify-center gap-2"
                           >
-                            <Save className="w-4 h-4" />
+                            <Save className="w-4 h-4 shrink-0" />
                             Simpan Laporan Ceklis
                           </button>
                         </div>
@@ -3551,54 +3551,53 @@ const rekapSantriData = useMemo(() => {
                     </div>
                   )}
 
-                  {/* TAB 3: HASIL REALISASI TARGET */}
+                 {/* TAB 3: HASIL REALISASI TARGET */}
                   {activeSubTab === 'hasil' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-                      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 w-full max-w-[100vw] sm:max-w-none px-1 sm:px-0">
+                      <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-2">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                           TARGET RESMI IKU
                         </span>
                         <div className="text-3xl font-black text-slate-900">
                           {selectedTemplate.target_teks || (selectedTemplate.target ? `${selectedTemplate.target}%` : '100%')}
                         </div>
-                        <p className="text-xs text-slate-400">Target indikator kinerja utama divisi</p>
+                        <p className="text-[11px] sm:text-xs text-slate-400">Target indikator kinerja utama divisi</p>
                       </div>
 
-                      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-2">
+                      <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-2">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                           REALISASI TERCAPAI
                         </span>
                         <div className="text-3xl font-black text-blue-600">
                           {getProgramRealisasi(selectedTemplate)}
                         </div>
-                        <p className="text-xs text-slate-400">Rata-rata kepatuhan dari {programSubmissions.length} sesi</p>
+                        <p className="text-[11px] sm:text-xs text-slate-400">Rata-rata kepatuhan dari {programSubmissions.length} sesi</p>
                       </div>
 
-                      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-2">
+                      <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-2">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                           KETERISIAN DATA
                         </span>
                         <div className="text-3xl font-black text-emerald-600">
                           {programSubmissions.length} Laporan
                         </div>
-                        <p className="text-xs text-slate-400">Total formulir ceklis berhasil diinput</p>
+                        <p className="text-[11px] sm:text-xs text-slate-400">Total formulir ceklis berhasil diinput</p>
                       </div>
                     </div>
                   )}
 
                   {/* TAB 4: CUSTOMIZE FORM */}
                   {activeSubTab === 'customize' && (
-                    <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-6">
+                    <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-5 sm:space-y-6 w-full max-w-[100vw] sm:max-w-none overflow-x-hidden sm:overflow-visible">
 
-                      {/* ===== KODE BARU: PENGATURAN BENTUK TARGET REALISASI ===== */}
-                      <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
+                      {/* ===== PENGATURAN BENTUK TARGET REALISASI ===== */}
+                      <div className="p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
                         <div>
-                          <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                            {/* Anda bisa mengganti ikon ini dengan ikon chart/bar yang sesuai */}
-                            <TrendingUp className="w-4 h-4 text-blue-600" />
+                          <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2 break-words">
+                            <TrendingUp className="w-4 h-4 text-blue-600 shrink-0" />
                             Pengaturan Bentuk Target Realisasi
                           </h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5">
+                          <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 leading-relaxed">
                             Pilih apakah hasil akhir target realisasi pada program ini ditampilkan dalam bentuk Persentase (%) atau Count (Hitungan Frekuensi Pengisian).
                           </p>
                         </div>
@@ -3608,44 +3607,37 @@ const rekapSantriData = useMemo(() => {
                             Pilih Bentuk Target Realisasi:
                           </label>
                           <select 
-                          // Gunakan nilai dari database jika ada, jika tidak gunakan state fallback
-                          value={selectedTemplate?.target_format || targetFormat} 
-                          onChange={(e) => {
-                            const newValue = e.target.value as 'persentase' | 'count';
-                            // Panggil fungsi update yang sudah kita buat jika ada template yang sedang dipilih
-                            if (selectedTemplate?.id) {
-                              updateTargetFormat(selectedTemplate.id, newValue);
-                            } else {
-                              // Jika karena suatu hal tidak ada id, sekadar update state lokal
-                              setTargetFormat(newValue);
-                            }
-                          }}
-                          className="w-full sm:w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                        >
-                          <option value="persentase">Persentase (%)</option>
-                          <option value="count">Count (Hitungan Berapa Kali Diisi)</option>
+                            value={selectedTemplate?.target_format || targetFormat} 
+                            onChange={(e) => {
+                              const newValue = e.target.value as 'persentase' | 'count';
+                              if (selectedTemplate?.id) updateTargetFormat(selectedTemplate.id, newValue);
+                              else setTargetFormat(newValue);
+                            }}
+                            className="w-full sm:w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                          >
+                            <option value="persentase">Persentase (%)</option>
+                            <option value="count">Count (Hitungan Berapa Kali Diisi)</option>
                           </select>
                         </div>
                       </div>
-                      {/* ========================================================= */}
                       
                       {/* Panel Centangan Modul Informasi Pengawasan */}
-                      <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-200/80 space-y-3">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="p-4 rounded-xl sm:rounded-2xl bg-blue-50/50 border border-blue-200/80 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                           <div>
                             <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                              <BookOpen className="w-4 h-4 text-blue-600" />
-                              Pengaturan Kolom Informasi Pengawasan
+                              <BookOpen className="w-4 h-4 text-blue-600 shrink-0" />
+                              <span className="break-words">Kolom Informasi Pengawasan</span>
                             </h4>
-                            <p className="text-[11px] text-slate-500 mt-0.5">
-                              Centang modul yang ingin ditampilkan pada form kegiatan ini
+                            <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
+                              Centang modul yang ingin ditampilkan pada form
                             </p>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-start sm:justify-end gap-2 shrink-0">
                             <button
                               type="button"
                               onClick={() => setAllPengawasFields(selectedTemplate.id, true)}
-                              className="text-[10px] font-bold text-blue-600 hover:text-blue-800 underline"
+                              className="text-[10px] font-bold text-blue-600 hover:text-blue-800 underline px-1"
                             >
                               Centang Semua
                             </button>
@@ -3653,45 +3645,43 @@ const rekapSantriData = useMemo(() => {
                             <button
                               type="button"
                               onClick={() => setAllPengawasFields(selectedTemplate.id, false)}
-                              className="text-[10px] font-bold text-slate-500 hover:text-slate-700 underline"
+                              className="text-[10px] font-bold text-slate-500 hover:text-slate-700 underline px-1"
                             >
                               Kosongkan Semua
                             </button>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-1">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-3 pt-1">
                           {[
-                            { key: 'kelas', defaultLabel: 'Tanggal' }, // Tanggal dipindahkan ke urutan pertama
+                            { key: 'kelas', defaultLabel: 'Tanggal' },
                             { key: 'pj', defaultLabel: 'Petugas (PJ)' },
                             { key: 'guru', defaultLabel: 'Ustadz' },
                             { key: 'mapel', defaultLabel: 'Tempat' },
                             { key: 'jam', defaultLabel: 'Pengampu/Pemimpin' },
                             { key: 'absen', defaultLabel: 'Keterangan' }
                           ].map(f => {
-                          
                             const fieldKey = f.key as PengawasFieldKey;
                             const isChecked = currentPengawasConfig[fieldKey];
                             const fieldDetail = currentFieldDetails[fieldKey] || DEFAULT_FIELD_DETAILS[fieldKey];
                           
                             return (
-                              <div key={f.key} className={`relative flex items-center justify-between p-3 rounded-xl border transition ${isChecked ? 'bg-white border-blue-400 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-70'}`}>
-                                <label className="flex items-center gap-3 cursor-pointer select-none flex-1">
+                              <div key={f.key} className={`relative flex items-center justify-between p-3 rounded-xl border transition min-w-0 ${isChecked ? 'bg-white border-blue-400 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-70'}`}>
+                                <label className="flex items-center gap-2.5 cursor-pointer select-none flex-1 min-w-0">
                                   <input 
                                     type="checkbox" 
                                     checked={isChecked} 
                                     onChange={() => togglePengawasField(selectedTemplate!.id, fieldKey)} 
-                                    className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4" 
+                                    className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 shrink-0" 
                                   />
-                                  <div className="flex flex-col">
-                                    <span className={`text-xs font-bold ${isChecked ? 'text-blue-900' : 'text-slate-500'}`}>{fieldDetail.label || f.defaultLabel}</span>
+                                  <div className="flex flex-col min-w-0">
+                                    <span className={`text-xs font-bold truncate ${isChecked ? 'text-blue-900' : 'text-slate-500'}`}>{fieldDetail.label || f.defaultLabel}</span>
                                     {isChecked && (
-                                      <span className="text-[10px] text-slate-400 mt-0.5">Tipe: {fieldDetail.type === 'dropdown' ? 'Dropdown Pilihan' : 'Teks Singkat'}</span>
+                                      <span className="text-[9px] sm:text-[10px] text-slate-400 mt-0.5 truncate">{fieldDetail.type === 'dropdown' ? 'Dropdown' : 'Teks'}</span>
                                     )}
                                   </div>
                                 </label>
                                 
-                                {/* Tombol Edit (Hanya aktif jika dicentang) */}
                                 {isChecked && (
                                   <button 
                                     type="button"
@@ -3699,7 +3689,7 @@ const rekapSantriData = useMemo(() => {
                                       setEditFieldKey(fieldKey);
                                       setEditFieldForm(fieldDetail);
                                     }}
-                                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition shrink-0 ml-1"
                                   >
                                     <Edit className="w-4 h-4" />
                                   </button>
@@ -3711,37 +3701,37 @@ const rekapSantriData = useMemo(() => {
                       </div>
 
                       {/* Header Pengaturan Kategori */}
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div>
-                          <h4 className="text-sm font-black text-slate-900">Pengaturan Kategori & Indikator</h4>
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            Sesuaikan butir ceklis untuk program "{selectedTemplate.title}"
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3 mt-4">
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-black text-slate-900 break-words">Pengaturan Kategori & Indikator</h4>
+                          <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 break-words">
+                            Sesuaikan butir ceklis untuk program ini
                           </p>
                         </div>
                       </div>
 
-                      {/* Tambah Section / Kategori Baru (Dengan Pilihan Positif / Negatif) */}
-                      <div className="flex flex-col sm:flex-row gap-2">
+                      {/* Tambah Section / Kategori Baru */}
+                      <div className="flex flex-col md:flex-row gap-2.5">
                         <input
                           type="text"
                           value={newSectionName}
                           onChange={(e) => setNewSectionName(e.target.value)}
-                          placeholder="Nama Kategori Baru (misal: Kebersihan, Ketertiban)..."
-                          className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800"
+                          placeholder="Nama Kategori Baru (misal: Kebersihan)..."
+                          className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <select
                           value={newSectionType}
                           onChange={(e) => setNewSectionType(e.target.value as 'positif' | 'negatif')}
-                          className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700"
+                          className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                          <option value="negatif">🔴 Tipe Negatif (Temuan/Pelanggaran)</option>
-                          <option value="positif">🟢 Tipe Positif (Keterlaksanaan/Standar)</option>
+                          <option value="negatif">🔴 Tipe Negatif (Temuan)</option>
+                          <option value="positif">🟢 Tipe Positif (Terlaksana)</option>
                         </select>
                         <button
                           onClick={handleAddSection}
-                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 shrink-0"
+                          className="px-4 py-2.5 md:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 shrink-0"
                         >
-                          <Plus className="w-4 h-4" /> Tambah Kategori
+                          <Plus className="w-4 h-4 shrink-0" /> Tambah Kategori
                         </button>
                       </div>
 
@@ -3752,49 +3742,49 @@ const rekapSantriData = useMemo(() => {
                           const isPositif = (sectionTypeMap[sec.id] || (sec as any).section_type) === 'positif';
 
                           return (
-                            <div key={sec.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3">
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div key={sec.id} className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3">
+                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                                 <div className="flex items-center gap-2 min-w-0">
                                   <span className={`w-2 h-2 rounded-full shrink-0 ${isPositif ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                  <span className="font-bold text-xs text-slate-800 truncate">
+                                  <span className="font-bold text-xs sm:text-sm text-slate-800 break-words">
                                     {sec.name}
                                   </span>
-                                  <span className="text-[10px] font-mono text-slate-400">
-                                    ({secItems.length} Indikator)
+                                  <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                                    ({secItems.length} Item)
                                   </span>
                                 </div>
 
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center justify-between md:justify-end gap-2 shrink-0">
                                   <select
                                     value={isPositif ? 'positif' : 'negatif'}
                                     onChange={(e) => updateSectionType(sec.id, e.target.value as 'positif' | 'negatif')}
-                                    className={`text-[10px] font-bold rounded-lg px-2 py-1 border cursor-pointer ${
+                                    className={`text-[10px] font-bold rounded-lg px-2 py-1.5 sm:py-1 border cursor-pointer outline-none flex-1 md:flex-none ${
                                       isPositif
                                         ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
                                         : 'bg-rose-50 border-rose-300 text-rose-700'
                                     }`}
                                   >
-                                    <option value="negatif">🔴 Negatif (Dicentang jika bermasalah)</option>
-                                    <option value="positif">🟢 Positif (Dicentang jika terlaksana)</option>
+                                    <option value="negatif">🔴 Negatif</option>
+                                    <option value="positif">🟢 Positif</option>
                                   </select>
                                   <button
                                     type="button"
                                     onClick={() => handleDeleteSection(sec.id, sec.name)}
-                                    className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition border border-rose-200/80 bg-white shadow-2xs"
-                                    title={`Hapus kategori "${sec.name}" beserta seluruh indikator di dalamnya`}
+                                    className="p-1.5 sm:p-1 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition border border-rose-200/80 bg-white shadow-2xs shrink-0"
+                                    title={`Hapus kategori "${sec.name}"`}
                                   >
-                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                                   </button>
                                 </div>
                               </div>
 
                               <div className="space-y-2">
                                 {secItems.map(it => (
-                                  <div key={it.id} className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between text-xs">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                      <span className="font-medium text-slate-700 truncate">{it.item_text}</span>
-                                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
-                                        {it.input_type === 'text' ? 'Teks Singkat' :
+                                  <div key={it.id} className="p-2.5 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+                                      <span className="font-medium text-slate-700 break-words leading-snug">{it.item_text}</span>
+                                      <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200 w-fit shrink-0">
+                                        {it.input_type === 'text' ? 'Teks' :
                                          it.input_type === 'number' ? 'Angka' :
                                          it.input_type === 'textarea' ? 'Uraian' :
                                          it.input_type === 'select' ? 'Dropdown' :
@@ -3804,36 +3794,36 @@ const rekapSantriData = useMemo(() => {
                                     </div>
                                     <button
                                       onClick={() => handleDeleteItem(it.id)}
-                                      className="text-rose-500 hover:text-rose-700 p-1 shrink-0"
+                                      className="text-rose-500 hover:text-rose-700 p-1.5 sm:p-1 bg-rose-50 sm:bg-transparent rounded-lg sm:rounded-none shrink-0 self-end sm:self-auto"
                                       title="Hapus Indikator"
                                     >
-                                      <Trash2 className="w-3.5 h-3.5" />
+                                      <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                                     </button>
                                   </div>
                                 ))}
                               </div>
 
                               {newItemSectionId === sec.id ? (
-                                <div className="p-3 bg-white border border-slate-200 rounded-2xl space-y-2.5 pt-2">
-                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div className="p-3 bg-white border border-slate-200 rounded-xl sm:rounded-2xl space-y-2.5 pt-2">
+                                  <div className="flex flex-col sm:grid sm:grid-cols-3 gap-2">
                                     <input
                                       type="text"
                                       value={newItemText}
                                       onChange={(e) => setNewItemText(e.target.value)}
-                                      placeholder={isPositif ? "Teks standar / nama indikator..." : "Teks temuan / pelanggaran..."}
-                                      className="sm:col-span-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder={isPositif ? "Teks standar..." : "Teks temuan..."}
+                                      className="sm:col-span-2 bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-1.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                     <select
                                       value={newItemInputType}
                                       onChange={(e) => setNewItemInputType(e.target.value)}
-                                      className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                      className="bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-1.5 text-xs font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                                     >
-                                      <option value="checkbox">☑️ Ceklis (Checkbox)</option>
-                                      <option value="text">📝 Teks Singkat</option>
-                                      <option value="textarea">📄 Uraian (Textarea)</option>
-                                      <option value="number">🔢 Angka / Nilai</option>
-                                      <option value="select">🔽 Pilihan Dropdown</option>
-                                      <option value="radio">🔘 Pilihan Radio</option>
+                                      <option value="checkbox">☑️ Ceklis</option>
+                                      <option value="text">📝 Teks</option>
+                                      <option value="textarea">📄 Uraian</option>
+                                      <option value="number">🔢 Angka</option>
+                                      <option value="select">🔽 Dropdown</option>
+                                      <option value="radio">🔘 Radio</option>
                                       <option value="date">📅 Tanggal</option>
                                     </select>
                                   </div>
@@ -3844,16 +3834,16 @@ const rekapSantriData = useMemo(() => {
                                         type="text"
                                         value={newItemOptions}
                                         onChange={(e) => setNewItemOptions(e.target.value)}
-                                        placeholder="Ketik opsi pilihan pisahkan dengan koma (contoh: Sangat Baik, Baik, Cukup, Kurang)"
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700 outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Ketik opsi (contoh: Baik, Cukup, Kurang)"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-3 py-2 sm:py-1.5 text-xs text-slate-700 outline-none focus:ring-2 focus:ring-blue-500"
                                       />
-                                      <p className="text-[10px] text-slate-400 mt-1 italic">
+                                      <p className="text-[9px] sm:text-[10px] text-slate-400 mt-1 italic">
                                         * Pisahkan tiap pilihan dengan tanda koma (,).
                                       </p>
                                     </div>
                                   )}
 
-                                  <div className="flex justify-end gap-2 pt-1 border-t border-slate-100">
+                                  <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                                     <button
                                       type="button"
                                       onClick={() => {
@@ -3862,13 +3852,13 @@ const rekapSantriData = useMemo(() => {
                                         setNewItemInputType('checkbox');
                                         setNewItemOptions('');
                                       }}
-                                      className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                                      className="px-4 py-2 sm:py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl text-xs font-bold transition flex-1 sm:flex-none"
                                     >
                                       Batal
                                     </button>
                                     <button
                                       onClick={() => handleAddItem(sec.id)}
-                                      className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-xs"
+                                      className="px-4 py-2 sm:py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg sm:rounded-xl text-xs font-bold transition shadow-xs flex-1 sm:flex-none"
                                     >
                                       Simpan
                                     </button>
@@ -3883,9 +3873,9 @@ const rekapSantriData = useMemo(() => {
                                     setNewItemInputType('checkbox');
                                     setNewItemOptions('');
                                   }}
-                                  className="w-full py-2 border border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/50 rounded-xl text-xs font-bold text-slate-500 hover:text-blue-600 flex items-center justify-center gap-1.5 transition"
+                                  className="w-full py-2.5 sm:py-2 border border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/50 rounded-lg sm:rounded-xl text-xs font-bold text-slate-500 hover:text-blue-600 flex items-center justify-center gap-1.5 transition"
                                 >
-                                  <Plus className="w-3.5 h-3.5" /> Tambah Indikator Baru
+                                  <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> Tambah Indikator
                                 </button>
                               )}
                             </div>
@@ -3900,7 +3890,7 @@ const rekapSantriData = useMemo(() => {
 
             </div>
           )}
-
+        
           {}
          {/* TAB: MONITORING KEBERSIHAN NATIVE */}
           {navTab === 'monitoring_kebersihan' && (
