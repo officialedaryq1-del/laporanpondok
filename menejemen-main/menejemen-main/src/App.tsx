@@ -44,12 +44,28 @@ const Eye = createIcon(<><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0
 const X = createIcon(<><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>);
 const Settings = createIcon(<><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>);
 const Edit = createIcon(<><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>);
-const Search = createIcon(<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>); // <--- TEMPEL DI SINI
+const Search = createIcon(<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>); 
 const Menu = createIcon(<><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></>);
-
+const LogOut = createIcon(<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>);
 
 type TimeframeCategory = 'Harian' | 'Mingguan' | 'Bulanan' | 'Tahunan';
-type NavigationTab = 'dashboard' | 'ceklis' | 'laporan' | 'rekap_absensi' | 'pengaturan' | 'monitoring_kebersihan' | 'pelanggaran';
+type NavigationTab = 'dashboard' | 'ceklis' | 'laporan' | 'rekap_absensi' | 'pengaturan' | 'monitoring_kebersihan' | 'pelanggaran' | 'perizinan';
+
+interface PerizinanRecord {
+  id: number;
+  santri_id: string;
+  nama_santri: string;
+  jenjang: string;
+  kelas: string;
+  halaqoh: string;
+  jenis_izin: string;
+  pj: string;
+  tanggal_izin: string;
+  tanggal_kembali: string;
+  keterangan: string;
+  status: string;
+  created_at?: string;
+}
 
 interface Division {
   id: number;
@@ -517,6 +533,129 @@ const filteredRiwayatKebersihan = useMemo(() => {
   const [formKebersihanKamar, setFormKebersihanKamar] = useState<string>('');
   const [formKebersihanKeterangan, setFormKebersihanKeterangan] = useState<string>('');
 
+  // --- STATE & LOGIKA SISTEM PERIZINAN SANTRI ---
+  const [perizinanList, setPerizinanList] = useState<PerizinanRecord[]>([]);
+  const [perizinanSubTab, setPerizinanSubTab] = useState<'ringkasan' | 'semua' | 'aktif' | 'input'>('ringkasan');
+  
+  // State Filter Laporan
+  const [filterIzinSearch, setFilterIzinSearch] = useState('');
+  const [filterIzinStatus, setFilterIzinStatus] = useState('Semua Status');
+  const [filterIzinJenis, setFilterIzinJenis] = useState('Semua Jenis Izin');
+  const [filterIzinBulan, setFilterIzinBulan] = useState('Semua Bulan');
+
+  // State Form Input Izin
+  const [formIzinKelas, setFormIzinKelas] = useState('Semua Kelas');
+  const [formIzinHalaqoh, setFormIzinHalaqoh] = useState('Semua Halaqoh');
+  const [formIzinSantriId, setFormIzinSantriId] = useState('');
+  const [formIzinPJ, setFormIzinPJ] = useState('Pondok');
+  const [formIzinTgl, setFormIzinTgl] = useState(() => new Date().toISOString().slice(0, 10));
+  const [formIzinTglKembali, setFormIzinTglKembali] = useState(() => new Date().toISOString().slice(0, 10));
+  const [formIzinJenis, setFormIzinJenis] = useState('Izin Pulang');
+  const [formIzinStatus, setFormIzinStatus] = useState('Aktif (masih di luar)');
+  const [formIzinKeterangan, setFormIzinKeterangan] = useState('');
+
+  // Logika Filter Tabel Perizinan
+  const filteredPerizinan = useMemo(() => {
+      return perizinanList.filter(p => {
+         const matchSearch = (p.nama_santri || '').toLowerCase().includes(filterIzinSearch.toLowerCase()) || 
+                             (p.keterangan || '').toLowerCase().includes(filterIzinSearch.toLowerCase());
+         const matchStatus = filterIzinStatus === 'Semua Status' ? true : p.status === filterIzinStatus;
+         const matchJenis = filterIzinJenis === 'Semua Jenis Izin' ? true : p.jenis_izin === filterIzinJenis;
+         
+         let matchBulan = true;
+         if (filterIzinBulan !== 'Semua Bulan' && p.tanggal_izin) {
+           const [y, m] = p.tanggal_izin.split('-');
+           const pBulan = `${y}-${m}`;
+           matchBulan = filterIzinBulan === pBulan;
+         }
+
+         return matchSearch && matchStatus && matchJenis && matchBulan;
+      });
+  }, [perizinanList, filterIzinSearch, filterIzinStatus, filterIzinJenis, filterIzinBulan]);
+
+  // Hitung Data Analitik Dashboard Perizinan
+  const izinStats = useMemo(() => {
+      const total = perizinanList.length;
+      const sedangIzin = perizinanList.filter(p => p.status === 'Aktif').length;
+      const sudahKembali = perizinanList.filter(p => p.status === 'Kembali').length;
+
+      const pulang = perizinanList.filter(p => p.jenis_izin === 'Izin Pulang').length;
+      const medis = perizinanList.filter(p => p.jenis_izin === 'Kontrol Kesehatan').length;
+      const lainnya = perizinanList.filter(p => p.jenis_izin !== 'Izin Pulang' && p.jenis_izin !== 'Kontrol Kesehatan').length;
+
+      const byKelas: Record<string, number> = {};
+      perizinanList.forEach(p => {
+          if (p.kelas && p.kelas !== '-') {
+            byKelas[p.kelas] = (byKelas[p.kelas] || 0) + 1;
+          }
+      });
+      const kelasChart = Object.entries(byKelas).sort((a,b) => b[1] - a[1]).slice(0, 3); // Ambil 3 kelas terbanyak
+
+      return { total, sedangIzin, sudahKembali, pulang, medis, lainnya, kelasChart };
+  }, [perizinanList]);
+
+  const handleSubmitPerizinan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formIzinSantriId) return showToast('Silakan pilih santri dari dropdown!', 'error');
+
+    setIsLoading(true);
+    const s = santriList.find(x => String(x.id) === formIzinSantriId);
+    
+    const payload = {
+      santri_id: formIzinSantriId,
+      nama_santri: s?.nama || '-',
+      jenjang: s?.kelas?.includes('SMA') ? 'SMA' : 'SMP', 
+      kelas: s?.kelas || '-',
+      halaqoh: s?.halaqoh || '-',
+      jenis_izin: formIzinJenis,
+      pj: formIzinPJ,
+      tanggal_izin: formIzinTgl,
+      tanggal_kembali: formIzinTglKembali,
+      keterangan: formIzinKeterangan,
+      status: formIzinStatus === 'Aktif (masih di luar)' ? 'Aktif' : 'Kembali'
+    };
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/perizinan_santri`, {
+        method: 'POST',
+        headers: reqHeaders,
+        body: JSON.stringify([payload])
+      });
+      if (res.ok) {
+        showToast('Izin berhasil disimpan!', 'success');
+        setFormIzinSantriId('');
+        setFormIzinKeterangan('');
+        setPerizinanSubTab('semua');
+        fetchSupabaseData(); // Refresh Data Server
+      } else {
+        showToast('Gagal menyimpan izin!', 'error');
+      }
+    } catch (err) {
+      showToast('Terjadi kesalahan jaringan', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSetIzinKembali = async (id: number) => {
+      if (!window.confirm('Tandai santri ini sudah kembali ke pondok?')) return;
+      try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/perizinan_santri?id=eq.${id}`, {
+              method: 'PATCH',
+              headers: reqHeaders,
+              body: JSON.stringify({ status: 'Kembali' })
+          });
+          if (res.ok) {
+              showToast('Status berhasil diubah menjadi Kembali!', 'success');
+              fetchSupabaseData();
+          } else {
+              showToast('Gagal mengubah status', 'error');
+          }
+      } catch (err) {
+          showToast('Kesalahan koneksi', 'error');
+      }
+  };
+  
   // --- STATE PELANGGARAN SANTRI ---
 const [pelanggaranSubTab, setPelanggaranSubTab] = useState<'dashboard' | 'input' | 'laporan' | 'santri'>('dashboard');
 const [laporanPelanggaranSubTab, setLaporanPelanggaranSubTab] = useState<'detail' | 'halaqoh' | 'santri'>('detail');
@@ -1279,7 +1418,15 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
   const data = await pelanggaranRes.value.json();
   if (Array.isArray(data)) setPelanggaranList(data);
 }
-    
+    // Fetch Data Sistem Perizinan Santri
+      try {
+        const pzRes = await fetch(`${SUPABASE_URL}/rest/v1/perizinan_santri?select=*&order=tanggal_izin.desc`, { headers: reqHeaders });
+        if (pzRes.ok) {
+           const data = await pzRes.json();
+           if (Array.isArray(data)) setPerizinanList(data);
+        }
+      } catch(e) { console.warn('Tabel perizinan_santri belum tersedia di database'); }
+      
       try {
         const catRes = await fetch(`${SUPABASE_URL}/rest/v1/laporan_iku_catatan?bulan=eq.${laporanBulan}`, { headers: reqHeaders });
         if (catRes.ok) {
@@ -2916,7 +3063,29 @@ const rekapSantriData = useMemo(() => {
                   )}
                 </div>
               </button>
+
+              {/* ===== PASTE KODE LANGKAH 3 TEPAT DI SINI ===== */}
+              <button
+                onClick={() => {
+                  setNavTab('perizinan');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  navTab === 'perizinan'
+                    ? 'bg-teal-600 text-white shadow-md shadow-teal-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <LogOut className={`w-5 h-5 shrink-0 ${navTab === 'perizinan' ? 'text-white' : 'text-teal-400'}`} />
+                  {(isSidebarExpanded || isMobileMenuOpen) && (
+                    <span className="truncate">Perizinan Santri</span>
+                  )}
+                </div>
+              </button>
+              {/* ============================================== */}
               
+           
               {/* Tombol Menu Pengaturan Master Data */}
               <button
                 onClick={() => { setNavTab('pengaturan'); setIsMobileMenuOpen(false); }}
@@ -5918,6 +6087,359 @@ const rekapSantriData = useMemo(() => {
           )}
           
            </div>
+          )}
+
+        {/* ========================================================= */}
+          {/* MENU SISTEM PERIZINAN SANTRI                              */}
+          {/* ========================================================= */}
+          {navTab === 'perizinan' && (
+            <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
+              
+              {/* --- HEADER KHUSUS PERIZINAN (Mirip Referensi Gambar) --- */}
+              <div className="bg-white rounded-t-xl sm:rounded-t-2xl p-5 sm:p-6 border-b border-slate-200 shadow-sm flex flex-col md:flex-row md:items-start justify-between gap-4 w-full">
+                  <div>
+                      <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                        PONDOK <span className="text-slate-300">•</span> LAYANAN SANTRI
+                      </div>
+                      <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Sistem Perizinan Santri</h2>
+                      <p className="text-xs text-slate-500 mt-1">Kelola izin pulang, kontrol kesehatan, dan pemantauan kepulangan santri.</p>
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-full text-[10px] font-bold text-emerald-600 mr-1 sm:mr-2 shrink-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Supabase Online
+                      </div>
+                      <button onClick={fetchSupabaseData} className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition shadow-xs">Muat Ulang</button>
+                      <button className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition shadow-xs hidden sm:block">Export CSV</button>
+                      <button className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition shadow-xs hidden sm:block">Import CSV</button>
+                      <button onClick={() => setPerizinanSubTab('input')} className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-md shadow-emerald-600/20 transition">+ Input Izin</button>
+                  </div>
+              </div>
+
+              {/* --- NAVIGASI SUB-MENU --- */}
+              <div className="px-4 sm:px-6 -mt-2 sm:-mt-3 w-full">
+                <div className="flex items-center gap-1 bg-white border border-slate-200 p-1.5 rounded-2xl w-full sm:w-fit shadow-xs overflow-x-auto custom-scrollbar">
+                    <button onClick={() => setPerizinanSubTab('ringkasan')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${perizinanSubTab === 'ringkasan' ? 'border border-slate-800 text-slate-800 bg-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}>Ringkasan</button>
+                    <button onClick={() => setPerizinanSubTab('semua')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${perizinanSubTab === 'semua' ? 'border border-slate-800 text-slate-800 bg-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}>
+                      Semua Perizinan <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${perizinanSubTab === 'semua' ? 'bg-slate-100 text-slate-600' : 'bg-slate-100 text-slate-400'}`}>{izinStats.total}</span>
+                    </button>
+                    <button onClick={() => setPerizinanSubTab('aktif')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${perizinanSubTab === 'aktif' ? 'border border-slate-800 text-slate-800 bg-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}>
+                      Sedang Izin <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${perizinanSubTab === 'aktif' ? 'bg-orange-100 text-orange-600' : 'bg-emerald-50 text-emerald-600'}`}>{izinStats.sedangIzin}</span>
+                    </button>
+                    <button onClick={() => setPerizinanSubTab('input')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${perizinanSubTab === 'input' ? 'border border-slate-800 text-slate-800 bg-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}>Input Izin</button>
+                </div>
+              </div>
+
+              {/* === KONTEN 1: RINGKASAN DASHBOARD === */}
+              {perizinanSubTab === 'ringkasan' && (
+                <div className="space-y-4 sm:space-y-6 px-4 sm:px-6 w-full">
+                  {/* Kartu KPI / Angka */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Total Perizinan</p>
+                      <h3 className="text-3xl font-black text-slate-800 leading-none">{izinStats.total}</h3>
+                      <p className="text-[10px] text-slate-400 mt-2 font-medium">Data terintegrasi</p>
+                    </div>
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Sedang Izin</p>
+                      <h3 className="text-3xl font-black text-orange-500 leading-none">{izinStats.sedangIzin}</h3>
+                      <p className="text-[10px] text-slate-400 mt-2 font-medium">Belum kembali ke pondok</p>
+                    </div>
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Sudah Kembali</p>
+                      <h3 className="text-3xl font-black text-emerald-600 leading-none">{izinStats.sudahKembali}</h3>
+                      <p className="text-[10px] text-slate-400 mt-2 font-medium">Perizinan selesai</p>
+                    </div>
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Pulang / Medis / Lainnya</p>
+                      <h3 className="text-xl sm:text-2xl font-black text-purple-700 leading-none">{izinStats.pulang} <span className="text-slate-300">/</span> {izinStats.medis} <span className="text-slate-300">/</span> {izinStats.lainnya}</h3>
+                      <p className="text-[9px] sm:text-[10px] text-slate-400 mt-2 font-medium">Izin pulang / kontrol / jenis lain</p>
+                    </div>
+                  </div>
+
+                  {/* Grafik Sederhana dan Kotak Peringatan */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Jenis Perizinan */}
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                       <h4 className="font-bold text-sm text-slate-800 mb-5">Jenis Perizinan</h4>
+                       <div className="space-y-4">
+                         <div>
+                           <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-slate-700">Izin Pulang</span> <span className="text-slate-500">{izinStats.pulang} izin &middot; {izinStats.total ? Math.round((izinStats.pulang/izinStats.total)*100) : 0}%</span></div>
+                           <div className="w-full bg-slate-100 rounded-full h-1.5"><div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${izinStats.total ? (izinStats.pulang/izinStats.total)*100 : 0}%` }}></div></div>
+                         </div>
+                         <div>
+                           <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-slate-700">Kontrol Kesehatan</span> <span className="text-slate-500">{izinStats.medis} izin &middot; {izinStats.total ? Math.round((izinStats.medis/izinStats.total)*100) : 0}%</span></div>
+                           <div className="w-full bg-slate-100 rounded-full h-1.5"><div className="bg-purple-600 h-1.5 rounded-full" style={{ width: `${izinStats.total ? (izinStats.medis/izinStats.total)*100 : 0}%` }}></div></div>
+                         </div>
+                         <div>
+                           <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-slate-700">Lainnya</span> <span className="text-slate-500">{izinStats.lainnya} izin &middot; {izinStats.total ? Math.round((izinStats.lainnya/izinStats.total)*100) : 0}%</span></div>
+                           <div className="w-full bg-slate-100 rounded-full h-1.5"><div className="bg-slate-400 h-1.5 rounded-full" style={{ width: `${izinStats.total ? (izinStats.lainnya/izinStats.total)*100 : 0}%` }}></div></div>
+                         </div>
+                       </div>
+                    </div>
+                    {/* Kelas */}
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                       <h4 className="font-bold text-sm text-slate-800 mb-5">Perizinan Berdasarkan Kelas</h4>
+                       <div className="space-y-4">
+                         {izinStats.kelasChart.map((k, i) => (
+                           <div key={i}>
+                             <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-slate-700">Kelas {k[0]}</span> <span className="text-slate-500">{k[1]} izin</span></div>
+                             <div className="w-full bg-slate-100 rounded-full h-1.5"><div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${(k[1]/izinStats.total)*100}%` }}></div></div>
+                           </div>
+                         ))}
+                         {izinStats.kelasChart.length === 0 && <p className="text-xs text-slate-400 italic">Belum ada data</p>}
+                       </div>
+                       <div className="mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-bold">Santri unik terdata: {new Set(perizinanList.map(p => p.santri_id)).size}</div>
+                    </div>
+                    {/* Peringatan */}
+                    <div className="bg-amber-50 p-5 rounded-2xl border border-amber-200 shadow-sm flex flex-col justify-between">
+                      <div>
+                        <h4 className="font-bold text-sm text-amber-900 mb-2">Perhatian Perizinan Aktif</h4>
+                        <p className="text-xs text-amber-800 leading-relaxed font-medium">Terdapat <strong>{izinStats.sedangIzin} santri</strong> yang saat ini masih dalam masa perizinan. Catat kepulangan saat santri kembali ke pondok.</p>
+                      </div>
+                      <button onClick={() => setPerizinanSubTab('aktif')} className="mt-4 w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition shadow-sm">Periksa Santri Sedang Izin</button>
+                    </div>
+                  </div>
+
+                  {/* Tabel Perizinan Terbaru (Ringkasan) */}
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                      <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+                          <div>
+                              <h4 className="font-bold text-sm text-slate-800">Perizinan Terbaru</h4>
+                              <p className="text-[10px] text-slate-400 mt-0.5">Riwayat terakhir yang tercatat</p>
+                          </div>
+                          <button onClick={() => setPerizinanSubTab('semua')} className="text-xs font-bold text-emerald-600 hover:text-emerald-800 transition">Lihat semua</button>
+                      </div>
+                      <div className="overflow-x-auto custom-scrollbar">
+                          <table className="w-full text-left text-xs min-w-[900px]">
+                              <thead className="bg-white text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100 text-[10px]">
+                                  <tr>
+                                      <th className="px-5 py-3">Tanggal Izin</th>
+                                      <th className="px-5 py-3">Santri</th>
+                                      <th className="px-5 py-3">Jenis Izin</th>
+                                      <th className="px-5 py-3">PJ</th>
+                                      <th className="px-5 py-3">Kembali</th>
+                                      <th className="px-5 py-3">Keterangan</th>
+                                      <th className="px-5 py-3">Status</th>
+                                      <th className="px-5 py-3 text-right">Aksi</th>
+                                  </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
+                                  {perizinanList.slice(0, 5).map((p, i) => (
+                                      <tr key={i} className="hover:bg-slate-50 transition-colors">
+                                          <td className="px-5 py-3 whitespace-nowrap text-slate-500">{p.tanggal_izin.split('-').reverse().join('/')}</td>
+                                          <td className="px-5 py-3">
+                                            <div className="font-bold text-slate-800 uppercase">{p.nama_santri}</div>
+                                            <div className="text-[10px] text-slate-400 font-normal">Kelas {p.kelas}</div>
+                                          </td>
+                                          <td className="px-5 py-3 whitespace-nowrap">
+                                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${p.jenis_izin === 'Izin Pulang' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>{p.jenis_izin}</span>
+                                          </td>
+                                          <td className="px-5 py-3 text-slate-500">{p.pj}</td>
+                                          <td className="px-5 py-3 text-slate-500 whitespace-nowrap">{p.tanggal_kembali.split('-').reverse().join('/')}</td>
+                                          <td className="px-5 py-3 text-slate-500 truncate max-w-[150px]">{p.keterangan || '-'}</td>
+                                          <td className="px-5 py-3 font-bold">
+                                            <span className={p.status === 'Aktif' ? 'text-orange-500' : 'text-emerald-600'}>{p.status}</span>
+                                          </td>
+                                          <td className="px-5 py-3 text-right whitespace-nowrap">
+                                              <button className="text-[10px] font-bold text-slate-400 hover:text-slate-600 mr-3 transition">Detail</button>
+                                              {p.status === 'Aktif' && (
+                                                <button onClick={() => handleSetIzinKembali(p.id)} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 transition">Kembali</button>
+                                              )}
+                                          </td>
+                                      </tr>
+                                  ))}
+                              </tbody>
+                          </table>
+                      </div>
+                  </div>
+                </div>
+              )}
+
+              {/* === KONTEN 2 & 3: TABEL SEMUA & SEDANG IZIN === */}
+              {(perizinanSubTab === 'semua' || perizinanSubTab === 'aktif') && (() => {
+                  
+                  // Paksa filter status jika di tab Aktif
+                  const isAktifTab = perizinanSubTab === 'aktif';
+                  const displayList = isAktifTab ? filteredPerizinan.filter(p => p.status === 'Aktif') : filteredPerizinan;
+
+                  return (
+                    <div className="space-y-4 px-4 sm:px-6 w-full">
+                       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+                          {/* Filter Inputs */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 border-b border-slate-100 pb-5">
+                             <div>
+                                <input type="text" placeholder="Cari nama atau keterangan..." value={filterIzinSearch} onChange={(e) => setFilterIzinSearch(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                             </div>
+                             <div>
+                                <select value={isAktifTab ? 'Aktif' : filterIzinStatus} onChange={(e) => setFilterIzinStatus(e.target.value)} disabled={isAktifTab} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 cursor-pointer outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50">
+                                  <option value="Semua Status">Semua Status</option>
+                                  <option value="Aktif">Aktif</option>
+                                  <option value="Kembali">Sudah Kembali</option>
+                                </select>
+                             </div>
+                             <div>
+                                <select value={filterIzinJenis} onChange={(e) => setFilterIzinJenis(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 cursor-pointer outline-none focus:ring-2 focus:ring-emerald-500">
+                                  <option value="Semua Jenis Izin">Semua Jenis Izin</option>
+                                  <option value="Izin Pulang">Izin Pulang</option>
+                                  <option value="Kontrol Kesehatan">Kontrol Kesehatan</option>
+                                  <option value="Lainnya">Lainnya</option>
+                                </select>
+                             </div>
+                             <div>
+                                <input type="month" value={filterIzinBulan === 'Semua Bulan' ? '' : filterIzinBulan} onChange={(e) => setFilterIzinBulan(e.target.value || 'Semua Bulan')} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 cursor-pointer outline-none focus:ring-2 focus:ring-emerald-500" />
+                             </div>
+                          </div>
+
+                          <div className="flex justify-between items-center mb-3 px-1">
+                             <div className="text-[10px] text-slate-400 font-medium">Menampilkan <strong className="text-slate-600">{displayList.length}</strong> dari {isAktifTab ? izinStats.sedangIzin : perizinanList.length} data</div>
+                             <button onClick={() => { setFilterIzinSearch(''); setFilterIzinStatus('Semua Status'); setFilterIzinJenis('Semua Jenis Izin'); setFilterIzinBulan('Semua Bulan'); }} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 transition">Reset Filter</button>
+                          </div>
+
+                          <div className="overflow-x-auto custom-scrollbar border border-slate-100 rounded-xl">
+                              <table className="w-full text-left text-xs min-w-[900px]">
+                                  <thead className="bg-slate-50/80 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100 text-[10px]">
+                                      <tr>
+                                          <th className="px-5 py-4">TANGGAL IZIN</th>
+                                          <th className="px-5 py-4">SANTRI</th>
+                                          <th className="px-5 py-4">JENIS IZIN</th>
+                                          <th className="px-5 py-4">PJ</th>
+                                          <th className="px-5 py-4">KEMBALI</th>
+                                          <th className="px-5 py-4">KETERANGAN</th>
+                                          <th className="px-5 py-4">STATUS</th>
+                                          <th className="px-5 py-4 text-right">AKSI</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
+                                      {displayList.map((p, i) => (
+                                          <tr key={i} className="hover:bg-slate-50 transition-colors">
+                                              <td className="px-5 py-4 whitespace-nowrap text-slate-500">{p.tanggal_izin.split('-').reverse().join('/')}</td>
+                                              <td className="px-5 py-4">
+                                                <div className="font-bold text-slate-800 uppercase">{p.nama_santri}</div>
+                                                <div className="text-[10px] text-slate-400 font-normal">Kelas {p.kelas} - {p.halaqoh}</div>
+                                              </td>
+                                              <td className="px-5 py-4 whitespace-nowrap">
+                                                <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${p.jenis_izin === 'Izin Pulang' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>{p.jenis_izin}</span>
+                                              </td>
+                                              <td className="px-5 py-4 text-slate-500">{p.pj}</td>
+                                              <td className="px-5 py-4 text-slate-500 whitespace-nowrap">{p.tanggal_kembali.split('-').reverse().join('/')}</td>
+                                              <td className="px-5 py-4 text-slate-500 max-w-[200px] truncate">{p.keterangan || '-'}</td>
+                                              <td className="px-5 py-4 font-bold">
+                                                <span className={p.status === 'Aktif' ? 'text-orange-500' : 'text-emerald-600'}>{p.status}</span>
+                                              </td>
+                                              <td className="px-5 py-4 text-right whitespace-nowrap">
+                                                  <button className="text-[10px] font-bold text-slate-400 hover:text-slate-600 mr-3 transition">Detail</button>
+                                                  {p.status === 'Aktif' && (
+                                                    <button onClick={() => handleSetIzinKembali(p.id)} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 transition">Kembali</button>
+                                                  )}
+                                              </td>
+                                          </tr>
+                                      ))}
+                                      {displayList.length === 0 && (
+                                          <tr><td colSpan={8} className="text-center py-10 text-slate-400 italic">Data perizinan tidak ditemukan.</td></tr>
+                                      )}
+                                  </tbody>
+                              </table>
+                          </div>
+                       </div>
+                    </div>
+                  );
+              })()}
+
+              {/* === KONTEN 4: INPUT FORM PERIZINAN === */}
+              {perizinanSubTab === 'input' && (
+                <div className="px-4 sm:px-6 w-full pb-10">
+                   <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 max-w-3xl">
+                      <div className="mb-6 border-b border-slate-100 pb-4">
+                        <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">FORMULIR PERIZINAN</div>
+                        <h3 className="text-lg font-black text-slate-800">Input Izin Santri</h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Data izin akan disimpan langsung ke database.</p>
+                      </div>
+
+                      <form onSubmit={handleSubmitPerizinan} className="space-y-5">
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter Kelas</label>
+                              <select value={formIzinKelas} onChange={e => setFormIzinKelas(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option>Semua Kelas</option>
+                                <option value="7">Kelas 7</option>
+                                <option value="8">Kelas 8</option>
+                                <option value="9">Kelas 9</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter Halaqoh</label>
+                              <select value={formIzinHalaqoh} onChange={e => setFormIzinHalaqoh(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option>Semua Halaqoh</option>
+                              </select>
+                            </div>
+                         </div>
+
+                         <div>
+                            <label className="block text-[10px] font-bold text-slate-800 mb-1">Nama Santri *</label>
+                            <select value={formIzinSantriId} onChange={e => setFormIzinSantriId(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                               <option value="">Pilih santri dari master data</option>
+                               {santriList
+                                 .filter(s => (formIzinKelas === 'Semua Kelas' || s.kelas === formIzinKelas))
+                                 .map(s => <option key={s.id} value={s.id}>{s.nama} ({s.kelas})</option>)
+                               }
+                            </select>
+                         </div>
+
+                         <div>
+                            <label className="block text-[10px] font-bold text-slate-800 mb-1">PJ *</label>
+                            <select value={formIzinPJ} onChange={e => setFormIzinPJ(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                               <option>Pondok</option>
+                               <option>Wali Santri</option>
+                            </select>
+                         </div>
+
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-800 mb-1">Tanggal Izin *</label>
+                              <input type="date" value={formIzinTgl} onChange={e => setFormIzinTgl(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" required />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-800 mb-1">Rencana Tanggal Kembali *</label>
+                              <input type="date" value={formIzinTglKembali} onChange={e => setFormIzinTglKembali(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" required />
+                            </div>
+                         </div>
+
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-800 mb-1">Jenis Izin *</label>
+                              <select value={formIzinJenis} onChange={e => setFormIzinJenis(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option>Izin Pulang</option>
+                                <option>Kontrol Kesehatan</option>
+                                <option>Lainnya</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-800 mb-1">Status *</label>
+                              <select value={formIzinStatus} onChange={e => setFormIzinStatus(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option>Aktif (masih di luar)</option>
+                                <option>Kembali (sudah di pondok)</option>
+                              </select>
+                            </div>
+                         </div>
+
+                         <div>
+                            <label className="block text-[10px] font-bold text-slate-800 mb-1">Keterangan / Alasan</label>
+                            <textarea rows={3} value={formIzinKeterangan} onChange={e => setFormIzinKeterangan(e.target.value)} placeholder="Tuliskan alasan perizinan..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                         </div>
+
+                         <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                            <button type="button" onClick={() => setPerizinanSubTab('ringkasan')} className="px-6 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold transition">Batal</button>
+                            <button type="submit" disabled={isLoading} className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md transition disabled:opacity-50">
+                               {isLoading ? 'Menyimpan...' : 'Simpan Perizinan'}
+                            </button>
+                         </div>
+                      </form>
+                   </div>
+                </div>
+              )}
+
+            </div>
           )}
         
           {/* ========================================================= */}
