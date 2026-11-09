@@ -2900,11 +2900,11 @@ const rekapSantriData = useMemo(() => {
         <div className="p-2.5 sm:p-6 lg:p-8 space-y-3.5 sm:space-y-6 max-w-full overflow-x-hidden">
         </div>
           {}
-          {navTab === 'ceklis' && (
-            <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
+         {navTab === 'ceklis' && (
+            <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6 px-1 sm:px-0">
               
               {/* Header & Filter Ringkas 1 Baris (Responsif Mobile) */}
-              <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="bg-white rounded-2xl sm:rounded-3xl p-4 border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full max-w-[100vw] sm:max-w-none">
                 <div className="min-w-0">
                   <h3 className="text-sm sm:text-base font-black text-slate-900 tracking-tight truncate">
                     Divisi {activeDivision.name}
@@ -2914,14 +2914,14 @@ const rekapSantriData = useMemo(() => {
                   </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2.5 w-full md:w-auto">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full lg:w-auto">
                   {/* Timeframe Selector Pills */}
-                  <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-auto justify-between sm:justify-start">
+                  <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-auto justify-between sm:justify-start overflow-x-auto scrollbar-none">
                     {(['Harian', 'Mingguan', 'Bulanan', 'Tahunan'] as TimeframeCategory[]).map(tf => (
                       <button
                         key={tf}
                         onClick={() => setActiveTimeframe(tf)}
-                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-center ${
+                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-center shrink-0 ${
                           activeTimeframe === tf
                             ? 'bg-blue-600 text-white shadow-xs'
                             : 'text-slate-600 hover:text-slate-900'
@@ -2938,7 +2938,7 @@ const rekapSantriData = useMemo(() => {
                       value={selectedTemplateId ?? ''}
                       onChange={(e) => setSelectedTemplateId(Number(e.target.value))}
                       disabled={activePrograms.length === 0}
-                      className="flex-1 sm:flex-initial bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:max-w-xs truncate cursor-pointer disabled:opacity-50"
+                      className="flex-1 sm:flex-initial w-full sm:w-auto bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:max-w-xs truncate cursor-pointer disabled:opacity-50"
                     >
                       {activePrograms.length === 0 ? (
                         <option value="">(Tidak ada program {activeTimeframe})</option>
@@ -2967,7 +2967,7 @@ const rekapSantriData = useMemo(() => {
               </div>
 
               {activePrograms.length === 0 && (
-                <div className="p-8 text-center bg-white rounded-3xl border border-dashed border-slate-300 text-xs text-slate-400">
+                <div className="p-8 text-center bg-white rounded-3xl border border-dashed border-slate-300 text-xs text-slate-400 w-full max-w-[100vw]">
                   Belum ada program kegiatan yang terdaftar pada timeframe {activeTimeframe}. Silakan tambahkan melalui menu <strong>Kelola Divisi, IKU & Program</strong>.
                 </div>
               )}
@@ -2976,8 +2976,8 @@ const rekapSantriData = useMemo(() => {
               {selectedTemplate && (
                 <div className="space-y-4 sm:space-y-6">
                   
-                  <div className="bg-white rounded-2xl p-2 border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 overflow-hidden">
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                  <div className="bg-white rounded-2xl p-2 border border-slate-200 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 overflow-hidden w-full max-w-[100vw] sm:max-w-none">
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none w-full md:w-auto">
                       <button
                         onClick={() => setActiveSubTab('input')}
                         className={`shrink-0 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 sm:gap-2 ${
@@ -3381,14 +3381,14 @@ const rekapSantriData = useMemo(() => {
 
                   {/* TAB 2: RIWAYAT INPUT */}
                   {activeSubTab === 'riwayat' && (
-                    <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xs overflow-hidden w-full max-w-[100vw] sm:max-w-none">
                       <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                         <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                           Log Riwayat Pengawasan ({programSubmissions.length} Data)
                         </h4>
                         <button
                           onClick={() => window.print()}
-                          className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-xs"
+                          className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-xs shrink-0"
                         >
                           <FileText className="w-3.5 h-3.5" /> Cetak
                         </button>
@@ -3399,9 +3399,8 @@ const rekapSantriData = useMemo(() => {
                           Belum ada data riwayat pengisian untuk program ini.
                         </div>
                       ) : (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left text-xs border-collapse">
-                            {/* ===== HEADER TABEL DINAMIS ===== */}
+                        <div className="overflow-x-auto w-full custom-scrollbar">
+                          <table className="w-full text-left text-xs border-collapse min-w-[900px]">
                             {/* ===== HEADER TABEL DINAMIS ===== */}
                             <thead>
                               <tr className="bg-slate-50/80 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
@@ -3441,7 +3440,8 @@ const rekapSantriData = useMemo(() => {
                                 
                                 <th className="py-3 px-4 text-center min-w-[90px]">SKOR</th>
                                 <th className="py-3 px-5 min-w-[200px]">CATATAN</th>
-                                <th className="py-3 px-4 text-center min-w-[80px]">AKSI</th>
+                                {/* Kolom aksi dibuat sticky agar menempel di sisi kanan layar saat di-scroll */}
+                                <th className="py-3 px-4 text-center min-w-[80px] sticky right-0 bg-slate-50/80 backdrop-blur shadow-[-4px_0_10px_rgba(0,0,0,0.03)]">AKSI</th>
                               </tr>
                             </thead>
                             
@@ -3502,7 +3502,8 @@ const rekapSantriData = useMemo(() => {
                                   <td className="py-3 px-5 text-slate-500 text-[11px] italic truncate max-w-xs">
                                     {sub.general_notes || '-'}
                                   </td>
-                                  <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                  {/* Kolom aksi dibuat sticky agar menempel di sisi kanan layar saat di-scroll */}
+                                  <td className="py-3 px-4 text-center sticky right-0 bg-white group-hover:bg-blue-50/60 shadow-[-4px_0_10px_rgba(0,0,0,0.03)] transition-colors" onClick={(e) => e.stopPropagation()}>
                                     <div className="flex items-center justify-center gap-1.5">
                                       {/* Tombol Detail */}
                                       <button 
@@ -3511,10 +3512,10 @@ const rekapSantriData = useMemo(() => {
                                         title="Lihat Detail Hasil Pengawasan"
                                       >
                                         <Eye className="w-3.5 h-3.5" />
-                                        <span>Detail</span>
+                                        <span className="hidden xl:inline">Detail</span>
                                       </button>
                                       
-                                      {/* Tombol Edit (BARU) */}
+                                      {/* Tombol Edit */}
                                       <button 
                                         onClick={(e) => {
                                           e.stopPropagation();
@@ -3524,7 +3525,7 @@ const rekapSantriData = useMemo(() => {
                                         title="Edit Data Riwayat"
                                       >
                                         <Edit className="w-3.5 h-3.5" />
-                                        <span>Edit</span>
+                                        <span className="hidden xl:inline">Edit</span>
                                       </button>
                                       
                                       {/* Tombol Hapus */}
@@ -3537,7 +3538,7 @@ const rekapSantriData = useMemo(() => {
                                         title="Hapus Riwayat Pengawasan"
                                       >
                                         <Trash2 className="w-3.5 h-3.5" />
-                                        <span>Hapus</span>
+                                        <span className="hidden xl:inline">Hapus</span>
                                       </button>
                                     </div>
                                   </td>
