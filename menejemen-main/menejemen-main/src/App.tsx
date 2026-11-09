@@ -551,6 +551,7 @@ const filteredRiwayatKebersihan = useMemo(() => {
   const [formIzinTgl, setFormIzinTgl] = useState(() => new Date().toISOString().slice(0, 10));
   const [formIzinTglKembali, setFormIzinTglKembali] = useState(() => new Date().toISOString().slice(0, 10));
   const [formIzinJenis, setFormIzinJenis] = useState('Izin Pulang');
+  const [formIzinJenisLainnya, setFormIzinJenisLainnya] = useState('');
   const [formIzinStatus, setFormIzinStatus] = useState('Aktif (masih di luar)');
   const [formIzinKeterangan, setFormIzinKeterangan] = useState('');
   const [formIzinSearchSantri, setFormIzinSearchSantri] = useState('');
@@ -608,7 +609,7 @@ const filteredRiwayatKebersihan = useMemo(() => {
       jenjang: s?.kelas?.includes('SMA') ? 'SMA' : 'SMP', 
       kelas: s?.kelas || '-',
       halaqoh: s?.halaqoh || '-',
-      jenis_izin: formIzinJenis,
+      jenis_izin: formIzinJenis === 'Lainnya' && formIzinJenisLainnya.trim() !== '' ? formIzinJenisLainnya.trim() : formIzinJenis,
       pj: formIzinPJ,
       tanggal_izin: formIzinTgl,
       tanggal_kembali: formIzinTglKembali,
@@ -6424,16 +6425,36 @@ const rekapSantriData = useMemo(() => {
                             </div>
                          </div>
 
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
                               <label className="block text-[10px] font-bold text-slate-800 mb-1">Jenis Izin *</label>
-                              <select value={formIzinJenis} onChange={e => setFormIzinJenis(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                <option>Izin Pulang</option>
-                                <option>Kontrol Kesehatan</option>
-                                <option>Lainnya</option>
+                              <select value={formIzinJenis} onChange={e => setFormIzinJenis(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer">
+                                <option value="Izin Pulang">Izin Pulang</option>
+                                <option value="Kontrol Kesehatan">Kontrol Kesehatan</option>
+                                <option value="Lainnya">Lainnya (Tulis Manual)</option>
                               </select>
+                              
+                              {/* Akan muncul otomatis jika memilih 'Lainnya' */}
+                              {formIzinJenis === 'Lainnya' && (
+                                <input
+                                  type="text"
+                                  value={formIzinJenisLainnya}
+                                  onChange={e => setFormIzinJenisLainnya(e.target.value)}
+                                  placeholder="Ketikkan jenis izin spesifik di sini..."
+                                  className="w-full bg-emerald-50/50 border border-emerald-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                                  required
+                                />
+                              )}
                             </div>
                             <div>
+                              <label className="block text-[10px] font-bold text-slate-800 mb-1">Status *</label>
+                              <select value={formIzinStatus} onChange={e => setFormIzinStatus(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer">
+                                <option>Aktif (masih di luar)</option>
+                                <option>Kembali (sudah di pondok)</option>
+                              </select>
+                            </div>
+                         </div>
+                      <div>
                               <label className="block text-[10px] font-bold text-slate-800 mb-1">Status *</label>
                               <select value={formIzinStatus} onChange={e => setFormIzinStatus(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                 <option>Aktif (masih di luar)</option>
