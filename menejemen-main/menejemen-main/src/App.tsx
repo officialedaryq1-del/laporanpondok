@@ -547,7 +547,7 @@ const filteredRiwayatKebersihan = useMemo(() => {
   const [formIzinKelas, setFormIzinKelas] = useState('Semua Kelas');
   const [formIzinHalaqoh, setFormIzinHalaqoh] = useState('Semua Halaqoh');
   const [formIzinSantriId, setFormIzinSantriId] = useState('');
-  const [formIzinPJ, setFormIzinPJ] = useState('Pondok');
+  const [formIzinPJ] = useState('Pondok');
   const [formIzinTgl, setFormIzinTgl] = useState(() => new Date().toISOString().slice(0, 10));
   const [formIzinTglKembali, setFormIzinTglKembali] = useState(() => new Date().toISOString().slice(0, 10));
   const [formIzinJenis, setFormIzinJenis] = useState('Izin Pulang');
