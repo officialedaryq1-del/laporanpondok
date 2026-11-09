@@ -5813,135 +5813,106 @@ const rekapSantriData = useMemo(() => {
           {/* ========================================================= */}
           {/* MENU DASHBOARD UTAMA (JANGAN DIHAPUS)                       */}
           {/* ========================================================= */}
-          {navTab === 'dashboard' && (() => {
-            const todayStr = inputAbsensiTanggal || new Date().toISOString().slice(0, 10);
-            const dailyTemplates = templates
-            .filter(t => String(t.timeframe || '').toLowerCase() === 'harian')
-            .sort((a, b) => Number(a.division_id) - Number(b.division_id));
-        
-            return (
-              <div className="space-y-3.5 sm:space-y-6 max-w-7xl mx-auto">
-                
-                {/* Banner Dashboard Pantauan */}
-                <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
-                  <div>
-                    <h2 className="text-base sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                      <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-                      Dashboard Pantauan Pondok
-                    </h2>
-                    <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1">
-                      Pantau kepatuhan input kegiatan harian seluruh divisi dan keaktifan guru secara real-time
-                    </p>
+          {navTab === 'dashboard' && (
+            <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6 px-1 sm:px-0 overflow-x-hidden sm:overflow-visible">
+              
+              {/* Header Dashboard Responsif */}
+              <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full max-w-[100vw] sm:max-w-none">
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                    <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
-
-                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                    <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-50 border border-slate-200 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl">
-                      <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400">TANGGAL:</span>
-                      <input
-                        type="date"
-                        value={inputAbsensiTanggal}
-                        onChange={(e) => setInputAbsensiTanggal(e.target.value)}
-                        className="text-xs font-bold text-slate-800 bg-transparent outline-none cursor-pointer"
-                      />
-                    </div>
-                    <button
-                      onClick={() => setInputAbsensiTanggal(new Date().toISOString().slice(0, 10))}
-                      className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-bold transition"
-                    >
-                      Hari Ini
-                    </button>
+                  <div className="min-w-0">
+                    <h2 className="text-base sm:text-xl font-black text-slate-900 tracking-tight truncate">Dashboard Pantauan Pondok</h2>
+                    <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 truncate">Pantau kepatuhan input kegiatan harian seluruh divisi dan keaktifan guru secara real-time</p>
                   </div>
                 </div>
 
-                {/* 3 Kartu Metrik Utama */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-4">
-                  
-                  {/* Kartu Kasus Kebersihan */}
-                  <div 
-                   onClick={() => {
-                      setNavTab('monitoring_kebersihan');
-                      setKebersihanSubTab('dashboard');
-                    }}
-                    className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-emerald-300 hover:shadow-md transition-all group"
-                  >
-                    <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 group-hover:text-emerald-600 transition-colors">
-                        Kasus Kamar Kotor
-                      </p>
-                      <div className="flex items-end gap-2">
-                       <h3 className="text-3xl font-black text-slate-800 leading-none">
-                          {laporanKebersihanList.filter(k => k.tanggal === inputAbsensiTanggal).length}
-                       </h3>
-                        <span className="text-xs font-semibold text-slate-500 mb-1">Kasus</span>
-                      </div>
-                      <p className="text-[10px] text-slate-400 mt-1">Berdasarkan filter tanggal dashboard</p>
-                    </div>
-                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition-colors">
-                      <ClipboardCheck className="w-6 h-6" />
-                    </div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full lg:w-auto">
+                  <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 sm:py-2 flex-1 sm:flex-none">
+                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tanggal:</span>
+                    <input
+                      type="date"
+                      value={inputAbsensiTanggal}
+                      onChange={(e) => setInputAbsensiTanggal(e.target.value)}
+                      className="bg-transparent text-xs font-bold text-slate-800 outline-none w-full sm:w-auto cursor-pointer"
+                    />
                   </div>
-                  
-                  {/* Kartu Kasus Pelanggaran */}
-                  <div 
-                    onClick={() => {
-                      setNavTab('pelanggaran');
-                      setPelanggaranSubTab('dashboard');
-                    }}
-                    className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-rose-300 hover:shadow-md transition-all group"
+                  <button
+                    onClick={() => setInputAbsensiTanggal(new Date().toISOString().slice(0, 10))}
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold transition shrink-0 w-full sm:w-auto"
                   >
-                    <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 group-hover:text-rose-600 transition-colors">
-                        Kasus Pelanggaran
-                      </p>
-                      <div className="flex items-end gap-2">
-                        <h3 className="text-3xl font-black text-slate-800 leading-none">
-                          {pelanggaranList.filter(p => p.tanggal === inputAbsensiTanggal).length}
-                        </h3>
-                        <span className="text-xs font-semibold text-slate-500 mb-1">Kasus</span>
-                      </div>
-                      <p className="text-[10px] text-slate-400 mt-1">Berdasarkan filter tanggal dashboard</p>
+                    Hari Ini
+                  </button>
+                </div>
+              </div>
+
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 w-full max-w-[100vw] sm:max-w-none">
+                {/* Kartu Kamar Kotor */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Kasus Kamar Kotor</h4>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl sm:text-3xl font-black text-slate-900">{filteredLaporanKebersihan.length}</span>
+                      <span className="text-[10px] sm:text-xs font-semibold text-slate-500">Kasus</span>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:bg-rose-100 transition-colors">
-                      <AlertCircle className="w-6 h-6 stroke-[2.5]" />
-                    </div>
+                    <p className="text-[9px] sm:text-[10px] text-slate-400 mt-1 truncate">Berdasarkan filter tanggal dashboard</p>
+                  </div>
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
+                    <ClipboardCheck className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
                   </div>
                 </div>
 
-                {/* Tabel Pantauan Input Kegiatan Harian Semua Divisi */}
-                <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
-                  <div className="p-3 sm:p-5 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                    <div>
-                      <h3 className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                        <ClipboardCheck className="w-4 h-4 text-blue-600" />
-                        Pantauan Kegiatan Harian ({todayStr})
-                      </h3>
-                      <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
-                        Status keterisian formulir ceklis harian seluruh unit kerja pondok
-                      </p>
+                {/* Kartu Pelanggaran */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Kasus Pelanggaran</h4>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl sm:text-3xl font-black text-slate-900">{filteredDashboardPelanggaran?.length || dashboardStatsPlg?.totalKasus || 0}</span>
+                      <span className="text-[10px] sm:text-xs font-semibold text-slate-500">Kasus</span>
                     </div>
-
-                    <div className="text-[11px] sm:text-xs text-slate-600 font-semibold flex items-center gap-2">
-                      <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-500" />
-                      <span>
-                        Total Kegiatan Harian: <strong>{dailyTemplates.length}</strong> Program
-                      </span>
-                    </div>
+                    <p className="text-[9px] sm:text-[10px] text-slate-400 mt-1 truncate">Berdasarkan filter tanggal dashboard</p>
                   </div>
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-50 flex items-center justify-center shrink-0">
+                    <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-rose-600" />
+                  </div>
+                </div>
+              </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse min-w-[620px]">
-                      <thead>
-                        <tr className="bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
-                          <th className="py-2.5 sm:py-3.5 px-3 w-10 text-center">NO</th>
-                          <th className="py-2.5 sm:py-3.5 px-3 min-w-[130px]">DIVISI</th>
-                          <th className="py-2.5 sm:py-3.5 px-4 min-w-[180px]">KEGIATAN</th>
-                          <th className="py-2.5 sm:py-3.5 px-3 text-center min-w-[110px]">KETERANGAN</th>
-                          <th className="py-2.5 sm:py-3.5 px-3 text-center min-w-[80px]">NILAI</th>
-                          <th className="py-2.5 sm:py-3.5 px-4 min-w-[200px]">CATATAN / TEMUAN</th>
-                          <th className="py-2.5 sm:py-3.5 px-3 text-center min-w-[80px]">AKSI</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-700">
+              {/* TABEL PANTAUAN HARIAN */}
+              <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xs overflow-hidden w-full max-w-[100vw] sm:max-w-none">
+                <div className="p-4 sm:p-6 bg-slate-50/50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <ClipboardCheck className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 shrink-0" />
+                    <h4 className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider truncate">
+                      Pantauan Kegiatan Harian ({inputAbsensiTanggal})
+                    </h4>
+                  </div>
+                  <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg w-fit shrink-0">
+                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-600">
+                      Total Kegiatan Harian: <strong className="text-slate-900">{templates.filter(t => t.timeframe.toLowerCase().includes('hari')).length} Program</strong>
+                    </span>
+                  </div>
+                </div>
+
+                {/* WRAPPER SCROLL HORIZONTAL */}
+                <div className="overflow-x-auto w-full custom-scrollbar">
+                  <table className="w-full text-left text-xs border-collapse min-w-[850px]">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-500 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
+                        <th className="py-3 px-4 w-12 text-center">NO</th>
+                        <th className="py-3 px-4 min-w-[140px]">DIVISI</th>
+                        <th className="py-3 px-4 min-w-[200px]">KEGIATAN</th>
+                        <th className="py-3 px-4 text-center min-w-[100px]">KETERANGAN</th>
+                        <th className="py-3 px-4 text-center min-w-[80px]">NILAI</th>
+                        <th className="py-3 px-4 min-w-[180px]">CATATAN / TEMUAN</th>
+                        {/* Kolom Aksi menempel di kanan layar */}
+                        <th className="py-3 px-4 text-center min-w-[80px] sticky right-0 bg-slate-50 shadow-[-4px_0_10px_rgba(0,0,0,0.03)] z-10">AKSI</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-slate-700">
                         {dailyTemplates.length === 0 ? (
                           <tr>
                             <td colSpan={7} className="py-8 text-center text-slate-400 italic text-xs">
@@ -6006,7 +5977,7 @@ const rekapSantriData = useMemo(() => {
                                 <td className="py-2.5 sm:py-3 px-4 text-slate-600 text-[11px] italic leading-relaxed">
                                   {catatanTpl}
                                 </td>
-                                <td className="py-2.5 sm:py-3 px-3 text-center">
+                               <td className="py-2.5 sm:py-3 px-3 text-center sticky right-0 bg-white shadow-[-4px_0_10px_rgba(0,0,0,0.03)] z-10 group-hover:bg-slate-50 transition-colors">
                                   <button
                                     onClick={() => {
                                       // 1. Set Divisi yang sesuai
