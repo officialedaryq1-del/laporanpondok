@@ -6765,7 +6765,7 @@ const rekapSantriData = useMemo(() => {
                         <th className="py-3 px-4 text-center min-w-[80px]">AKSI</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-slate-700">
+                   <tbody className="divide-y divide-slate-100 text-slate-700">
                         {templates.filter(t => String(t.timeframe).toLowerCase().includes('hari')).length === 0 ? (
                           <tr>
                             <td colSpan={7} className="py-8 text-center text-slate-400 italic text-xs">
@@ -6773,7 +6773,10 @@ const rekapSantriData = useMemo(() => {
                             </td>
                           </tr>
                         ) : (
-                          templates.filter(t => String(t.timeframe).toLowerCase().includes('hari')).map((tpl, idx) => {
+                          templates
+                            .filter(t => String(t.timeframe).toLowerCase().includes('hari'))
+                            .sort((a, b) => Number(a.division_id || 0) - Number(b.division_id || 0))
+                            .map((tpl, idx) => {
                             const todayStr = inputAbsensiTanggal; 
                             const divName = divisions.find(d => Number(d.id) === Number(tpl.division_id))?.name || `Divisi #${tpl.division_id}`;
 
