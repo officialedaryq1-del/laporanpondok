@@ -2039,16 +2039,26 @@ const handleSaveImportAsatidz = async () => {
 
       secItems.forEach(it => {
         totalItemsCount += 1;
-        const isChecked = !!checkedItems[it.id];
+        
+        // Cek apakah item ini sudah diisi (baik berupa ceklis maupun teks)
+        const inputType = it.input_type || 'checkbox';
+        let isFilled = false;
+        
+        if (inputType === 'checkbox') {
+          isFilled = !!checkedItems[it.id];
+        } else {
+          isFilled = !!formAnswers[it.id] && formAnswers[it.id].trim() !== '';
+        }
 
         if (isPositif) {
-          if (isChecked) {
+          if (isFilled) {
             totalPointsEarned += 1;
           } else {
             defectCount += 1;
           }
         } else {
-          if (!isChecked) {
+          // Jika Tipe Negatif: isFilled (diisi teks/diceklis) = Ada Temuan Pelanggaran
+          if (!isFilled) {
             totalPointsEarned += 1;
           } else {
             defectCount += 1;
@@ -2061,7 +2071,7 @@ const handleSaveImportAsatidz = async () => {
     const percentage = Math.max(0, Math.min(100, Math.round((totalPointsEarned / totalItemsCount) * 100)));
     const scale3 = parseFloat(((percentage / 100) * 3).toFixed(2));
     return { percentage, scale3, totalViolations: defectCount };
-  }, [templateSections, checkedItems, sectionTypeMap, items]);
+  }, [templateSections, checkedItems, formAnswers, sectionTypeMap, items]);
 
 
     const handleSubmitCeklis = async (e: React.FormEvent) => {
@@ -2329,13 +2339,23 @@ const handleSaveImportAsatidz = async () => {
 
       secItems.forEach(it => {
         totalItemsCount += 1;
-        const isChecked = !!editCheckedItems[it.id];
+        
+        // Cek apakah item ini sudah diisi (baik berupa ceklis maupun teks)
+        const inputType = it.input_type || 'checkbox';
+        let isFilled = false;
+        
+        if (inputType === 'checkbox') {
+          isFilled = !!editCheckedItems[it.id];
+        } else {
+          isFilled = !!editFormAnswers[it.id] && editFormAnswers[it.id].trim() !== '';
+        }
 
         if (isPositif) {
-          if (isChecked) totalPointsEarned += 1;
+          if (isFilled) totalPointsEarned += 1;
           else defectCount += 1;
         } else {
-          if (!isChecked) totalPointsEarned += 1;
+          // Jika Tipe Negatif: isFilled (diisi teks/diceklis) = Ada Temuan Pelanggaran
+          if (!isFilled) totalPointsEarned += 1;
           else defectCount += 1;
         }
       });
@@ -2345,8 +2365,8 @@ const handleSaveImportAsatidz = async () => {
     const percentage = Math.max(0, Math.min(100, Math.round((totalPointsEarned / totalItemsCount) * 100)));
     const scale3 = parseFloat(((percentage / 100) * 3).toFixed(2));
     return { percentage, scale3, totalViolations: defectCount };
-  }, [sections, items, editSubmissionData.template_id, editCheckedItems, sectionTypeMap]);
-
+  }, [sections, items, editSubmissionData.template_id, editCheckedItems, editFormAnswers, sectionTypeMap]);
+  
   const handleOpenEditSubmission = async (sub: Submission) => {
     setEditSubmissionData({
       id: sub.id,
