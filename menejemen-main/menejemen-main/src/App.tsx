@@ -2543,16 +2543,24 @@ const handleSaveImportAsatidz = async () => {
             // Cek apakah kategori indikator ini Tipe Positif atau Tipe Negatif
             const isPositif = matchedSection ? ((sectionTypeMap[matchedSection.id] || (matchedSection as any).section_type) === 'positif') : false;
 
-            // Logika Penentuan Temuan:
-            if (!matchedItem.input_type || matchedItem.input_type === 'checkbox') {
-              if (isPositif && d.answer_value === 'false') {
-                isProblem = true; // Kategori Positif tapi TIDAK dicentang (Berarti Masalah)
-              } else if (!isPositif && d.answer_value === 'true') {
-                isProblem = true; // Kategori Negatif dan DICENTANG (Berarti Masalah)
+           // Logika Penentuan Temuan yang Selaras dengan Rumus Skor:
+            const inputType = matchedItem.input_type || 'checkbox';
+            let isFilled = false;
+            
+            if (inputType === 'checkbox') {
+              isFilled = d.answer_value === 'true';
+            } else {
+              isFilled = !!d.answer_value && d.answer_value.trim() !== '' && d.answer_value !== 'false';
+            }
+
+            if (isPositif) {
+              // Kategori Positif (Terlaksana): Menjadi masalah (temuan) jika TIDAK diisi/diceklis
+              if (!isFilled) {
+                isProblem = true;
               }
             } else {
-              // Untuk input text/dropdown, jadikan temuan jika ada teks/isiannya
-              if (d.answer_value && d.answer_value.trim() !== '' && d.answer_value !== 'false') {
+              // Kategori Negatif (Temuan): Menjadi masalah (temuan) jika DIISI/DICEKLIS
+              if (isFilled) {
                 isProblem = true;
               }
             }
