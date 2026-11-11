@@ -2242,6 +2242,21 @@ const handleSaveImportAsatidz = async () => {
     }
   };
 
+  const handleDeleteItem = async (itemId: number) => {
+    // Optimistic UI update: langsung hilangkan dari daftar seketika tanpa loading
+    setItems(prev => prev.filter(it => it.id !== itemId));
+    showToast('Indikator berhasil dihapus');
+
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/checklist_items?id=eq.${itemId}`, {
+        method: 'DELETE',
+        headers: reqHeaders
+      });
+    } catch (err) {
+      showToast('Gagal menghapus indikator di server', 'error');
+    }
+  };
+  
   const handleUpdateSectionName = async (sectionId: number) => {
     if (!editingSectionName.trim()) return;
     try {
