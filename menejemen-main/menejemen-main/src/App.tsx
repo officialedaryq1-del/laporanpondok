@@ -1629,10 +1629,20 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
     return ikus.find(i => Number(i.id) === Number(selectedTemplate.iku_id)) || null;
   }, [selectedTemplate, ikus]);
 
-  const templateSections = useMemo(() => {
+  cconst templateSections = useMemo(() => {
     if (!selectedTemplateId) return [];
-    return sections.filter(s => Number(s.template_id) === Number(selectedTemplateId));
-  }, [sections, selectedTemplateId]);
+    const filtered = sections.filter(s => Number(s.template_id) === Number(selectedTemplateId));
+    
+    // Otomatis mengurutkan: Tipe Negatif di atas, Tipe Positif di bawah
+    return filtered.sort((a, b) => {
+      const typeA = sectionTypeMap[a.id] || (a as any).section_type || 'negatif';
+      const typeB = sectionTypeMap[b.id] || (b as any).section_type || 'negatif';
+      
+      if (typeA === 'negatif' && typeB === 'positif') return -1;
+      if (typeA === 'positif' && typeB === 'negatif') return 1;
+      return a.id - b.id; // Jika tipenya sama, urutkan berdasarkan urutan pembuatan (ID)
+    });
+  }, [sections, selectedTemplateId, sectionTypeMap]);
 
   const getSectionItems = (sectionId: number) => {
     return items.filter(it => Number(it.section_id) === Number(sectionId) && it.is_active !== false);
@@ -7942,7 +7952,16 @@ const rekapSantriData = useMemo(() => {
 
                   {/* Bagian Ceklis Form */}
                   <div className="space-y-4">
-                    {sections.filter(s => Number(s.template_id) === Number(editSubmissionData.template_id)).map(sec => {
+                   {sections
+                      .filter(s => Number(s.template_id) === Number(editSubmissionData.template_id))
+                      .sort((a, b) => {
+                        const typeA = sectionTypeMap[a.id] || (a as any).section_type || 'negatif';
+                        const typeB = sectionTypeMap[b.id] || (b as any).section_type || 'negatif';
+                        if (typeA === 'negatif' && typeB === 'positif') return -1;
+                        if (typeA === 'positif' && typeB === 'negatif') return 1;
+                        return a.id - b.id;
+                      })
+                      .map(sec => {
                         const secItems = getSectionItems(sec.id);
                         const isPositif = (sectionTypeMap[sec.id] || (sec as any).section_type) === 'positif';
 
