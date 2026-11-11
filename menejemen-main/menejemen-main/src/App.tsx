@@ -1629,7 +1629,7 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
     return ikus.find(i => Number(i.id) === Number(selectedTemplate.iku_id)) || null;
   }, [selectedTemplate, ikus]);
 
-  cconst templateSections = useMemo(() => {
+  const templateSections = useMemo(() => {
     if (!selectedTemplateId) return [];
     const filtered = sections.filter(s => Number(s.template_id) === Number(selectedTemplateId));
     
