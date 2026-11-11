@@ -959,6 +959,16 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
   const [newItemInputType, setNewItemInputType] = useState<string>('checkbox');
   const [newItemOptions, setNewItemOptions] = useState<string>('');
 
+  // State untuk Edit Section (Kategori)
+  const [editingSectionId, setEditingSectionId] = useState<number | null>(null);
+  const [editingSectionName, setEditingSectionName] = useState<string>('');
+
+  // State untuk Edit Item (Indikator)
+  const [editingItemId, setEditingItemId] = useState<number | null>(null);
+  const [editingItemText, setEditingItemText] = useState<string>('');
+  const [editingItemInputType, setEditingItemInputType] = useState<string>('checkbox');
+  const [editingItemOptions, setEditingItemOptions] = useState<string>('');
+
   const [sectionTypeMap, setSectionTypeMap] = useState<Record<number, 'positif' | 'negatif'>>(() => {
     try {
       const saved = localStorage.getItem('section_types_config');
@@ -2232,18 +2242,48 @@ const handleSaveImportAsatidz = async () => {
     }
   };
 
-  const handleDeleteItem = async (itemId: number) => {
-    // Optimistic UI update: langsung hilangkan dari daftar seketika tanpa loading
-    setItems(prev => prev.filter(it => it.id !== itemId));
-    showToast('Indikator berhasil dihapus');
-
+  const handleUpdateSectionName = async (sectionId: number) => {
+    if (!editingSectionName.trim()) return;
     try {
-      await fetch(`${SUPABASE_URL}/rest/v1/checklist_items?id=eq.${itemId}`, {
-        method: 'DELETE',
-        headers: reqHeaders
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/checklist_sections?id=eq.${sectionId}`, {
+        method: 'PATCH',
+        headers: reqHeaders,
+        body: JSON.stringify({ name: editingSectionName.trim() })
       });
+      if (res.ok) {
+        setSections(prev => prev.map(s => s.id === sectionId ? { ...s, name: editingSectionName.trim() } : s));
+        showToast('Nama kategori berhasil diperbarui!');
+        setEditingSectionId(null);
+      } else {
+        showToast('Gagal memperbarui kategori', 'error');
+      }
     } catch (err) {
-      showToast('Gagal menghapus indikator di server', 'error');
+      showToast('Terjadi kesalahan koneksi', 'error');
+    }
+  };
+
+  const handleUpdateItem = async (itemId: number) => {
+    if (!editingItemText.trim()) return;
+    try {
+      const payload = {
+        item_text: editingItemText.trim(),
+        input_type: editingItemInputType || 'checkbox',
+        options: (editingItemInputType === 'select' || editingItemInputType === 'radio') ? editingItemOptions.trim() : null,
+      };
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/checklist_items?id=eq.${itemId}`, {
+        method: 'PATCH',
+        headers: reqHeaders,
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        setItems(prev => prev.map(it => it.id === itemId ? { ...it, ...payload } : it));
+        showToast('Indikator berhasil diperbarui!');
+        setEditingItemId(null);
+      } else {
+        showToast('Gagal memperbarui indikator', 'error');
+      }
+    } catch (err) {
+      showToast('Terjadi kesalahan koneksi', 'error');
     }
   };
 
@@ -4050,65 +4090,171 @@ const rekapSantriData = useMemo(() => {
                           return (
                             <div key={sec.id} className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3">
                               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                                <div className="flex items-center gap-2 min-w-0">
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
                                   <span className={`w-2 h-2 rounded-full shrink-0 ${isPositif ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                  <span className="font-bold text-xs sm:text-sm text-slate-800 break-words">
-                                    {sec.name}
-                                  </span>
-                                  <span className="text-[10px] font-mono text-slate-400 shrink-0">
-                                    ({secItems.length} Item)
-                                  </span>
-                                </div>
-
-                                <div className="flex items-center justify-between md:justify-end gap-2 shrink-0">
-                                  <select
-                                    value={isPositif ? 'positif' : 'negatif'}
-                                    onChange={(e) => updateSectionType(sec.id, e.target.value as 'positif' | 'negatif')}
-                                    className={`text-[10px] font-bold rounded-lg px-2 py-1.5 sm:py-1 border cursor-pointer outline-none flex-1 md:flex-none ${
-                                      isPositif
-                                        ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                                        : 'bg-rose-50 border-rose-300 text-rose-700'
-                                    }`}
-                                  >
-                                    <option value="negatif">🔴 Negatif</option>
-                                    <option value="positif">🟢 Positif</option>
-                                  </select>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteSection(sec.id, sec.name)}
-                                    className="p-1.5 sm:p-1 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition border border-rose-200/80 bg-white shadow-2xs shrink-0"
-                                    title={`Hapus kategori "${sec.name}"`}
-                                  >
-                                    <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div className="space-y-2">
-                                {secItems.map(it => (
-                                  <div key={it.id} className="p-2.5 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
-                                      <span className="font-medium text-slate-700 break-words leading-snug">{it.item_text}</span>
-                                      <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200 w-fit shrink-0">
-                                        {it.input_type === 'text' ? 'Teks' :
-                                         it.input_type === 'number' ? 'Angka' :
-                                         it.input_type === 'textarea' ? 'Uraian' :
-                                         it.input_type === 'select' ? 'Dropdown' :
-                                         it.input_type === 'radio' ? 'Radio' :
-                                         it.input_type === 'date' ? 'Tanggal' : 'Ceklis'}
-                                      </span>
+                                  
+                                  {editingSectionId === sec.id ? (
+                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                      <input 
+                                        type="text" 
+                                        value={editingSectionName}
+                                        onChange={(e) => setEditingSectionName(e.target.value)}
+                                        className="w-full bg-white border border-blue-300 rounded-lg px-2 py-1 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 shadow-xs"
+                                        autoFocus
+                                      />
+                                      <button onClick={() => handleUpdateSectionName(sec.id)} className="p-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition shrink-0" title="Simpan Nama Kategori">
+                                        <Save className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button onClick={() => setEditingSectionId(null)} className="p-1.5 bg-slate-200 text-slate-600 hover:bg-slate-300 rounded-lg transition shrink-0" title="Batal Edit">
+                                        <X className="w-3.5 h-3.5" />
+                                      </button>
                                     </div>
+                                  ) : (
+                                    <>
+                                      <span className="font-bold text-xs sm:text-sm text-slate-800 break-words">
+                                        {sec.name}
+                                      </span>
+                                      <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                                        ({secItems.length} Item)
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+
+                                {editingSectionId !== sec.id && (
+                                  <div className="flex items-center justify-between md:justify-end gap-2 shrink-0">
+                                    <select
+                                      value={isPositif ? 'positif' : 'negatif'}
+                                      onChange={(e) => updateSectionType(sec.id, e.target.value as 'positif' | 'negatif')}
+                                      className={`text-[10px] font-bold rounded-lg px-2 py-1.5 sm:py-1 border cursor-pointer outline-none flex-1 md:flex-none ${
+                                        isPositif
+                                          ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                                          : 'bg-rose-50 border-rose-300 text-rose-700'
+                                      }`}
+                                    >
+                                      <option value="negatif">🔴 Negatif</option>
+                                      <option value="positif">🟢 Positif</option>
+                                    </select>
                                     <button
-                                      onClick={() => handleDeleteItem(it.id)}
-                                      className="text-rose-500 hover:text-rose-700 p-1.5 sm:p-1 bg-rose-50 sm:bg-transparent rounded-lg sm:rounded-none shrink-0 self-end sm:self-auto"
-                                      title="Hapus Indikator"
+                                      type="button"
+                                      onClick={() => {
+                                        setEditingSectionId(sec.id);
+                                        setEditingSectionName(sec.name);
+                                      }}
+                                      className="p-1.5 sm:p-1 rounded-lg text-blue-500 hover:text-blue-700 hover:bg-blue-50 transition border border-blue-200/80 bg-white shadow-2xs shrink-0"
+                                      title={`Edit kategori "${sec.name}"`}
+                                    >
+                                      <Edit className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteSection(sec.id, sec.name)}
+                                      className="p-1.5 sm:p-1 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition border border-rose-200/80 bg-white shadow-2xs shrink-0"
+                                      title={`Hapus kategori "${sec.name}"`}
                                     >
                                       <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                                     </button>
                                   </div>
+                                )}
+                              </div>
+
+                              <div className="space-y-2">
+                                {secItems.map(it => (
+                                  <div key={it.id} className="p-2.5 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-start justify-between text-xs gap-2">
+                                    {editingItemId === it.id ? (
+                                      <div className="flex-1 w-full space-y-2.5 bg-blue-50/50 p-2 rounded-lg border border-blue-100">
+                                        <div className="flex flex-col sm:grid sm:grid-cols-3 gap-2">
+                                          <input
+                                            type="text"
+                                            value={editingItemText}
+                                            onChange={(e) => setEditingItemText(e.target.value)}
+                                            placeholder="Teks indikator..."
+                                            className="sm:col-span-2 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                                          />
+                                          <select
+                                            value={editingItemInputType}
+                                            onChange={(e) => setEditingItemInputType(e.target.value)}
+                                            className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                          >
+                                            <option value="checkbox">☑️ Ceklis</option>
+                                            <option value="text">📝 Teks</option>
+                                            <option value="textarea">📄 Uraian</option>
+                                            <option value="number">🔢 Angka</option>
+                                            <option value="select">🔽 Dropdown</option>
+                                            <option value="radio">🔘 Radio</option>
+                                            <option value="date">📅 Tanggal</option>
+                                          </select>
+                                        </div>
+
+                                        {(editingItemInputType === 'select' || editingItemInputType === 'radio') && (
+                                          <div>
+                                            <input
+                                              type="text"
+                                              value={editingItemOptions}
+                                              onChange={(e) => setEditingItemOptions(e.target.value)}
+                                              placeholder="Ketik opsi (contoh: Baik, Cukup, Kurang)"
+                                              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                          </div>
+                                        )}
+
+                                        <div className="flex justify-end gap-2 pt-1">
+                                          <button
+                                            type="button"
+                                            onClick={() => setEditingItemId(null)}
+                                            className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-[11px] font-bold transition"
+                                          >
+                                            Batal
+                                          </button>
+                                          <button
+                                            onClick={() => handleUpdateItem(it.id)}
+                                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold transition shadow-xs flex items-center gap-1"
+                                          >
+                                            <Save className="w-3.5 h-3.5" /> Simpan
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <>
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+                                          <span className="font-medium text-slate-700 break-words leading-snug">{it.item_text}</span>
+                                          <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200 w-fit shrink-0">
+                                            {it.input_type === 'text' ? 'Teks' :
+                                            it.input_type === 'number' ? 'Angka' :
+                                            it.input_type === 'textarea' ? 'Uraian' :
+                                            it.input_type === 'select' ? 'Dropdown' :
+                                            it.input_type === 'radio' ? 'Radio' :
+                                            it.input_type === 'date' ? 'Tanggal' : 'Ceklis'}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-1 shrink-0 self-end sm:self-auto">
+                                          <button
+                                            onClick={() => {
+                                              setEditingItemId(it.id);
+                                              setEditingItemText(it.item_text);
+                                              setEditingItemInputType(it.input_type || 'checkbox');
+                                              setEditingItemOptions(it.options || '');
+                                            }}
+                                            className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-1.5 sm:p-1 rounded-lg sm:rounded-none transition"
+                                            title="Edit Indikator"
+                                          >
+                                            <Edit className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+                                          </button>
+                                          <button
+                                            onClick={() => handleDeleteItem(it.id)}
+                                            className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 sm:p-1 rounded-lg sm:rounded-none transition"
+                                            title="Hapus Indikator"
+                                          >
+                                            <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+                                          </button>
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
                                 ))}
                               </div>
 
+                              {/* -- BATAS AKHIR, BIARKAN FORM TAMBAH INDIKATOR DI BAWAH INI UTUH -- */}
                               {newItemSectionId === sec.id ? (
                                 <div className="p-3 bg-white border border-slate-200 rounded-xl sm:rounded-2xl space-y-2.5 pt-2">
                                   <div className="flex flex-col sm:grid sm:grid-cols-3 gap-2">
