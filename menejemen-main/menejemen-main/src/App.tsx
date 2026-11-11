@@ -6695,14 +6695,16 @@ const rekapSantriData = useMemo(() => {
                 <div 
                   onClick={() => {
                     setNavTab('monitoring_kebersihan');
-                    setKebersihanSubTab('dashboard'); // <-- Diubah menjadi dashboard
+                    setKebersihanSubTab('dashboard');
                   }}
                   className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-4 cursor-pointer hover:shadow-md hover:border-emerald-300 group transition-all"
                 >
                   <div className="min-w-0">
                     <h4 className="text-[10px] font-bold text-slate-400 group-hover:text-emerald-600 uppercase tracking-wider mb-1 truncate transition-colors">Kasus Kamar Kotor</h4>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl sm:text-3xl font-black text-slate-900 group-hover:text-emerald-700 transition-colors">{filteredLaporanKebersihan.length}</span>
+                      <span className="text-2xl sm:text-3xl font-black text-slate-900 group-hover:text-emerald-700 transition-colors">
+                        {laporanKebersihanList.filter(k => k.tanggal === inputAbsensiTanggal).length}
+                      </span>
                       <span className="text-[10px] sm:text-xs font-semibold text-slate-500">Kasus</span>
                     </div>
                     <p className="text-[9px] sm:text-[10px] text-slate-400 mt-1 truncate">Berdasarkan filter tanggal dashboard</p>
@@ -6716,14 +6718,16 @@ const rekapSantriData = useMemo(() => {
                 <div 
                   onClick={() => {
                     setNavTab('pelanggaran');
-                    setPelanggaranSubTab('dashboard'); // <-- Diubah menjadi dashboard
+                    setPelanggaranSubTab('dashboard');
                   }}
                   className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-4 cursor-pointer hover:shadow-md hover:border-rose-300 group transition-all"
                 >
                   <div className="min-w-0">
                     <h4 className="text-[10px] font-bold text-slate-400 group-hover:text-rose-600 uppercase tracking-wider mb-1 truncate transition-colors">Kasus Pelanggaran</h4>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl sm:text-3xl font-black text-slate-900 group-hover:text-rose-700 transition-colors">{filteredDashboardPelanggaran?.length || dashboardStatsPlg?.totalKasus || 0}</span>
+                      <span className="text-2xl sm:text-3xl font-black text-slate-900 group-hover:text-rose-700 transition-colors">
+                        {pelanggaranList.filter(p => p.tanggal === inputAbsensiTanggal).length}
+                      </span>
                       <span className="text-[10px] sm:text-xs font-semibold text-slate-500">Kasus</span>
                     </div>
                     <p className="text-[9px] sm:text-[10px] text-slate-400 mt-1 truncate">Berdasarkan filter tanggal dashboard</p>
