@@ -6363,86 +6363,86 @@ const rekapSantriData = useMemo(() => {
 
               {/* === KONTEN 1: RINGKASAN DASHBOARD === */}
               {perizinanSubTab === 'ringkasan' && (
-                <div className="space-y-4 sm:space-y-6 px-4 sm:px-6 w-full">
+                <div className="space-y-4 sm:space-y-6 w-full max-w-[100vw] sm:max-w-none">
                   {/* Kartu KPI / Angka */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Total Perizinan</p>
-                      <h3 className="text-3xl font-black text-slate-800 leading-none">{izinStats.total}</h3>
-                      <p className="text-[10px] text-slate-400 mt-2 font-medium">Data terintegrasi</p>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full">
+                    <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between min-w-0">
+                      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 truncate">Total Perizinan</p>
+                      <h3 className="text-2xl sm:text-3xl font-black text-slate-800 leading-none truncate">{izinStats.total}</h3>
+                      <p className="text-[9px] sm:text-[10px] text-slate-400 mt-1.5 sm:mt-2 font-medium truncate">Data terintegrasi</p>
                     </div>
-                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Sedang Izin</p>
-                      <h3 className="text-3xl font-black text-orange-500 leading-none">{izinStats.sedangIzin}</h3>
-                      <p className="text-[10px] text-slate-400 mt-2 font-medium">Belum kembali ke pondok</p>
+                    <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between min-w-0">
+                      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 truncate">Sedang Izin</p>
+                      <h3 className="text-2xl sm:text-3xl font-black text-orange-500 leading-none truncate">{izinStats.sedangIzin}</h3>
+                      <p className="text-[9px] sm:text-[10px] text-slate-400 mt-1.5 sm:mt-2 font-medium truncate">Belum kembali</p>
                     </div>
-                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Sudah Kembali</p>
-                      <h3 className="text-3xl font-black text-emerald-600 leading-none">{izinStats.sudahKembali}</h3>
-                      <p className="text-[10px] text-slate-400 mt-2 font-medium">Perizinan selesai</p>
+                    <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between min-w-0">
+                      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 truncate">Sudah Kembali</p>
+                      <h3 className="text-2xl sm:text-3xl font-black text-emerald-600 leading-none truncate">{izinStats.sudahKembali}</h3>
+                      <p className="text-[9px] sm:text-[10px] text-slate-400 mt-1.5 sm:mt-2 font-medium truncate">Perizinan selesai</p>
                     </div>
-                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Pulang / Medis / Lainnya</p>
-                      <h3 className="text-xl sm:text-2xl font-black text-purple-700 leading-none">{izinStats.pulang} <span className="text-slate-300">/</span> {izinStats.medis} <span className="text-slate-300">/</span> {izinStats.lainnya}</h3>
-                      <p className="text-[9px] sm:text-[10px] text-slate-400 mt-2 font-medium">Izin pulang / kontrol / jenis lain</p>
+                    <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between min-w-0">
+                      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 truncate" title="Pulang / Medis / Lainnya">Pulang/Medis/Lain</p>
+                      <h3 className="text-lg sm:text-2xl font-black text-purple-700 leading-none truncate">{izinStats.pulang} <span className="text-slate-300">/</span> {izinStats.medis} <span className="text-slate-300">/</span> {izinStats.lainnya}</h3>
+                      <p className="text-[9px] sm:text-[10px] text-slate-400 mt-1.5 sm:mt-2 font-medium truncate">Rincian jenis izin</p>
                     </div>
                   </div>
 
                   {/* Grafik Sederhana dan Kotak Peringatan */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 w-full">
                     {/* Jenis Perizinan */}
-                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                       <h4 className="font-bold text-sm text-slate-800 mb-5">Jenis Perizinan</h4>
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm min-w-0">
+                       <h4 className="font-bold text-sm text-slate-800 mb-4 sm:mb-5 truncate">Jenis Perizinan</h4>
                        <div className="space-y-4">
                          <div>
-                           <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-slate-700">Izin Pulang</span> <span className="text-slate-500">{izinStats.pulang} izin &middot; {izinStats.total ? Math.round((izinStats.pulang/izinStats.total)*100) : 0}%</span></div>
-                           <div className="w-full bg-slate-100 rounded-full h-1.5"><div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${izinStats.total ? (izinStats.pulang/izinStats.total)*100 : 0}%` }}></div></div>
+                           <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-slate-700 truncate pr-2">Izin Pulang</span> <span className="text-slate-500 shrink-0">{izinStats.pulang} izin &middot; {izinStats.total ? Math.round((izinStats.pulang/izinStats.total)*100) : 0}%</span></div>
+                           <div className="w-full bg-slate-100 rounded-full h-1.5"><div className="bg-blue-600 h-1.5 rounded-full transition-all" style={{ width: `${izinStats.total ? (izinStats.pulang/izinStats.total)*100 : 0}%` }}></div></div>
                          </div>
                          <div>
-                           <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-slate-700">Kontrol Kesehatan</span> <span className="text-slate-500">{izinStats.medis} izin &middot; {izinStats.total ? Math.round((izinStats.medis/izinStats.total)*100) : 0}%</span></div>
-                           <div className="w-full bg-slate-100 rounded-full h-1.5"><div className="bg-purple-600 h-1.5 rounded-full" style={{ width: `${izinStats.total ? (izinStats.medis/izinStats.total)*100 : 0}%` }}></div></div>
+                           <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-slate-700 truncate pr-2">Kontrol Medis</span> <span className="text-slate-500 shrink-0">{izinStats.medis} izin &middot; {izinStats.total ? Math.round((izinStats.medis/izinStats.total)*100) : 0}%</span></div>
+                           <div className="w-full bg-slate-100 rounded-full h-1.5"><div className="bg-purple-600 h-1.5 rounded-full transition-all" style={{ width: `${izinStats.total ? (izinStats.medis/izinStats.total)*100 : 0}%` }}></div></div>
                          </div>
                          <div>
-                           <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-slate-700">Lainnya</span> <span className="text-slate-500">{izinStats.lainnya} izin &middot; {izinStats.total ? Math.round((izinStats.lainnya/izinStats.total)*100) : 0}%</span></div>
-                           <div className="w-full bg-slate-100 rounded-full h-1.5"><div className="bg-slate-400 h-1.5 rounded-full" style={{ width: `${izinStats.total ? (izinStats.lainnya/izinStats.total)*100 : 0}%` }}></div></div>
+                           <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-slate-700 truncate pr-2">Lainnya</span> <span className="text-slate-500 shrink-0">{izinStats.lainnya} izin &middot; {izinStats.total ? Math.round((izinStats.lainnya/izinStats.total)*100) : 0}%</span></div>
+                           <div className="w-full bg-slate-100 rounded-full h-1.5"><div className="bg-slate-400 h-1.5 rounded-full transition-all" style={{ width: `${izinStats.total ? (izinStats.lainnya/izinStats.total)*100 : 0}%` }}></div></div>
                          </div>
                        </div>
                     </div>
                     {/* Kelas */}
-                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                       <h4 className="font-bold text-sm text-slate-800 mb-5">Perizinan Berdasarkan Kelas</h4>
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm min-w-0">
+                       <h4 className="font-bold text-sm text-slate-800 mb-4 sm:mb-5 truncate">Berdasarkan Kelas</h4>
                        <div className="space-y-4">
                          {izinStats.kelasChart.map((k, i) => (
                            <div key={i}>
-                             <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-slate-700">Kelas {k[0]}</span> <span className="text-slate-500">{k[1]} izin</span></div>
-                             <div className="w-full bg-slate-100 rounded-full h-1.5"><div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${(k[1]/izinStats.total)*100}%` }}></div></div>
+                             <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-slate-700 truncate pr-2">Kelas {k[0]}</span> <span className="text-slate-500 shrink-0">{k[1]} izin</span></div>
+                             <div className="w-full bg-slate-100 rounded-full h-1.5"><div className="bg-indigo-500 h-1.5 rounded-full transition-all" style={{ width: `${(k[1]/izinStats.total)*100}%` }}></div></div>
                            </div>
                          ))}
                          {izinStats.kelasChart.length === 0 && <p className="text-xs text-slate-400 italic">Belum ada data</p>}
                        </div>
-                       <div className="mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-bold">Santri unik terdata: {new Set(perizinanList.map(p => p.santri_id)).size}</div>
+                       <div className="mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-bold truncate">Santri unik terdata: {new Set(perizinanList.map(p => p.santri_id)).size}</div>
                     </div>
                     {/* Peringatan */}
-                    <div className="bg-amber-50 p-5 rounded-2xl border border-amber-200 shadow-sm flex flex-col justify-between">
+                    <div className="bg-amber-50 p-4 sm:p-5 rounded-2xl border border-amber-200 shadow-sm flex flex-col justify-between min-w-0">
                       <div>
-                        <h4 className="font-bold text-sm text-amber-900 mb-2">Perhatian Perizinan Aktif</h4>
-                        <p className="text-xs text-amber-800 leading-relaxed font-medium">Terdapat <strong>{izinStats.sedangIzin} santri</strong> yang saat ini masih dalam masa perizinan. Catat kepulangan saat santri kembali ke pondok.</p>
+                        <h4 className="font-bold text-sm text-amber-900 mb-2 truncate">Perhatian Perizinan Aktif</h4>
+                        <p className="text-xs text-amber-800 leading-relaxed font-medium">Terdapat <strong className="text-amber-900">{izinStats.sedangIzin} santri</strong> yang saat ini masih dalam masa perizinan. Catat kepulangan saat santri kembali ke pondok.</p>
                       </div>
-                      <button onClick={() => setPerizinanSubTab('aktif')} className="mt-4 w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition shadow-sm">Periksa Santri Sedang Izin</button>
+                      <button onClick={() => setPerizinanSubTab('aktif')} className="mt-4 w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition shadow-sm truncate">Periksa Santri Sedang Izin</button>
                     </div>
                   </div>
 
                   {/* Tabel Perizinan Terbaru (Ringkasan) */}
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                      <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
-                          <div>
-                              <h4 className="font-bold text-sm text-slate-800">Perizinan Terbaru</h4>
-                              <p className="text-[10px] text-slate-400 mt-0.5">Riwayat terakhir yang tercatat</p>
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-w-0 w-full">
+                      <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0">
+                          <div className="min-w-0 pr-4">
+                              <h4 className="font-bold text-sm text-slate-800 truncate">Perizinan Terbaru</h4>
+                              <p className="text-[10px] text-slate-400 mt-0.5 truncate">Riwayat terakhir yang tercatat</p>
                           </div>
-                          <button onClick={() => setPerizinanSubTab('semua')} className="text-xs font-bold text-emerald-600 hover:text-emerald-800 transition">Lihat semua</button>
+                          <button onClick={() => setPerizinanSubTab('semua')} className="text-xs font-bold text-emerald-600 hover:text-emerald-800 transition shrink-0">Lihat semua</button>
                       </div>
-                      <div className="overflow-x-auto custom-scrollbar">
-                          <table className="w-full text-left text-xs min-w-[900px]">
+                      <div className="overflow-x-auto custom-scrollbar w-full">
+                          <table className="w-full text-left text-xs min-w-[800px]">
                               <thead className="bg-white text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100 text-[10px]">
                                   <tr>
                                       <th className="px-5 py-3">Tanggal Izin</th>
@@ -6472,7 +6472,7 @@ const rekapSantriData = useMemo(() => {
                                           <td className="px-5 py-3 font-bold">
                                             <span className={p.status === 'Aktif' ? 'text-orange-500' : 'text-emerald-600'}>{p.status}</span>
                                           </td>
-                                         <td className="px-5 py-3 text-right whitespace-nowrap">
+                                          <td className="px-5 py-3 text-right whitespace-nowrap">
                                               <button onClick={() => setDetailIzinModal(p)} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 mr-3 transition">Detail</button>
                                               {p.status === 'Aktif' && (
                                                 <>
@@ -6489,7 +6489,7 @@ const rekapSantriData = useMemo(() => {
                   </div>
                 </div>
               )}
-
+              
               {/* === KONTEN 2 & 3: TABEL SEMUA & SEDANG IZIN === */}
               {(perizinanSubTab === 'semua' || perizinanSubTab === 'aktif') && (() => {
                   
