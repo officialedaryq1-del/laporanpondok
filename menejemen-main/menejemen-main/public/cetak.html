@@ -2341,21 +2341,24 @@ function getRekapPelanggaranData() {
         // Menggunakan Set untuk menghapus duplikat referensi objek (karena 1 santri punya key ID & NIS)
         const targetSantriData = Array.from(new Set(Object.values(tahfidhData.santriById)));
           
-          // 1. Urutkan Santri: Kelas -> Halaqoh -> Nama
+         // 1. Urutkan Santri: Kelas -> Kamar -> Nama
           let sortedSantri = targetSantriData.sort((a, b) => {
+              // Urutkan berdasarkan Kelas terlebih dahulu
               let klsA = mapKelasTarget(a.kelas) || '7';
               let klsB = mapKelasTarget(b.kelas) || '7';
               if (klsA !== klsB) return klsA.localeCompare(klsB, undefined, {numeric: true});
               
-              let halA = String(a.halaqoh || 'Tanpa Halaqoh').trim();
-              let halB = String(b.halaqoh || 'Tanpa Halaqoh').trim();
-              if (halA !== halB) return halA.localeCompare(halB);
+              // Jika Kelas sama, urutkan berdasarkan Nomor Kamar
+              let kmrA = String(a.kamar || '-').trim();
+              let kmrB = String(b.kamar || '-').trim();
+              if (kmrA !== kmrB) return kmrA.localeCompare(kmrB, undefined, {numeric: true});
               
+              // Jika Kamar juga sama, urutkan sesuai abjad Nama
               let namaA = String(a.nama || a.nama_siswa || '').trim();
               let namaB = String(b.nama || b.nama_siswa || '').trim();
               return namaA.localeCompare(namaB);
           });
-
+          
          let rincianRowsHTML = '';
           sortedSantri.forEach((s, idx) => {
               const cls = mapKelasTarget(s.kelas) || '7';
