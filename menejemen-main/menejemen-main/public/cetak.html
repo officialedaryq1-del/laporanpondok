@@ -343,7 +343,12 @@
     let santriData = [];
     let presensiData = [];
     let catatanMap = {};
-    let selectedBulan = '2026-09';
+    // Hitung otomatis 1 bulan ke belakang dari waktu saat diakses
+    const tglSekarang = new Date();
+    tglSekarang.setMonth(tglSekarang.getMonth() - 1);
+    const thnLalu = tglSekarang.getFullYear();
+    const blnLalu = String(tglSekarang.getMonth() + 1).padStart(2, '0');
+    let selectedBulan = `${thnLalu}-${blnLalu}`;
     let logoBase64 = '';
     let tulisanArabBase64 = '';
 
@@ -748,10 +753,21 @@
         if (kebersihanRes && kebersihanRes.ok) kebersihanData = await kebersihanRes.json();
         if (pelanggaranRes && pelanggaranRes.ok) pelanggaranData = await pelanggaranRes.json();
         
-        await preloadImagesAsBase64();
-        await fetchTahfidhTargets();
         await fetchTabunganData();
         await loadCatatanBulan(selectedBulan);
+
+        // Sinkronkan input filter kalender dan tulisan di cover dokumen
+        const inputBulanEl = document.getElementById('selectBulan');
+        if (inputBulanEl) inputBulanEl.value = selectedBulan;
+        
+        const bInfo = getNamaBulanTahun(selectedBulan);
+        const coverPeriode = document.getElementById('coverLabelPeriode');
+        if (coverPeriode) coverPeriode.innerText = `PERIODE ${bInfo.bulan.toUpperCase()} ${bInfo.tahun}`;
+        const coverTahun = document.getElementById('coverLabelTahun');
+        if (coverTahun) coverTahun.innerText = `Tahun ${bInfo.tahun}`;
+        const pengesahanBulan = document.getElementById('pengesahanBulanTeks');
+        if (pengesahanBulan) pengesahanBulan.innerText = bInfo.lengkap;
+
         populateDivisiDropdown();
         renderTableData('all');
       } catch (err) {
