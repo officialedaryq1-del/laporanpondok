@@ -3284,7 +3284,7 @@ const rekapSantriData = useMemo(() => {
             <div className="min-w-0">
               <div className="font-bold text-xs truncate">PTYQ 1 PUTRA SMP</div>
               <div className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold truncate">
-                {navTab === 'dashboard' ? 'Dashboard Pantauan' : navTab === 'laporan' ? 'Laporan IKU' : navTab === 'monitoring_kebersihan' ? 'Monitoring Kebersihan' : navTab === 'rekap_absensi' ? 'Presensi' : activeDivision.name}
+                {navTab === 'dashboard' ? 'Dashboard Pantauan' : navTab === 'laporan' ? 'Laporan IKU' : navTab === 'monitoring_kebersihan' ? 'Monitoring Kebersihan' : navTab === 'rekap_absensi' ? 'Presensi' : navTab === 'pelanggaran' ? 'Pelanggaran Santri' : navTab === 'perizinan' ? 'Layanan Santri' : navTab === 'pengaturan' ? 'Pengaturan Master' : activeDivision.name}
               </div>
             </div>
           </div>
