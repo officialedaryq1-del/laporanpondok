@@ -1341,14 +1341,14 @@
         });
       });
 
-   halaqohRows.sort((a, b) => {
-        // 1. Urutkan berdasarkan Kelas (KLS) dari terkecil ke terbesar
-        if (a.kls !== b.kls) {
-          return String(a.kls).localeCompare(String(b.kls), undefined, {numeric: true});
-        }
-        // 2. Jika kelasnya sama, urutkan berdasarkan Nama Abjad
-        return a.nama.localeCompare(b.nama);
-      });
+  halaqohRows.sort((a, b) => {
+    // 1. Urutkan berdasarkan Kelas (KLS) dari terkecil ke terbesar
+    if (a.kls !== b.kls) {
+      return String(a.kls).localeCompare(String(b.kls), undefined, {numeric: true});
+    }
+    // 2. Jika kelasnya sama, urutkan berdasarkan Nomor Kamar (KMR) dari terkecil ke terbesar
+    return String(a.kamar).localeCompare(String(b.kamar), undefined, {numeric: true});
+  });
      return { targetStats, juzMatrix, juzMatrixPrev, halaqohRows, santriById };
     } // <--- TAMBAHKAN KURUNG KURAWAL TUTUP INI DI SINI
     
