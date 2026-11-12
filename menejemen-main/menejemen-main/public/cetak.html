@@ -633,18 +633,13 @@
       }
  async function fetchTahfidhTargets() {
       try {
-        // Deteksi Otomatis Nama Tabel Supabase (dengan atau tanpa akhiran '_rows')
-        let tlRes = await fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_lembaga?select=*`, { headers: reqHeadersKedua });
-        if (!tlRes.ok) tlRes = await fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_lembaga_rows?select=*`, { headers: reqHeadersKedua });
-
-        let tpRes = await fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_pojokan?select=*`, { headers: reqHeadersKedua });
-        if (!tpRes.ok) tpRes = await fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_pojokan_rows?select=*`, { headers: reqHeadersKedua });
-
-        let tdRes = await fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_deresan?select=*`, { headers: reqHeadersKedua });
-        if (!tdRes.ok) tdRes = await fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_deresan_rows?select=*`, { headers: reqHeadersKedua });
-
-        let uRes = await fetch(`${SUPABASE_URL_KEDUA}/rest/v1/ustadz?select=*`, { headers: reqHeadersKedua });
-        if (!uRes.ok) uRes = await fetch(`${SUPABASE_URL_KEDUA}/rest/v1/ustadz_rows?select=*`, { headers: reqHeadersKedua });
+        // Menggunakan SUPABASE_URL_KEDUA dan reqHeadersKedua dengan nama tabel _rows yang benar
+        const [tlRes, tpRes, tdRes, uRes] = await Promise.all([
+          fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_lembaga_rows?select=*`, { headers: reqHeadersKedua }),
+          fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_pojokan_rows?select=*`, { headers: reqHeadersKedua }),
+          fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_deresan_rows?select=*`, { headers: reqHeadersKedua }),
+          fetch(`${SUPABASE_URL_KEDUA}/rest/v1/ustadz_rows?select=*`, { headers: reqHeadersKedua })
+        ]);
 
         // Helper penerjemah: Konversi nama bulan teks (dari Supabase) ke angka 2 digit
         const normBulan = (val) => {
@@ -664,15 +659,12 @@
               const bInt = String(parseInt(bStr, 10));
               const cls = mapKelasTarget(r.kelas) || String(r.kelas).replace(/[^0-9]/g, '');
               
-              // Cek semua kemungkinan nama kolom yang ada di database Anda
-              const jz = Number(r.juz ?? r.target_juz ?? r.target) || 0;
-              const pj = Number(r.pojokan ?? r.target_pojokan ?? r.target_pojok ?? r.jumlah_pojokan) || 0;
-              
-              if (jz > 0 || pj > 0) {
-                const val = { juz: jz, pojokan: pj };
-                customTargetsLembaga[`${bStr}_${cls}`] = val;
-                customTargetsLembaga[`${bInt}_${cls}`] = val;
-              }
+              const val = { 
+                juz: Number(r.juz ?? r.target_juz) || 0, 
+                pojokan: Number(r.pojokan ?? r.target_pojokan) || 0 
+              };
+              customTargetsLembaga[`${bStr}_${cls}`] = val;
+              customTargetsLembaga[`${bInt}_${cls}`] = val;
             });
           }
         }
@@ -684,8 +676,8 @@
               const bStr = normBulan(r.bulan);
               const bInt = String(parseInt(bStr, 10));
               const cls = mapKelasTarget(r.kelas) || String(r.kelas).replace(/[^0-9]/g, '');
-              const val = Number(r.jumlah_pojokan ?? r.target_pojokan ?? r.target_pojok ?? r.pojokan ?? r.target ?? r.jumlah) || null;
               
+              const val = Number(r.jumlah_pojokan ?? r.target_pojokan) || null;
               if (val !== null) {
                 customTargetsPojokan[`${bStr}_${cls}`] = val;
                 customTargetsPojokan[`${bInt}_${cls}`] = val;
@@ -701,8 +693,8 @@
               const bStr = normBulan(r.bulan);
               const bInt = String(parseInt(bStr, 10));
               const cls = mapKelasTarget(r.kelas) || String(r.kelas).replace(/[^0-9]/g, '');
-              const val = Number(r.jumlah_pojokan ?? r.target_deresan ?? r.target_pojokan ?? r.target_pojok ?? r.pojokan ?? r.target ?? r.jumlah) || null;
               
+              const val = Number(r.jumlah_pojokan ?? r.target_deresan) || null;
               if (val !== null) {
                 customTargetsDeresan[`${bStr}_${cls}`] = val;
                 customTargetsDeresan[`${bInt}_${cls}`] = val;
@@ -779,6 +771,7 @@
         if (kebersihanRes && kebersihanRes.ok) kebersihanData = await kebersihanRes.json();
         if (pelanggaranRes && pelanggaranRes.ok) pelanggaranData = await pelanggaranRes.json();
         
+        await fetchTahfidhTargets(); // <-- INI KUNCINYA: Memanggil fungsi pengambil target Tahfidh
         await fetchTabunganData();
         await loadCatatanBulan(selectedBulan);
 
