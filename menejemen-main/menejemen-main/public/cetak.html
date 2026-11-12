@@ -631,24 +631,32 @@
         }
         return [];
       }
-    async function fetchTahfidhTargets() {
-  try {
-    // Menggunakan SUPABASE_URL_KEDUA dan reqHeadersKedua
-    const [tlRes, tpRes, tdRes, uRes] = await Promise.all([
-      fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_lembaga_rows?select=*`, { headers: reqHeadersKedua }),
-      fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_pojokan_rows?select=*`, { headers: reqHeadersKedua }),
-      fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_deresan_rows?select=*`, { headers: reqHeadersKedua }),
-      fetch(`${SUPABASE_URL_KEDUA}/rest/v1/ustadz_rows?select=*`, { headers: reqHeadersKedua })
-    ]);
+   async function fetchTahfidhTargets() {
+      try {
+        // Menggunakan SUPABASE_URL_KEDUA dan reqHeadersKedua
+        const [tlRes, tpRes, tdRes, uRes] = await Promise.all([
+          fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_lembaga_rows?select=*`, { headers: reqHeadersKedua }),
+          fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_pojokan_rows?select=*`, { headers: reqHeadersKedua }),
+          fetch(`${SUPABASE_URL_KEDUA}/rest/v1/target_deresan_rows?select=*`, { headers: reqHeadersKedua }),
+          fetch(`${SUPABASE_URL_KEDUA}/rest/v1/ustadz_rows?select=*`, { headers: reqHeadersKedua })
+        ]);
 
-    // ... (biarkan sisa kode di bawahnya tetap sama, mulai dari "if (tlRes.ok) { ...")
+        // Helper penerjemah: Konversi nama bulan teks (dari Supabase) ke angka 2 digit
+        const normBulan = (val) => {
+          if (!val) return '00';
+          const v = String(val).toLowerCase().trim();
+          const map = {"januari":"01","februari":"02","maret":"03","april":"04","mei":"05","juni":"06","juli":"07","agustus":"08","september":"09","oktober":"10","november":"11","desember":"12"};
+          if (map[v]) return map[v];
+          const num = parseInt(v, 10);
+          return isNaN(num) ? '00' : String(num).padStart(2, '0');
+        };
 
         if (tlRes.ok) {
           const data = await tlRes.json();
           if (Array.isArray(data)) {
             data.forEach(r => {
-              const bStr = String(r.bulan).padStart(2, '0');
-              const bInt = String(parseInt(r.bulan, 10));
+              const bStr = normBulan(r.bulan);
+              const bInt = String(parseInt(bStr, 10));
               const cls = String(r.kelas).trim();
               const val = { juz: Number(r.juz) || 0, pojokan: Number(r.pojokan) || 0 };
               customTargetsLembaga[`${bStr}_${cls}`] = val;
@@ -661,8 +669,8 @@
           const data = await tpRes.json();
           if (Array.isArray(data)) {
             data.forEach(r => {
-              const bStr = String(r.bulan).padStart(2, '0');
-              const bInt = String(parseInt(r.bulan, 10));
+              const bStr = normBulan(r.bulan);
+              const bInt = String(parseInt(bStr, 10));
               const cls = String(r.kelas).trim();
               const val = Number(r.jumlah_pojokan) || 0;
               customTargetsPojokan[`${bStr}_${cls}`] = val;
@@ -675,8 +683,8 @@
           const data = await tdRes.json();
           if (Array.isArray(data)) {
             data.forEach(r => {
-              const bStr = String(r.bulan).padStart(2, '0');
-              const bInt = String(parseInt(r.bulan, 10));
+              const bStr = normBulan(r.bulan);
+              const bInt = String(parseInt(bStr, 10));
               const cls = String(r.kelas).trim();
               const val = Number(r.jumlah_pojokan) || 0;
               customTargetsDeresan[`${bStr}_${cls}`] = val;
@@ -692,7 +700,7 @@
         console.warn('Kendala memuat target tahfidh:', e);
       }
     }
-
+    
    async function fetchTabunganData() {
   try {
     const candidates = ['transaksi_tabungan', 'riwayat_tabungan', 'tabungan', 'setoran_tabungan'];
