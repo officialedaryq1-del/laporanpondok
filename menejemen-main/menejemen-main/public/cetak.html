@@ -2433,8 +2433,10 @@ function getRekapPelanggaranData() {
               const ketDeresan = capDeresanBulan >= targetDeresanMin ? 'Y' : 'N';
               
               // Evaluasi Lembaga
+              const bStrCur = String(selectedBulan.split('-')[1]).padStart(2, '0');
+              const bIntCur = String(parseInt(bStrCur, 10));
               const isKhatam = s.hasKhatamLog || s.maxZiyadahAbs >= (29 * 20);
-              const cTL = customTargetsLembaga[`${bInfo.bulanDigit}_${cls}`] || DefaultTargetLembaga[bInfo.bulanDigit]?.[cls] || { j: 30, p: 15 };
+              const cTL = customTargetsLembaga[`${bStrCur}_${cls}`] || customTargetsLembaga[`${bIntCur}_${cls}`] || DefaultTargetLembaga[bStrCur]?.[cls] || { j: 30, p: 15 };
               const absTL = getAbsolutePojok(cTL.juz || cTL.j, cTL.pojokan || cTL.p);
               const ketLembaga = (isKhatam || (absTL > 0 && s.maxZiyadahAbs >= absTL)) ? 'Y' : 'N';
 
