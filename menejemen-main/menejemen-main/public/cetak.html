@@ -631,7 +631,7 @@
         }
         return [];
       }
-   async function fetchTahfidhTargets() {
+  async function fetchTahfidhTargets() {
       try {
         // Menggunakan SUPABASE_URL_KEDUA dan reqHeadersKedua
         const [tlRes, tpRes, tdRes, uRes] = await Promise.all([
@@ -657,8 +657,12 @@
             data.forEach(r => {
               const bStr = normBulan(r.bulan);
               const bInt = String(parseInt(bStr, 10));
-              const cls = String(r.kelas).trim();
-              const val = { juz: Number(r.juz) || 0, pojokan: Number(r.pojokan) || 0 };
+              // Filter agar "Kelas 7" menjadi "7"
+              const cls = mapKelasTarget(r.kelas) || String(r.kelas).replace(/[^0-9]/g, '');
+              const val = { 
+                juz: Number(r.juz ?? r.target_juz) || 0, 
+                pojokan: Number(r.pojokan ?? r.target_pojokan ?? r.target_pojok) || 0 
+              };
               customTargetsLembaga[`${bStr}_${cls}`] = val;
               customTargetsLembaga[`${bInt}_${cls}`] = val;
             });
@@ -671,8 +675,8 @@
             data.forEach(r => {
               const bStr = normBulan(r.bulan);
               const bInt = String(parseInt(bStr, 10));
-              const cls = String(r.kelas).trim();
-              const val = Number(r.jumlah_pojokan) || 0;
+              const cls = mapKelasTarget(r.kelas) || String(r.kelas).replace(/[^0-9]/g, '');
+              const val = Number(r.jumlah_pojokan ?? r.target_pojokan) || 0;
               customTargetsPojokan[`${bStr}_${cls}`] = val;
               customTargetsPojokan[`${bInt}_${cls}`] = val;
             });
@@ -685,8 +689,8 @@
             data.forEach(r => {
               const bStr = normBulan(r.bulan);
               const bInt = String(parseInt(bStr, 10));
-              const cls = String(r.kelas).trim();
-              const val = Number(r.jumlah_pojokan) || 0;
+              const cls = mapKelasTarget(r.kelas) || String(r.kelas).replace(/[^0-9]/g, '');
+              const val = Number(r.jumlah_pojokan ?? r.target_deresan ?? r.target_pojokan) || 0;
               customTargetsDeresan[`${bStr}_${cls}`] = val;
               customTargetsDeresan[`${bInt}_${cls}`] = val;
             });
