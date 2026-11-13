@@ -295,7 +295,7 @@
           let kd = cDeres >= minDr ? 'Y' : 'N';
           let kl = isKLembaga ? 'Y' : 'N';
           
-          // Row Untuk HTML Cetak
+         // Row Untuk HTML Cetak
           let rowData = `
               <td class="p-1 border border-slate-300 text-[9px]">${idx+1}</td>
               <td class="p-1 border border-slate-300 font-bold text-left text-[9px] truncate max-w-[120px] whitespace-nowrap overflow-hidden">${s.nama||s.nama_siswa}</td>
@@ -311,7 +311,7 @@
               <td class="p-1 border border-slate-300 text-[9px] font-black ${kp==='Y'?'text-emerald-600 bg-emerald-50':'text-rose-600 bg-rose-50'}">${kp}</td>
               
               <td class="p-1 border border-slate-300 text-[9px] font-black ${kl==='Y'?'text-blue-600 bg-blue-50':'text-rose-600 bg-rose-50'}">${kl}</td>
-              <td class="p-1 border border-slate-300 text-[9px] bg-amber-50" colspan="2">Juz ${cTL.juz \vert{}\vert{} cTL.j \vert{}\vert{} '-'} P.${cTL.pojokan || cTL.p || '-'}</td>
+              <td class="p-1 border border-slate-300 text-[9px] bg-amber-50" colspan="2">Juz ${cTL.juz || cTL.j || '-'} P.${cTL.pojokan || cTL.p || '-'}</td>
               
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAwJz}</td>
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAwPj}</td>
@@ -331,12 +331,12 @@
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-600">${cI > 0 ? cI : '-'}</td>
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-rose-600">${cA > 0 ? cA : '-'}</td>
           `;
-        
+
           rows += `<tr class="text-center text-slate-800">${rowData}</tr>`;
           excelRows += `<tr>${rowData}</tr>`; // Khusus Excel, tanpa class baris khusus
       });
 
-     // --- PEMBUATAN TABEL UNTUK EXCEL (Hidden) ---
+      // --- PEMBUATAN TABEL UNTUK EXCEL (Hidden) ---
       let excelHTML = `
       <table id="exportTable">
           <thead>
@@ -369,7 +369,6 @@
       </table>
       `;
       document.getElementById('excelArea').innerHTML = excelHTML;
-      // ---------------------------------------------
 
       // Pagination Chunking
       let allRows = rows.split('</tr>').filter(r => r.trim() !== '');
@@ -384,10 +383,11 @@
                   <div class="kop-border pb-2 mb-3 flex items-center gap-4">
                       <img src="${logoB64}" alt="Logo" class="w-12 h-12 object-contain" />
                       <div class="flex-1 text-center pr-6">
-                          <h1 class="text-sm font-black text-slate-900 tracking-tight font-serif uppercase">PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA (SMP - SMA)</h1>
+                          <h1 class="text-sm font-black text-slate-900 tracking-tight font-serif uppercase">PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA (SMP)</h1>
                           <p class="text-[10px] text-slate-600 mt-0.5">Laporan Ujian dan Rekapitulasi Rincian Tahfidh Santri • Periode: ${blnTeks}</p>
                       </div>
                   </div>
+                  
                   <table class="tahfidh-table w-full">
                       <thead>
                           <tr class="bg-slate-100">
@@ -421,8 +421,8 @@
       document.getElementById('printableArea').innerHTML = html;
       document.getElementById('loadingState').classList.add('hidden');
       document.getElementById('printableArea').classList.remove('hidden');
-    }
-
+     }
+    
     // Fungsi Export ke Excel Menggunakan SheetJS
     function exportToExcel() {
         const table = document.getElementById("exportTable");
