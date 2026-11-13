@@ -69,7 +69,7 @@
     const reqHeaders = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' };
 
     const POJOK_PER_JUZ = 20;
-    const KELAS_KEYS = ['7', '8', '9', '10', '11', '12'];
+    const KELAS_KEYS = ['7', '8', '9'];
     
     // Target Defaults
     const DefLembaga = {
@@ -204,10 +204,15 @@
         }
       });
 
-      let sorted = Object.values(sMap).sort((a,b) => {
+     let sorted = Object.values(sMap).sort((a,b) => {
+          // 1. Urutkan berdasarkan KELAS
           if(a.cls !== b.cls) return a.cls.localeCompare(b.cls, undefined, {numeric:true});
-          let hA = String(a.halaqoh||'').trim(), hB = String(b.halaqoh||'').trim();
-          if(hA !== hB) return hA.localeCompare(hB);
+          
+          // 2. Jika kelasnya sama, urutkan berdasarkan KAMAR
+          let kmrA = String(a.kamar||'').trim(), kmrB = String(b.kamar||'').trim();
+          if(kmrA !== kmrB) return kmrA.localeCompare(kmrB, undefined, {numeric:true});
+          
+          // 3. Jika kelas dan kamarnya sama, urutkan berdasarkan NAMA
           return String(a.nama||a.nama_siswa||'').localeCompare(String(b.nama||b.nama_siswa||''));
       });
 
