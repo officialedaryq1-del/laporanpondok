@@ -153,7 +153,7 @@
       if(santriData.length === 0) {
         let sRes = await fetchAPI('santri_rows');
         if(sRes.length === 0) sRes = await fetchAPI('data_santri');
-        // Filter HANYA 7-12
+        // Filter HANYA 7-9
         santriData = sRes.filter(s => KELAS_KEYS.includes(mapKls(s.kelas)));
         logsData = await fetchAPI('log_setoran_rows');
         
@@ -165,7 +165,6 @@
         tD.forEach(r => custDeres[`${String(r.bulan).padStart(2,'0')}_${String(r.kelas).trim()}`] = Number(r.jumlah_pojokan)||0);
       }
 
-      // Pre-kalkulasi Max Ziyadah sampai bulan ini untuk target lembaga
       let sMap = {};
       santriData.forEach(s => {
         s.cls = mapKls(s.kelas);
@@ -212,14 +211,13 @@
       });
 
       let rows = '';
-      let excelRows = ''; // Variabel khusus menampung baris untuk excel (tanpa styling class berlebih)
+      let excelRows = '';
 
       sorted.forEach((s, idx) => {
           let zAwalLog=null, zAwalD='9999', zAkLog=null, zAkD='0000';
           let daAwalLog=null, daAwalD='9999', daAkLog=null, daAkD='0000';
           let dbAwalLog=null, dbAwalD='9999', dbAkLog=null, dbAkD='0000';
           
-          // Variabel penampung kehadiran
           let cTS = 0, cS = 0, cI = 0, cA = 0;
 
           logsData.forEach(l => {
@@ -232,7 +230,6 @@
                       let k = kr.replace(/[^a-z0-9]/g, '');
                       let hAw = safeNum(l.juz_awal)>0, hAk = safeNum(l.juz_akhir)>0;
                       
-                      // --- CEK KEHADIRAN (TS, S, I, A) ---
                       let ketV = String(l.keterangan||'').toLowerCase().trim();
                       let stsV = String(l.status||'').toLowerCase().trim();
                       let kegV = kr.trim();
@@ -246,7 +243,6 @@
                       else if(isS) cS++;
                       else if(isI) cI++;
                       else if(isA) cA++;
-                      // ----------------------------------
 
                       if(k.includes('ziyadah') || k==='' || k.includes('tambah')) {
                           if(hAw && dt < zAwalD) { zAwalLog=l; zAwalD=dt; }
@@ -294,8 +290,25 @@
           let kp = cPojok >= minPj ? 'Y' : 'N';
           let kd = cDeres >= minDr ? 'Y' : 'N';
           let kl = isKLembaga ? 'Y' : 'N';
+
+          // --- HITUNG EVALUASI (SELISIH POJOK DENGAN TARGET LEMBAGA) ---
+          let selisihTL = s.maxZiyadahAbs - absTL;
+          let evalText = '-';
+          let evalClass = 'text-slate-800'; 
           
-         // Row Untuk HTML Cetak
+          if (s.maxZiyadahAbs === 0 && absTL > 0) {
+              selisihTL = -absTL; // Jika belum pernah setor, minus sebesar targetnya
+          }
+
+          if (selisihTL > 0) {
+              evalText = `+${selisihTL}`;
+              evalClass = 'text-emerald-600';
+          } else if (selisihTL < 0) {
+              evalText = `${selisihTL}`;
+              evalClass = 'text-rose-600';
+          }
+          // -------------------------------------------------------------
+
           let rowData = `
               <td class="p-1 border border-slate-300 text-[9px]">${idx+1}</td>
               <td class="p-1 border border-slate-300 font-bold text-left text-[9px] truncate max-w-[120px] whitespace-nowrap overflow-hidden">${s.nama||s.nama_siswa}</td>
@@ -312,6 +325,7 @@
               
               <td class="p-1 border border-slate-300 text-[9px] font-black ${kl==='Y'?'text-blue-600 bg-blue-50':'text-rose-600 bg-rose-50'}">${kl}</td>
               <td class="p-1 border border-slate-300 text-[9px] bg-amber-50" colspan="2">Juz ${cTL.juz || cTL.j || '-'} P.${cTL.pojokan || cTL.p || '-'}</td>
+              <td class="p-1 border border-slate-300 text-[9px] font-black ${evalClass} bg-amber-50/50">${evalText}</td>
               
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAwJz}</td>
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAwPj}</td>
@@ -333,20 +347,20 @@
           `;
 
           rows += `<tr class="text-center text-slate-800">${rowData}</tr>`;
-          excelRows += `<tr>${rowData}</tr>`; // Khusus Excel, tanpa class baris khusus
+          excelRows += `<tr>${rowData}</tr>`; 
       });
 
       // --- PEMBUATAN TABEL UNTUK EXCEL (Hidden) ---
       let excelHTML = `
       <table id="exportTable">
           <thead>
-              <tr><th colspan="27" style="font-size:16pt; font-weight:bold; text-align:center;">RINCIAN DATA PERKEMBANGAN HAFALAN SANTRI</th></tr>
-              <tr><th colspan="27" style="text-align:center;">Periode: ${blnTeks}</th></tr>
-              <tr><th colspan="27"></th></tr>
+              <tr><th colspan="29" style="font-size:16pt; font-weight:bold; text-align:center;">RINCIAN DATA PERKEMBANGAN HAFALAN SANTRI</th></tr>
+              <tr><th colspan="29" style="text-align:center;">Periode: ${blnTeks}</th></tr>
+              <tr><th colspan="29"></th></tr>
               <tr>
                   <th rowspan="3">NO</th><th rowspan="3">NAMA</th><th rowspan="3">KLS</th><th rowspan="3">STATUS</th><th rowspan="3">HALAQOH</th>
                   <th colspan="5">ZIYADAH</th><th rowspan="3">TARGET POJOK</th>
-                  <th rowspan="3">PANTAUAN LEMBAGA</th><th colspan="2" rowspan="2">TARGET LEMBAGA</th>
+                  <th rowspan="3">PANTAUAN LEMBAGA</th><th colspan="2" rowspan="2">TARGET LEMBAGA</th><th rowspan="3">EVALUASI</th>
                   <th colspan="4">DERESAN A</th><th colspan="4">DERESAN B</th>
                   <th rowspan="3">TOTAL DERES</th><th rowspan="3">TARGET DERES</th>
                   <th colspan="4">REKAP ALPA</th>
@@ -393,7 +407,7 @@
                           <tr class="bg-slate-100">
                               <th rowspan="3">NO</th><th rowspan="3">NAMA</th><th rowspan="3">KLS</th><th rowspan="3">STATUS</th><th rowspan="3">HALAQOH</th>
                               <th colspan="5" class="bg-green-100">ZIYADAH</th><th rowspan="3" class="bg-green-100">TARGET<br>POJOK</th>
-                              <th rowspan="3" class="bg-yellow-100">PANTAUAN<br>LEMBAGA</th><th colspan="2" rowspan="2" class="bg-yellow-100">TARGET<br>LEMBAGA</th>
+                              <th rowspan="3" class="bg-yellow-100">PANTAUAN<br>LEMBAGA</th><th colspan="2" rowspan="2" class="bg-yellow-100">TARGET<br>LEMBAGA</th><th rowspan="3" class="bg-yellow-100">EVALUASI</th>
                               <th colspan="4" class="bg-blue-100">DERESAN A</th><th colspan="4" class="bg-blue-100">DERESAN B</th>
                               <th rowspan="3" class="bg-blue-100">TOTAL<br>DERES</th><th rowspan="3" class="bg-blue-100">TARGET<br>DERES</th>
                               <th colspan="4" class="bg-rose-100">REKAP ALPA</th>
@@ -421,8 +435,8 @@
       document.getElementById('printableArea').innerHTML = html;
       document.getElementById('loadingState').classList.add('hidden');
       document.getElementById('printableArea').classList.remove('hidden');
-     }
-    
+    }
+
     // Fungsi Export ke Excel Menggunakan SheetJS
     function exportToExcel() {
         const table = document.getElementById("exportTable");
