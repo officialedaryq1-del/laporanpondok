@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Laporan Eavaluasi & Rincian Tahfidh Santri (Kelas 7 - 9)</title>
+  <title>Laporan Evaluasi & Rincian Tahfidh Santri (Kelas 7 - 9)</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -204,15 +204,10 @@
         }
       });
 
-     let sorted = Object.values(sMap).sort((a,b) => {
-          // 1. Urutkan berdasarkan KELAS
+      let sorted = Object.values(sMap).sort((a,b) => {
           if(a.cls !== b.cls) return a.cls.localeCompare(b.cls, undefined, {numeric:true});
-          
-          // 2. Jika kelasnya sama, urutkan berdasarkan KAMAR
-          let kmrA = String(a.kamar||'').trim(), kmrB = String(b.kamar||'').trim();
-          if(kmrA !== kmrB) return kmrA.localeCompare(kmrB, undefined, {numeric:true});
-          
-          // 3. Jika kelas dan kamarnya sama, urutkan berdasarkan NAMA
+          let hA = String(a.halaqoh||'').trim(), hB = String(b.halaqoh||'').trim();
+          if(hA !== hB) return hA.localeCompare(hB);
           return String(a.nama||a.nama_siswa||'').localeCompare(String(b.nama||b.nama_siswa||''));
       });
 
@@ -306,7 +301,6 @@
               <td class="p-1 border border-slate-300 font-bold text-left text-[9px] truncate max-w-[120px] whitespace-nowrap overflow-hidden">${s.nama||s.nama_siswa}</td>
               <td class="p-1 border border-slate-300 text-[9px]">${s.cls}</td>
               <td class="p-1 border border-slate-300 text-[9px]">${s.status||'Ziyadah'}</td>
-              <td class="p-1 border border-slate-300 text-[9px]">${s.kamar||'-'}</td>
               <td class="p-1 border border-slate-300 text-[9px] truncate max-w-[90px] whitespace-nowrap overflow-hidden">${s.halaqoh||'-'}</td>
               
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-700">${awJz}</td>
@@ -317,7 +311,7 @@
               <td class="p-1 border border-slate-300 text-[9px] font-black ${kp==='Y'?'text-emerald-600 bg-emerald-50':'text-rose-600 bg-rose-50'}">${kp}</td>
               
               <td class="p-1 border border-slate-300 text-[9px] font-black ${kl==='Y'?'text-blue-600 bg-blue-50':'text-rose-600 bg-rose-50'}">${kl}</td>
-              <td class="p-1 border border-slate-300 text-[9px] bg-amber-50" colspan="2">Juz ${cTL.juz || cTL.j || '-'} P.${cTL.pojokan || cTL.p || '-'}</td>
+              <td class="p-1 border border-slate-300 text-[9px] bg-amber-50" colspan="2">Juz ${cTL.juz \vert{}\vert{} cTL.j \vert{}\vert{} '-'} P.${cTL.pojokan || cTL.p || '-'}</td>
               
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAwJz}</td>
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAwPj}</td>
@@ -337,20 +331,20 @@
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-600">${cI > 0 ? cI : '-'}</td>
               <td class="p-1 border border-slate-300 text-[9px] font-bold text-rose-600">${cA > 0 ? cA : '-'}</td>
           `;
-
+        
           rows += `<tr class="text-center text-slate-800">${rowData}</tr>`;
           excelRows += `<tr>${rowData}</tr>`; // Khusus Excel, tanpa class baris khusus
       });
 
-      // --- PEMBUATAN TABEL UNTUK EXCEL (Hidden) ---
+     // --- PEMBUATAN TABEL UNTUK EXCEL (Hidden) ---
       let excelHTML = `
       <table id="exportTable">
           <thead>
-              <tr><th colspan="28" style="font-size:16pt; font-weight:bold; text-align:center;">RINCIAN DATA PERKEMBANGAN HAFALAN SANTRI</th></tr>
-              <tr><th colspan="28" style="text-align:center;">Periode: ${blnTeks}</th></tr>
-              <tr><th colspan="28"></th></tr>
+              <tr><th colspan="27" style="font-size:16pt; font-weight:bold; text-align:center;">RINCIAN DATA PERKEMBANGAN HAFALAN SANTRI</th></tr>
+              <tr><th colspan="27" style="text-align:center;">Periode: ${blnTeks}</th></tr>
+              <tr><th colspan="27"></th></tr>
               <tr>
-                  <th rowspan="3">NO</th><th rowspan="3">NAMA</th><th rowspan="3">KLS</th><th rowspan="3">STATUS</th><th rowspan="3">KMR</th><th rowspan="3">HALAQOH</th>
+                  <th rowspan="3">NO</th><th rowspan="3">NAMA</th><th rowspan="3">KLS</th><th rowspan="3">STATUS</th><th rowspan="3">HALAQOH</th>
                   <th colspan="5">ZIYADAH</th><th rowspan="3">TARGET POJOK</th>
                   <th rowspan="3">PANTAUAN LEMBAGA</th><th colspan="2" rowspan="2">TARGET LEMBAGA</th>
                   <th colspan="4">DERESAN A</th><th colspan="4">DERESAN B</th>
@@ -394,11 +388,10 @@
                           <p class="text-[10px] text-slate-600 mt-0.5">Laporan Ujian dan Rekapitulasi Rincian Tahfidh Santri • Periode: ${blnTeks}</p>
                       </div>
                   </div>
-                  
                   <table class="tahfidh-table w-full">
                       <thead>
                           <tr class="bg-slate-100">
-                              <th rowspan="3">NO</th><th rowspan="3">NAMA</th><th rowspan="3">KLS</th><th rowspan="3">STATUS</th><th rowspan="3">KMR</th><th rowspan="3">HALAQOH</th>
+                              <th rowspan="3">NO</th><th rowspan="3">NAMA</th><th rowspan="3">KLS</th><th rowspan="3">STATUS</th><th rowspan="3">HALAQOH</th>
                               <th colspan="5" class="bg-green-100">ZIYADAH</th><th rowspan="3" class="bg-green-100">TARGET<br>POJOK</th>
                               <th rowspan="3" class="bg-yellow-100">PANTAUAN<br>LEMBAGA</th><th colspan="2" rowspan="2" class="bg-yellow-100">TARGET<br>LEMBAGA</th>
                               <th colspan="4" class="bg-blue-100">DERESAN A</th><th colspan="4" class="bg-blue-100">DERESAN B</th>
