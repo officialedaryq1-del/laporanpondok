@@ -270,7 +270,7 @@
         </h2>
         
         <p class="text-xs sm:text-sm text-slate-800 text-justify leading-relaxed indent-8 max-w-4xl mx-auto">
-          Laporan Kegiatan Bulanan Pondok Tahfidh Yanbu'ul Qur'an 1 Pati Putra Unit SMP, periode <span id="pengesahanBulanTeks" class="font-bold">September 2026</span> Semester Gasal Tahun Ajaran 2026/2027 sebagai bahan evaluasi pelaksanaan Kegiatan Belajar Mengajar (KBM), Capaian Tahfidh Al-Qur'an, dan Akuntabilitas Keuangan Tabungan Santri di Yanbu'ul Qur'an Boarding School 1 Pati  Sukoharjo Kecamatan Wedarijaksa Kabupaten Pati telah disetujui oleh Tim untuk diajukan ke Ketua Yayasan Asem Bungkuk Sukoharjo Wedarijaksa Pati.
+          Laporan Kegiatan Bulanan Pondok Tahfidh Yanbu'ul Qur'an 1 Pati Putra Unit SMP, periode <span id="pengesahanBulanTeks" class="font-bold">September 2026</span> Semester Gasal Tahun Ajaran 2026/2027 sebagai bahan evaluasi pelaksanaan Kegiatan Belajar Mengajar (KBM), Capaian Tahfidh Al-Qur'an, Kebersihan Kamar dan catatan pelanggaran Santri di Yanbu'ul Qur'an Boarding School 1 Pati  Sukoharjo Kecamatan Wedarijaksa Kabupaten Pati telah disetujui oleh Tim untuk diajukan ke Ketua Yayasan Asem Bungkuk Sukoharjo Wedarijaksa Pati.
         </p>
 
         <p class="text-right text-xs sm:text-sm text-slate-700 mt-6 max-w-4xl mx-auto" id="pengesahanTanggalLokasi">
@@ -2754,13 +2754,12 @@ function getRekapPelanggaranData() {
       renderTableData(val);
     }
 
-    function downloadPDF() {
-    showNotification("Sedang memproses dokumen PDF, harap tunggu sebentar...", false);
+    async function downloadPDF() {
+    // Beri tahu user karena proses puluhan halaman memakan waktu
+    showNotification("Mengekspor puluhan halaman PDF... Mohon tunggu dan jangan tutup halaman ini.", false);
 
-    const element = document.getElementById('printableDocument');
     const bInfo = getNamaBulanTahun(selectedBulan);
     const valDiv = document.getElementById('selectDivisi').value;
-    
     let unitTag = 'Semua_Divisi';
     if (valDiv !== 'all') {
         const divTarget = divisionsData.find(d => Number(d.id) === Number(valDiv));
@@ -2768,19 +2767,36 @@ function getRekapPelanggaranData() {
     }
 
     const opt = {
-        margin:       [0, 0, 0, 0], 
+        margin:       0, 
         filename:     `Laporan_${unitTag}_${bInfo.bulanDigit}-${bInfo.tahun}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, windowWidth: 1200 },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' },
-        pagebreak:    { mode: ['css', 'legacy'] }
+        image:        { type: 'jpeg', quality: 0.95 },
+        html2canvas:  { scale: 1.5, useCORS: true }, // Scale diturunkan sedikit agar tidak membebani RAM
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
     };
 
-    html2pdf().set(opt).from(element).save().then(() => {
-        showNotification("File PDF berhasil diunduh!");
+    // Ambil semua halaman satu per satu
+    const pages = document.querySelectorAll('#printableDocument .page-sheet');
+    if (pages.length === 0) {
+        showNotification("Tidak ada data untuk diekspor!", true);
+        return;
+    }
+
+    // Proses halaman pertama
+    let worker = html2pdf().set(opt).from(pages[0]).toPdf();
+
+    // Lakukan looping (pengulangan) untuk halaman kedua sampai akhir
+    for (let i = 1; i < pages.length; i++) {
+        worker = worker.get('pdf').then(pdf => {
+            pdf.addPage();
+        }).from(pages[i]).toContainer().toCanvas().toPdf();
+    }
+
+    // Simpan PDF setelah seluruh halaman selesai digabungkan
+    worker.save().then(() => {
+        showNotification("File PDF berhasil diunduh secara penuh!");
     }).catch(err => {
         console.error("Gagal membuat PDF:", err);
-        showNotification("Terjadi kesalahan saat membuat PDF.", true);
+        showNotification("Terjadi kesalahan saat memproses halaman PDF.", true);
     });
 }
     
