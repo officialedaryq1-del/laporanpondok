@@ -2294,7 +2294,7 @@ function getRekapPelanggaranData() {
 
             // Pagination Chunking Rincian Tahfidh
             let allRincianRows = rincianRowsHTML.split('</tr>').filter(r => r.trim() !== '');
-            const rppTahfidh = 22; // 22 Baris per halaman
+            const rppTahfidh = 28; // 22 Baris per halaman
 
             for (let i = 0; i < allRincianRows.length; i += rppTahfidh) {
                 let chunk = allRincianRows.slice(i, i + rppTahfidh).join('</tr>') + '</tr>';
