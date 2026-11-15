@@ -7389,16 +7389,10 @@ const rekapSantriData = useMemo(() => {
                           <td className="py-1 px-2 border-r border-slate-100 bg-rose-50 text-rose-700 font-bold">{row.a}</td>
                           <td className="py-1 px-2 border-r border-slate-100 bg-amber-50 text-amber-700 font-bold">{row.i}</td>
                           <td className="py-1 px-2 border-r border-slate-100 bg-purple-50 text-purple-700 font-bold">{row.p}</td>
-                          <td className="py-1 px-2 border-r border-slate-100 bg-orange-50 text-orange-700 font-bold">{row.t}</td>
+                        <td className="py-1 px-2 border-r border-slate-100 bg-orange-50 text-orange-700 font-bold">{row.t}</td>
                           <td className="py-1 px-3 font-bold bg-blue-50 text-blue-700">{row.pct}%</td>
                         </tr>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
                       
                       {/* Jika data guru kosong */}
                       {presensiAsatidzLedger.length === 0 && (
@@ -7410,7 +7404,6 @@ const rekapSantriData = useMemo(() => {
                   </table>
                 </div>
               </div>
-            </div>
           )}
     
           {/* --- HALAMAN FORM INPUT PRESENSI --- */}
