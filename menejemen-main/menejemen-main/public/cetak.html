@@ -1681,1071 +1681,811 @@ function getRekapPelanggaranData() {
         });
 
       
-        const rekapNilaiList = getRekapNilaiPerRombel();
-
+       const rekapNilaiList = getRekapNilaiPerRombel();
         if (rekapNilaiList.length > 0) {
-          const totalRombel = rekapNilaiList.length;
-          const rombelTuntasCount = rekapNilaiList.filter(r => r.is_tuntas).length;
-          const pctRombelTuntas = ((rombelTuntasCount / totalRombel) * 100).toFixed(1);
-          const rataRataSemua = (
-            rekapNilaiList.reduce((acc, curr) => acc + Number(curr.rata_rata || 0), 0) / totalRombel
-          ).toFixed(2);
+            const totalRombel = rekapNilaiList.length;
+            const rombelTuntasCount = rekapNilaiList.filter(r => r.is_tuntas).length;
+            const pctRombelTuntas = ((rombelTuntasCount / totalRombel) * 100).toFixed(1);
+            const rataRataSemua = (rekapNilaiList.reduce((acc, curr) => acc + Number(curr.rata_rata || 0), 0) / totalRombel).toFixed(2);
 
-          let nilaiRowsHTML = '';
-          rekapNilaiList.forEach((rn, nIdx) => {
-            nilaiRowsHTML += `
-              <tr class="hover:bg-slate-100/70 transition">
-                <td class="text-center font-mono font-bold text-slate-500">${nIdx + 1}</td>
-                <td class="font-bold text-slate-900 leading-tight">${rn.nama_guru}</td>
-                <td class="font-semibold text-blue-800 leading-tight">${rn.nama_mapel}</td>
-                <td class="text-center font-bold text-slate-800 bg-slate-50">${rn.kelas}</td>
-                <td class="text-center font-mono font-bold text-slate-700">${rn.kkm}</td>
-                <td class="text-center font-mono font-bold text-slate-800">${rn.jml_siswa}</td>
-                <td class="text-center font-mono font-black text-slate-900 bg-slate-50">${rn.rata_rata}</td>
-                <td class="text-center font-mono text-rose-700 font-bold">
-                  ${rn.pct_below_kkm}% <span class="text-[9px] text-slate-400 font-normal">(${rn.count_below_kkm})</span>
-                </td>
-                <td class="text-center font-mono text-emerald-700 font-bold">
-                  ${rn.pct_above_kkm}% <span class="text-[9px] text-slate-400 font-normal">(${rn.count_above_kkm})</span>
-                </td>
-                <td class="text-center">
-                  ${
-                    rn.is_tuntas
-                      ? `<span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300">✓ Tuntas Baik</span>`
-                      : `<span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold text-rose-800 bg-rose-100 border border-rose-300">✕ &lt; 80% Tuntas</span>`
-                  }
-                </td>
-              </tr>
-            `;
-          });
+            let nilaiRowsHTML = '';
+            rekapNilaiList.forEach((rn, nIdx) => {
+                nilaiRowsHTML += `
+                <tr class="hover:bg-slate-100/70 transition">
+                    <td class="border border-slate-300 text-center font-mono font-bold text-slate-500">${nIdx + 1}</td>
+                    <td class="border border-slate-300 font-bold text-slate-900 leading-tight px-2">${rn.nama_guru}</td>
+                    <td class="border border-slate-300 font-semibold text-blue-800 leading-tight px-2">${rn.nama_mapel}</td>
+                    <td class="border border-slate-300 text-center font-bold text-slate-800 bg-slate-50">${rn.kelas}</td>
+                    <td class="border border-slate-300 text-center font-mono font-bold text-slate-700">${rn.kkm}</td>
+                    <td class="border border-slate-300 text-center font-mono font-bold text-slate-800">${rn.jml_siswa}</td>
+                    <td class="border border-slate-300 text-center font-mono font-black text-slate-900 bg-slate-50">${rn.rata_rata}</td>
+                    <td class="border border-slate-300 text-center font-mono text-rose-700 font-bold">
+                        ${rn.pct_below_kkm}% <span class="text-[9px] text-slate-400 font-normal">(${rn.count_below_kkm})</span>
+                    </td>
+                    <td class="border border-slate-300 text-center font-mono text-emerald-700 font-bold">
+                        ${rn.pct_above_kkm}% <span class="text-[9px] text-slate-400 font-normal">(${rn.count_above_kkm})</span>
+                    </td>
+                    <td class="border border-slate-300 text-center">
+                        ${rn.is_tuntas 
+                            ? `<span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300">✓ Tuntas Baik</span>` 
+                            : `<span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold text-rose-800 bg-rose-100 border border-rose-300">✕ &lt; 80% Tuntas</span>`
+                        }
+                    </td>
+                </tr>`;
+            });
 
-          pagesHTML += `
-            <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
-
-            <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
-              <div>
-                <div class="kop-border pb-3 mb-4 flex items-center gap-5">
-                  <img 
-                    src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" 
-                    alt="Logo" 
-                    class="w-16 h-16 object-contain shrink-0"
-                  />
-                  <div class="flex-1 text-center pr-6">
-                    <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
-                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
-                      PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                    </h1>
-                    <p class="text-[10px] text-slate-600 mt-0.5">
-                    Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                    </p>
-                  </div>
+            // Pagination Chunking Leger Nilai
+            let allNilaiRows = nilaiRowsHTML.split('</tr>').filter(r => r.trim() !== '');
+            const rppNilai = 25; // 25 Baris per halaman
+            
+            for (let i = 0; i < allNilaiRows.length; i += rppNilai) {
+                let chunk = allNilaiRows.slice(i, i + rppNilai).join('</tr>') + '</tr>';
+                pagesHTML += `
+                <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+                <div class="page-break a4-landscape-page page-sheet p-6 sm:p-8 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+                    <div>
+                        <div class="kop-border pb-3 mb-4 flex items-center gap-5">
+                            <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" class="w-16 h-16 object-contain shrink-0" />
+                            <div class="flex-1 text-center pr-6">
+                                <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
+                                <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP</h1>
+                                <p class="text-[10px] text-slate-600 mt-0.5">Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah</p>
+                            </div>
+                        </div>
+                        <div class="text-center mb-3">
+                            <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">LAPORAN REKAPITULASI KETUNTASAN BELAJAR SISWA (LEGER NILAI)</h2>
+                            <p class="text-xs font-semibold text-slate-600 mt-0.5">Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span></p>
+                        </div>
+                        ${i === 0 ? `
+                        <table class="excel-table mb-4" style="text-align: center;">
+                            <thead>
+                                <tr style="background-color: #f1f5f9;">
+                                    <th style="width: 33.3%; background-color: #eff6ff; color: #1e3a8a;">TOTAL ROMBEL DIEVALUASI</th>
+                                    <th style="width: 33.3%; background-color: #f8fafc; color: #0f172a;">RATA-RATA KELAS GABUNGAN</th>
+                                    <th style="width: 33.4%; background-color: #ecfdf5; color: #065f46;">% KETUNTASAN ROMBEL TERCAPAI</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="font-weight: bold; font-family: monospace; font-size: 13px;">
+                                    <td style="background-color: #eff6ff; color: #1d4ed8; padding: 6px;">${totalRombel} Rombel</td>
+                                    <td style="background-color: #f8fafc; color: #0f172a; padding: 6px;">${rataRataSemua}</td>
+                                    <td style="background-color: #ecfdf5; color: #047857; padding: 6px; font-weight: 900;">${pctRombelTuntas}% (${rombelTuntasCount}/${totalRombel})</td>
+                                </tr>
+                            </tbody>
+                        </table>` : ''}
+                        <div class="overflow-x-auto">
+                            <table class="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30px; text-align: center;">NO</th>
+                                        <th style="width: 170px; text-align: left;">NAMA GURU / USTADZ</th>
+                                        <th style="width: 150px; text-align: left;">MATA PELAJARAN</th>
+                                        <th style="width: 60px; text-align: center;">KELAS</th>
+                                        <th style="width: 48px; text-align: center;">KKM</th>
+                                        <th style="width: 60px; text-align: center;">JML SISWA</th>
+                                        <th style="width: 65px; text-align: center;">RATA-RATA</th>
+                                        <th style="width: 105px; text-align: center;">&lt; KKM (%)</th>
+                                        <th style="width: 105px; text-align: center;">≥ KKM (%)</th>
+                                        <th style="width: 110px; text-align: center;">STATUS KETUNTASAN</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${chunk}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
                 </div>
-
-                <div class="text-center mb-3">
-                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
-                    LAPORAN REKAPITULASI KETUNTASAN BELAJAR SISWA (LEGER NILAI)
-                  </h2>
-                  <p class="text-xs font-semibold text-slate-600 mt-0.5">
-                    Unit Kerja: <span class="text-blue-700 font-bold">Kurikulum &amp; Akademik</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
-                  </p>
-                  <p class="text-[10px] text-slate-400 font-mono mt-0.5">
-                    Standar Kelulusan: Kriteria Ketuntasan Minimal (KKM) &bull; Kriteria Tuntas Rombel ≥ 80% Siswa Mencapai KKM
-                  </p>
-                </div>
-
-                <!-- TABEL RINGKASAN METRIK LEGER NILAI -->
-                <table class="excel-table mb-4" style="text-align: center;">
-                  <thead>
-                    <tr style="background-color: #f1f5f9;">
-                      <th style="width: 33.3%; background-color: #eff6ff; color: #1e3a8a;">TOTAL ROMBEL DIEVALUASI</th>
-                      <th style="width: 33.3%; background-color: #f8fafc; color: #0f172a;">RATA-RATA KELAS GABUNGAN</th>
-                      <th style="width: 33.4%; background-color: #ecfdf5; color: #065f46;">% KETUNTASAN ROMBEL TERCAPAI</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style="font-weight: bold; font-family: monospace; font-size: 13px;">
-                      <td style="background-color: #eff6ff; color: #1d4ed8; padding: 6px;">${totalRombel} Rombel</td>
-                      <td style="background-color: #f8fafc; color: #0f172a; padding: 6px;">${rataRataSemua}</td>
-                      <td style="background-color: #ecfdf5; color: #047857; padding: 6px; font-weight: 900;">${pctRombelTuntas}% (${rombelTuntasCount}/${totalRombel})</td>
-                    </tr>
-                  </tbody>
-                </table>
-
-                <div class="overflow-x-auto">
-                  <table class="excel-table">
-                    <thead>
-                      <tr>
-                        <th style="width: 30px; text-align: center;">NO</th>
-                        <th style="width: 170px; text-align: left;">NAMA GURU / USTADZ</th>
-                        <th style="width: 150px; text-align: left;">MATA PELAJARAN</th>
-                        <th style="width: 60px; text-align: center;">KELAS</th>
-                        <th style="width: 48px; text-align: center;">KKM</th>
-                        <th style="width: 60px; text-align: center;">JML SISWA</th>
-                        <th style="width: 65px; text-align: center;">RATA-RATA</th>
-                        <th style="width: 105px; text-align: center;">&lt; KKM (%)</th>
-                        <th style="width: 105px; text-align: center;">≥ KKM (%)</th>
-                        <th style="width: 110px; text-align: center;">STATUS KETUNTASAN</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${nilaiRowsHTML}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
-            </div>
-          `;
+                `;
+            }
         }
 
         const tahfidhData = getTahfidhReportData(bInfo.bulanDigit);
-
         if (tahfidhData) {
-          const { targetStats, juzMatrix, halaqohRows } = tahfidhData;
+            const { targetStats, juzMatrix, halaqohRows } = tahfidhData;
 
-          let sumPojokTarget = 0, sumPojokTargetPrev = 0, sumPojokBelum = 0, sumPojokBelumPrev = 0, sumPojokTotal = 0;
-          let sumLembagaTarget = 0, sumLembagaTargetPrev = 0, sumLembagaBelum = 0, sumLembagaBelumPrev = 0, sumLembagaKhatam = 0, sumLembagaKhotimin = 0, sumLembagaTotal = 0;
-          let sumDeresanTarget = 0, sumDeresanTargetPrev = 0, sumDeresanBelum = 0, sumDeresanBelumPrev = 0, sumDeresanTotal = 0;
+            let sumPojokTarget = 0, sumPojokTargetPrev = 0, sumPojokBelum = 0, sumPojokBelumPrev = 0, sumPojokTotal = 0;
+            let sumLembagaTarget = 0, sumLembagaTargetPrev = 0, sumLembagaBelum = 0, sumLembagaBelumPrev = 0, sumLembagaKhatam = 0, sumLembagaKhotimin = 0, sumLembagaTotal = 0;
+            let sumDeresanTarget = 0, sumDeresanTargetPrev = 0, sumDeresanBelum = 0, sumDeresanBelumPrev = 0, sumDeresanTotal = 0;
 
-          KELAS_KEYS_TAHFIDH.forEach(k => {
-            sumPojokTarget += targetStats.pojokan.target[k] || 0;
-            sumPojokTargetPrev += targetStats.pojokan.targetPrev[k] || 0;
-            sumPojokBelum += targetStats.pojokan.belum[k] || 0;
-            sumPojokBelumPrev += targetStats.pojokan.belumPrev[k] || 0;
-            sumPojokTotal += targetStats.pojokan.total[k] || 0;
+            KELAS_KEYS_TAHFIDH.forEach(k => {
+                sumPojokTarget += targetStats.pojokan.target[k] || 0;
+                sumPojokTargetPrev += targetStats.pojokan.targetPrev[k] || 0;
+                sumPojokBelum += targetStats.pojokan.belum[k] || 0;
+                sumPojokBelumPrev += targetStats.pojokan.belumPrev[k] || 0;
+                sumPojokTotal += targetStats.pojokan.total[k] || 0;
 
-            sumLembagaTarget += targetStats.lembaga.target[k] || 0;
-            sumLembagaTargetPrev += targetStats.lembaga.targetPrev[k] || 0;
-            sumLembagaBelum += targetStats.lembaga.belum[k] || 0;
-            sumLembagaBelumPrev += targetStats.lembaga.belumPrev[k] || 0;
-            sumLembagaKhatam += targetStats.lembaga.khatam[k] || 0;
-            sumLembagaKhotimin += targetStats.lembaga.khotimin[k] || 0;
-            sumLembagaTotal += targetStats.lembaga.total[k] || 0;
+                sumLembagaTarget += targetStats.lembaga.target[k] || 0;
+                sumLembagaTargetPrev += targetStats.lembaga.targetPrev[k] || 0;
+                sumLembagaBelum += targetStats.lembaga.belum[k] || 0;
+                sumLembagaBelumPrev += targetStats.lembaga.belumPrev[k] || 0;
+                sumLembagaKhatam += targetStats.lembaga.khatam[k] || 0;
+                sumLembagaKhotimin += targetStats.lembaga.khotimin[k] || 0;
+                sumLembagaTotal += targetStats.lembaga.total[k] || 0;
 
-            sumDeresanTarget += targetStats.deresan.target[k] || 0;
-            sumDeresanTargetPrev += targetStats.deresan.targetPrev[k] || 0;
-            sumDeresanBelum += targetStats.deresan.belum[k] || 0;
-            sumDeresanBelumPrev += targetStats.deresan.belumPrev[k] || 0;
-            sumDeresanTotal += targetStats.deresan.total[k] || 0;
-          });
+                sumDeresanTarget += targetStats.deresan.target[k] || 0;
+                sumDeresanTargetPrev += targetStats.deresan.targetPrev[k] || 0;
+                sumDeresanBelum += targetStats.deresan.belum[k] || 0;
+                sumDeresanBelumPrev += targetStats.deresan.belumPrev[k] || 0;
+                sumDeresanTotal += targetStats.deresan.total[k] || 0;
+            });
 
-          const pctPojokTarget = sumPojokTotal > 0 ? Math.round((sumPojokTarget / sumPojokTotal) * 100) : 0;
-          const pctLembagaTarget = sumLembagaTotal > 0 ? Math.round((sumLembagaTarget / sumLembagaTotal) * 100) : 0;
-          const pctDeresanTarget = sumDeresanTotal > 0 ? Math.round((sumDeresanTarget / sumDeresanTotal) * 100) : 0;
-          
-          const formatIPDiff = (ip) => {
-             if (ip > 0) return `<span class="text-emerald-600 font-bold">▲ ${ip}</span>`;
-             if (ip < 0) return `<span class="text-rose-600 font-bold">▼ ${Math.abs(ip)}</span>`;
-             return `<span class="text-slate-400 font-bold">-</span>`;
-          };
-
-          const jmW = tahfidhData.juzMatrix;
-          const jmWPrev = tahfidhData.juzMatrixPrev;
-
-          let juzRowsHTML = '';
-          DISPLAY_JUZ_ORDER.forEach(j => {
-            const rowTot = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.juz[j][k] || 0), 0);
-            const rowTotPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.juz[j][k] || 0), 0);
-            juzRowsHTML += `
-              <tr class="${j === 30 ? 'bg-amber-50/70 font-semibold' : ''}">
-                <td class="text-center font-bold font-mono text-[10.5px] p-1 border border-slate-300">Juz ${j}</td>
-                ${KELAS_KEYS_TAHFIDH.map(k => {
-                  const val = jmW.juz[j][k] || 0;
-                  const valPrev = jmWPrev.juz[j][k] || 0;
-                  return `<td class="text-center font-mono text-[10.5px] p-1 border border-slate-300 ${val > 0 ? 'font-bold bg-emerald-50 text-emerald-800' : 'text-slate-400'}">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-slate-50">${formatIPDiff(val - valPrev)}</td>`;
-                }).join('')}
-                <td class="text-center font-bold font-mono text-[10.5px] p-1 border border-slate-300 bg-slate-100">${rowTot}</td>
-                <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-slate-100">${formatIPDiff(rowTot - rowTotPrev)}</td>
-              </tr>
-            `;
-          });
-
-          const totKhotimin = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.khotimin[k] || 0), 0);
-          const totKhotiminPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.khotimin[k] || 0), 0);
-          const totKhatam = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.khatam[k] || 0), 0);
-          const totKhatamPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.khatam[k] || 0), 0);
-          const totBelumSetor = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.belumSetor[k] || 0), 0);
-          const totBelumSetorPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.belumSetor[k] || 0), 0);
-          const totSantriAktif = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.total[k] || 0), 0);
-          const totSantriAktifPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.total[k] || 0), 0);
-
-          // Halaman Tahfidh 1: Evaluasi 3 Target
-          pagesHTML += `
-            <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
-
-            <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
-              <div>
-                <div class="kop-border pb-3 mb-4 flex items-center gap-5">
-                  <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" class="w-16 h-16 object-contain shrink-0" />
-                  <div class="flex-1 text-center pr-6">
-                    <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
-                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP</h1>
-                    <p class="text-[10px] text-slate-600 mt-0.5">Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id</p>
-                  </div>
-                </div>
-
-                <div class="text-center mb-4">
-                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">LAPORAN EVALUASI 3 TARGET KETAHFIDHAN SANTRI</h2>
-                  <p class="text-xs font-semibold text-slate-600 mt-0.5">Unit Pengelola: <span class="text-blue-700 font-bold">Pondok Tahfidh</span> &bull; Periode: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span></p>
-                </div>
-
-                <!-- TABEL RINGKASAN METRIK TAHFIDH -->
-                <table class="excel-table mb-5" style="text-align: center;">
-                  <thead>
-                    <tr style="background-color: #f1f5f9;">
-                      <th style="width: 33.3%; background-color: #fce4d6; color: #9a3412;">TARGET POJOKAN (ZIYADAH)</th>
-                      <th style="width: 33.3%; background-color: #fff2cc; color: #854d0e;">TARGET LEMBAGA</th>
-                      <th style="width: 33.4%; background-color: #bdd7ee; color: #1e3a8a;">TARGET DERESAN (MUROJAAH)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style="font-weight: bold; font-family: monospace; font-size: 13px;">
-                      <td style="background-color: #fff7ed; color: #c2410c; padding: 6px;">${pctPojokTarget}% Tuntas (${sumPojokTarget}/${sumPojokTotal})</td>
-                      <td style="background-color: #fefce8; color: #a16207; padding: 6px;">${pctLembagaTarget}% Tuntas (${sumLembagaTarget}/${sumLembagaTotal})</td>
-                      <td style="background-color: #eff6ff; color: #1d4ed8; padding: 6px;">${pctDeresanTarget}% Tuntas (${sumDeresanTarget}/${sumDeresanTotal})</td>
-                    </tr>
-                  </tbody>
-                </table>
-
-                <div class="space-y-4">
-                  <div>
-                    <h3 class="text-xs font-black uppercase text-slate-800 tracking-wide mb-1.5 flex items-center gap-1.5">
-                      <i class="fas fa-bullseye text-orange-600"></i>
-                      <span>1. EVALUASI TARGET POJOKAN / ZIYADAH BULANAN (KELAS VII - IX)</span>
-                    </h3>
-                    <table class="tahfidh-table">
-                      <thead>
-                        <tr>
-                          <th class="th-tahfidh-orange" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-orange">Kls ${k}</th><th class="th-tahfidh-orange">%</th><th class="th-tahfidh-orange">IP</th>`).join('')}
-                          <th class="th-tahfidh-orange" style="width: 60px;">JUMLAH</th>
-                          <th class="th-tahfidh-orange" style="width: 50px;">%</th>
-                          <th class="th-tahfidh-orange" style="width: 40px;">IP</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td class="font-semibold p-1.5 border border-slate-300">Tercapai</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => {
-                            const tot = targetStats.pojokan.total[k] || 1;
-                            const val = targetStats.pojokan.target[k] || 0;
-                            const valPrev = targetStats.pojokan.targetPrev[k] || 0;
-                            const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-700 bg-emerald-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-700 bg-emerald-50/50">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-emerald-50/50 text-[8.5px]">${formatIPDiff(val - valPrev)}</td>`;
-                          }).join('')}
-                          <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-emerald-100 text-emerald-800">${sumPojokTarget}</td>
-                          <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-emerald-100 text-emerald-800">${pctPojokTarget}%</td>
-                          <td class="text-center font-mono p-1.5 border border-slate-300 bg-emerald-100 text-[9px]">${formatIPDiff(sumPojokTarget - sumPojokTargetPrev)}</td>
-                        </tr>
-                        <tr>
-                          <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => {
-                            const tot = targetStats.pojokan.total[k] || 1;
-                            const val = targetStats.pojokan.belum[k] || 0;
-                            const valPrev = targetStats.pojokan.belumPrev[k] || 0;
-                            const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-50/40 text-[8.5px]">${formatIPDiff(val - valPrev)}</td>`;
-                          }).join('')}
-                          <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumPojokBelum}</td>
-                          <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctPojokTarget}%</td>
-                          <td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-100 text-[9px]">${formatIPDiff(sumPojokBelum - sumPojokBelumPrev)}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div>
-                    <h3 class="text-xs font-black uppercase text-slate-800 tracking-wide mb-1.5 flex items-center gap-1.5">
-                      <i class="fas fa-landmark text-amber-600"></i>
-                      <span>2. EVALUASI TARGET CAPAIAN LEMBAGA (KELAS VII - IX)</span>
-                    </h3>
-                    <table class="tahfidh-table">
-                      <thead>
-                        <tr>
-                          <th class="th-tahfidh-yellow" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-yellow">Kls ${k}</th><th class="th-tahfidh-yellow">%</th><th class="th-tahfidh-yellow">IP</th>`).join('')}
-                          <th class="th-tahfidh-yellow" style="width: 60px;">JUMLAH</th>
-                          <th class="th-tahfidh-yellow" style="width: 50px;">%</th>
-                          <th class="th-tahfidh-yellow" style="width: 40px;">IP</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td class="font-semibold p-1.5 border border-slate-300">Tercapai</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => {
-                            const tot = targetStats.lembaga.total[k] || 1;
-                            const val = targetStats.lembaga.target[k] || 0;
-                            const valPrev = targetStats.lembaga.targetPrev[k] || 0;
-                            const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-blue-700 bg-blue-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-blue-700 bg-blue-50/50">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-blue-50/50 text-[8.5px]">${formatIPDiff(val - valPrev)}</td>`;
-                          }).join('')}
-                          <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-blue-100 text-blue-800">${sumLembagaTarget}</td>
-                          <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-blue-100 text-blue-800">${pctLembagaTarget}%</td>
-                          <td class="text-center font-mono p-1.5 border border-slate-300 bg-blue-100 text-[9px]">${formatIPDiff(sumLembagaTarget - sumLembagaTargetPrev)}</td>
-                        </tr>
-                        <tr>
-                          <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => {
-                            const tot = targetStats.lembaga.total[k] || 1;
-                            const val = targetStats.lembaga.belum[k] || 0;
-                            const valPrev = targetStats.lembaga.belumPrev[k] || 0;
-                            const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-50/40 text-[8.5px]">${formatIPDiff(val - valPrev)}</td>`;
-                          }).join('')}
-                          <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumLembagaBelum}</td>
-                          <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctLembagaTarget}%</td>
-                          <td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-100 text-[9px]">${formatIPDiff(sumLembagaBelum - sumLembagaBelumPrev)}</td>
-                        </tr>
-                        <tr class="bg-emerald-50/70 font-semibold">
-                          <td class="p-1.5 border border-slate-300 text-emerald-800">Khatam 30 Juz</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => {
-                            const tot = targetStats.lembaga.total[k] || 1;
-                            const val = targetStats.lembaga.khatam[k] || 0;
-                            const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-800">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-800">${pct}%</td><td class="border border-slate-300 bg-emerald-50/50"></td>`;
-                          }).join('')}
-                          <td class="text-center font-mono font-black p-1.5 border border-slate-300" colspan="3">${sumLembagaKhatam} Santri</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div>
-                    <h3 class="text-xs font-black uppercase text-slate-800 tracking-wide mb-1.5 flex items-center gap-1.5">
-                      <i class="fas fa-book-open-reader text-blue-600"></i>
-                      <span>3. EVALUASI TARGET DERESAN / MUROJAAH BULANAN (KELAS VII - IX)</span>
-                    </h3>
-                    <table class="tahfidh-table">
-                      <thead>
-                        <tr>
-                          <th class="th-tahfidh-blue" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
-                          ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-blue">Kls ${k}</th><th class="th-tahfidh-blue">%</th><th class="th-tahfidh-blue">IP</th>`).join('')}
-                          <th class="th-tahfidh-blue" style="width: 60px;">JUMLAH</th>
-                          <th class="th-tahfidh-blue" style="width: 50px;">%</th>
-                          <th class="th-tahfidh-blue" style="width: 40px;">IP</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td class="font-semibold p-1.5 border border-slate-300">Tercapai</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => {
-                            const tot = targetStats.deresan.total[k] || 1;
-                            const val = targetStats.deresan.target[k] || 0;
-                            const valPrev = targetStats.deresan.targetPrev[k] || 0;
-                            const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-teal-700 bg-teal-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-teal-700 bg-teal-50/50">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-teal-50/50 text-[8.5px]">${formatIPDiff(val - valPrev)}</td>`;
-                          }).join('')}
-                          <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-teal-100 text-teal-800">${sumDeresanTarget}</td>
-                          <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-teal-100 text-teal-800">${pctDeresanTarget}%</td>
-                          <td class="text-center font-mono p-1.5 border border-slate-300 bg-teal-100 text-[10px]">${formatIPDiff(sumDeresanTarget - sumDeresanTargetPrev)}</td>
-                        </tr>
-                        <tr>
-                          <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
-                          ${KELAS_KEYS_TAHFIDH.map(k => {
-                            const tot = targetStats.deresan.total[k] || 1;
-                            const val = targetStats.deresan.belum[k] || 0;
-                            const valPrev = targetStats.deresan.belumPrev[k] || 0;
-                            const pct = Math.round((val / tot) * 100);
-                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-50/40 text-[8.5px]">${formatIPDiff(val - valPrev)}</td>`;
-                          }).join('')}
-                          <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumDeresanBelum}</td>
-                          <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctDeresanTarget}%</td>
-                          <td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-100 text-[10px]">${formatIPDiff(sumDeresanBelum - sumDeresanBelumPrev)}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
-            </div>
-
-            <!-- Halaman Tahfidh 2: Pendapatan Juz Hafalan -->
-            <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
-
-            <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
-              <div>
-                <div class="kop-border pb-3 mb-3 flex items-center gap-5">
-                  <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" class="w-16 h-16 object-contain shrink-0" />
-                  <div class="flex-1 text-center pr-6">
-                    <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
-                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP</h1>
-                    <p class="text-[10px] text-slate-600 mt-0.5">Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id</p>
-                  </div>
-                </div>
-
-                <div class="text-center mb-2">
-                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">REKAPITULASI PENDAPATAN HAFALAN SANTRI PER KELAS</h2>
-                  <p class="text-xs font-semibold text-slate-600 mt-0.5">Unit Kerja: <span class="text-blue-700 font-bold">Pondok Tahfidh</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span></p>
-                </div>
-
-                <div class="overflow-x-auto">
-                  <table class="tahfidh-table">
-                    <thead>
-                      <tr>
-                        <th class="th-tahfidh-orange" style="width: 120px; text-align: center;">KETERANGAN / JUZ</th>
-                        ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-orange">Kelas ${k}</th><th class="th-tahfidh-orange" style="width: 35px;">IP</th>`).join('')}
-                        <th class="th-tahfidh-orange" style="width: 100px; text-align: center;">JUMLAH SANTRI</th>
-                        <th class="th-tahfidh-orange" style="width: 40px; text-align: center;">IP</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr class="bg-yellow-100 font-bold">
-                        <td class="text-center p-1 border border-slate-300 text-[10px]">Khotimin</td>
-                        ${KELAS_KEYS_TAHFIDH.map(k => {
-                          const val = jmW.khotimin[k] || 0;
-                          const valPrev = jmWPrev.khotimin[k] || 0;
-                          return `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-yellow-50">${formatIPDiff(val - valPrev)}</td>`;
-                        }).join('')}
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${totKhotimin}</td>
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-yellow-50">${formatIPDiff(totKhotimin - totKhotiminPrev)}</td>
-                      </tr>
-                      <tr class="bg-blue-100 font-bold">
-                        <td class="text-center p-1 border border-slate-300 text-[10px]">Khatam</td>
-                        ${KELAS_KEYS_TAHFIDH.map(k => {
-                          const val = jmW.khatam[k] || 0;
-                          const valPrev = jmWPrev.khatam[k] || 0;
-                          return `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-blue-50">${formatIPDiff(val - valPrev)}</td>`;
-                        }).join('')}
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${totKhatam}</td>
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-blue-50">${formatIPDiff(totKhatam - totKhatamPrev)}</td>
-                      </tr>
-                      ${juzRowsHTML}
-                      <tr class="bg-rose-50 font-bold text-rose-800">
-                        <td class="text-center p-1 border border-slate-300 text-[10px]">Belum Setor</td>
-                        ${KELAS_KEYS_TAHFIDH.map(k => {
-                          const val = jmW.belumSetor[k] || 0;
-                          const valPrev = jmWPrev.belumSetor[k] || 0;
-                          return `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(val - valPrev)}</td>`;
-                        }).join('')}
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${totBelumSetor}</td>
-                        <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(totBelumSetor - totBelumSetorPrev)}</td>
-                      </tr>
-                    </tbody>
-                    <tfoot>
-                      <tr class="bg-slate-200 font-black text-slate-900">
-                        <td class="text-center p-1.5 border border-slate-300 text-[10.5px]">JUMLAH SANTRI AKTIF</td>
-                        ${KELAS_KEYS_TAHFIDH.map(k => {
-                          const val = jmW.total[k] || 0;
-                          const valPrev = jmWPrev.total[k] || 0;
-                          return `<td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(val - valPrev)}</td>`;
-                        }).join('')}
-                        <td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${totSantriAktif}</td>
-                        <td class="text-center font-mono p-1.5 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(totSantriAktif - totSantriAktifPrev)}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              </div>
-              <div class="text-center text-[10px] text-slate-400 font-serif pt-3">${pageNumberCounter++}</div>
-            </div>
-          `; // <--- PASTIKAN BARIS INI ADA
-          
-           // Halaman Tahfidh 3: Per Halaqoh USTADZ
+            const pctPojokTarget = sumPojokTotal > 0 ? Math.round((sumPojokTarget / sumPojokTotal) * 100) : 0;
+            const pctLembagaTarget = sumLembagaTotal > 0 ? Math.round((sumLembagaTarget / sumLembagaTotal) * 100) : 0;
+            const pctDeresanTarget = sumDeresanTotal > 0 ? Math.round((sumDeresanTarget / sumDeresanTotal) * 100) : 0;
             
-           // Generate Format Nama Bulan
+            const formatIPDiff = (ip) => {
+               if (ip > 0) return `<span class="text-emerald-600 font-bold">▲ ${ip}</span>`;
+               if (ip < 0) return `<span class="text-rose-600 font-bold">▼ ${Math.abs(ip)}</span>`;
+               return `<span class="text-slate-400 font-bold">-</span>`;
+            };
+
+            const jmW = tahfidhData.juzMatrix;
+            const jmWPrev = tahfidhData.juzMatrixPrev;
+
+            let juzRowsHTML = '';
+            DISPLAY_JUZ_ORDER.forEach(j => {
+                const rowTot = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.juz[j][k] || 0), 0);
+                const rowTotPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.juz[j][k] || 0), 0);
+                juzRowsHTML += `
+                <tr class="${j === 30 ? 'bg-amber-50/70 font-semibold' : ''}">
+                    <td class="text-center font-bold font-mono text-[10.5px] p-1 border border-slate-300">Juz ${j}</td>
+                    ${KELAS_KEYS_TAHFIDH.map(k => {
+                        const val = jmW.juz[j][k] || 0;
+                        const valPrev = jmWPrev.juz[j][k] || 0;
+                        return `<td class="text-center font-mono text-[10.5px] p-1 border border-slate-300 ${val > 0 ? 'font-bold bg-emerald-50 text-emerald-800' : 'text-slate-400'}">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-slate-50">${formatIPDiff(val - valPrev)}</td>`;
+                    }).join('')}
+                    <td class="text-center font-bold font-mono text-[10.5px] p-1 border border-slate-300 bg-slate-100">${rowTot}</td>
+                    <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-slate-100">${formatIPDiff(rowTot - rowTotPrev)}</td>
+                </tr>
+                `;
+            });
+
+            const totKhotimin = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.khotimin[k] || 0), 0);
+            const totKhotiminPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.khotimin[k] || 0), 0);
+            const totKhatam = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.khatam[k] || 0), 0);
+            const totKhatamPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.khatam[k] || 0), 0);
+            const totBelumSetor = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.belumSetor[k] || 0), 0);
+            const totBelumSetorPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.belumSetor[k] || 0), 0);
+            const totSantriAktif = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.total[k] || 0), 0);
+            const totSantriAktifPrev = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmWPrev.total[k] || 0), 0);
+
+            pagesHTML += `
+            <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+            <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+                <div>
+                    <div class="kop-border pb-3 mb-4 flex items-center gap-5">
+                        <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" class="w-16 h-16 object-contain shrink-0" />
+                        <div class="flex-1 text-center pr-6">
+                            <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
+                            <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP</h1>
+                        </div>
+                    </div>
+                    <div class="text-center mb-4">
+                        <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">LAPORAN EVALUASI 3 TARGET KETAHFIDHAN SANTRI</h2>
+                        <p class="text-xs font-semibold text-slate-600 mt-0.5">Periode: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span></p>
+                    </div>
+                    <table class="excel-table mb-5" style="text-align: center;">
+                        <thead>
+                            <tr style="background-color: #f1f5f9;">
+                                <th style="width: 33.3%; background-color: #fce4d6; color: #9a3412;">TARGET POJOKAN (ZIYADAH)</th>
+                                <th style="width: 33.3%; background-color: #fff2cc; color: #854d0e;">TARGET LEMBAGA</th>
+                                <th style="width: 33.4%; background-color: #bdd7ee; color: #1e3a8a;">TARGET DERESAN (MUROJAAH)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="font-weight: bold; font-family: monospace; font-size: 13px;">
+                                <td style="background-color: #fff7ed; color: #c2410c; padding: 6px;">${pctPojokTarget}% Tuntas (${sumPojokTarget}/${sumPojokTotal})</td>
+                                <td style="background-color: #fefce8; color: #a16207; padding: 6px;">${pctLembagaTarget}% Tuntas (${sumLembagaTarget}/${sumLembagaTotal})</td>
+                                <td style="background-color: #eff6ff; color: #1d4ed8; padding: 6px;">${pctDeresanTarget}% Tuntas (${sumDeresanTarget}/${sumDeresanTotal})</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-xs font-black uppercase text-slate-800 tracking-wide mb-1.5 flex items-center gap-1.5"><i class="fas fa-bullseye text-orange-600"></i><span>1. EVALUASI TARGET POJOKAN (VII-IX)</span></h3>
+                            <table class="tahfidh-table">
+                                <thead>
+                                    <tr>
+                                        <th class="th-tahfidh-orange" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
+                                        ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-orange">Kls ${k}</th><th class="th-tahfidh-orange">%</th><th class="th-tahfidh-orange">IP</th>`).join('')}
+                                        <th class="th-tahfidh-orange" style="width: 60px;">JUMLAH</th><th class="th-tahfidh-orange" style="width: 50px;">%</th><th class="th-tahfidh-orange" style="width: 40px;">IP</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-semibold p-1.5 border border-slate-300">Tercapai</td>
+                                        ${KELAS_KEYS_TAHFIDH.map(k => {
+                                            const tot = targetStats.pojokan.total[k] || 1; const val = targetStats.pojokan.target[k] || 0; const valPrev = targetStats.pojokan.targetPrev[k] || 0; const pct = Math.round((val/tot)*100);
+                                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-700 bg-emerald-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-emerald-700 bg-emerald-50/50">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-emerald-50/50 text-[8.5px]">${formatIPDiff(val-valPrev)}</td>`;
+                                        }).join('')}
+                                        <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-emerald-100 text-emerald-800">${sumPojokTarget}</td>
+                                        <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-emerald-100 text-emerald-800">${pctPojokTarget}%</td>
+                                        <td class="text-center font-mono p-1.5 border border-slate-300 bg-emerald-100 text-[9px]">${formatIPDiff(sumPojokTarget-sumPojokTargetPrev)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
+                                        ${KELAS_KEYS_TAHFIDH.map(k => {
+                                            const tot = targetStats.pojokan.total[k] || 1; const val = targetStats.pojokan.belum[k] || 0; const valPrev = targetStats.pojokan.belumPrev[k] || 0; const pct = Math.round((val/tot)*100);
+                                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-50/40 text-[8.5px]">${formatIPDiff(val-valPrev)}</td>`;
+                                        }).join('')}
+                                        <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumPojokBelum}</td>
+                                        <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctPojokTarget}%</td>
+                                        <td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-100 text-[9px]">${formatIPDiff(sumPojokBelum-sumPojokBelumPrev)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-black uppercase text-slate-800 tracking-wide mb-1.5 flex items-center gap-1.5"><i class="fas fa-landmark text-amber-600"></i><span>2. EVALUASI TARGET LEMBAGA</span></h3>
+                            <table class="tahfidh-table">
+                                <thead>
+                                    <tr>
+                                        <th class="th-tahfidh-yellow" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
+                                        ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-yellow">Kls ${k}</th><th class="th-tahfidh-yellow">%</th><th class="th-tahfidh-yellow">IP</th>`).join('')}
+                                        <th class="th-tahfidh-yellow" style="width: 60px;">JUMLAH</th><th class="th-tahfidh-yellow" style="width: 50px;">%</th><th class="th-tahfidh-yellow" style="width: 40px;">IP</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-semibold p-1.5 border border-slate-300">Tercapai</td>
+                                        ${KELAS_KEYS_TAHFIDH.map(k => {
+                                            const tot = targetStats.lembaga.total[k] || 1; const val = targetStats.lembaga.target[k] || 0; const valPrev = targetStats.lembaga.targetPrev[k] || 0; const pct = Math.round((val/tot)*100);
+                                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-blue-700 bg-blue-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-blue-700 bg-blue-50/50">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-blue-50/50 text-[8.5px]">${formatIPDiff(val-valPrev)}</td>`;
+                                        }).join('')}
+                                        <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-blue-100 text-blue-800">${sumLembagaTarget}</td>
+                                        <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-blue-100 text-blue-800">${pctLembagaTarget}%</td>
+                                        <td class="text-center font-mono p-1.5 border border-slate-300 bg-blue-100 text-[9px]">${formatIPDiff(sumLembagaTarget-sumLembagaTargetPrev)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
+                                        ${KELAS_KEYS_TAHFIDH.map(k => {
+                                            const tot = targetStats.lembaga.total[k] || 1; const val = targetStats.lembaga.belum[k] || 0; const valPrev = targetStats.lembaga.belumPrev[k] || 0; const pct = Math.round((val/tot)*100);
+                                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-50/40 text-[8.5px]">${formatIPDiff(val-valPrev)}</td>`;
+                                        }).join('')}
+                                        <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumLembagaBelum}</td>
+                                        <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100 - pctLembagaTarget}%</td>
+                                        <td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-100 text-[9px]">${formatIPDiff(sumLembagaBelum-sumLembagaBelumPrev)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-black uppercase text-slate-800 tracking-wide mb-1.5 flex items-center gap-1.5"><i class="fas fa-book-open-reader text-blue-600"></i><span>3. EVALUASI TARGET DERESAN</span></h3>
+                            <table class="tahfidh-table">
+                                <thead>
+                                    <tr>
+                                        <th class="th-tahfidh-blue" style="width: 140px; text-align: left; padding-left: 8px;">KETERANGAN</th>
+                                        ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-blue">Kls ${k}</th><th class="th-tahfidh-blue">%</th><th class="th-tahfidh-blue">IP</th>`).join('')}
+                                        <th class="th-tahfidh-blue" style="width: 60px;">JUMLAH</th><th class="th-tahfidh-blue" style="width: 50px;">%</th><th class="th-tahfidh-blue" style="width: 40px;">IP</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-semibold p-1.5 border border-slate-300">Tercapai</td>
+                                        ${KELAS_KEYS_TAHFIDH.map(k => {
+                                            const tot = targetStats.deresan.total[k] || 1; const val = targetStats.deresan.target[k] || 0; const valPrev = targetStats.deresan.targetPrev[k] || 0; const pct = Math.round((val/tot)*100);
+                                            return `<td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-teal-700 bg-teal-50/50">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 font-bold text-teal-700 bg-teal-50/50">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-teal-50/50 text-[8.5px]">${formatIPDiff(val-valPrev)}</td>`;
+                                        }).join('')}
+                                        <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-teal-100 text-teal-800">${sumDeresanTarget}</td>
+                                        <td class="text-center font-mono font-black p-1.5 border border-slate-300 bg-teal-100 text-teal-800">${pctDeresanTarget}%</td>
+                                        <td class="text-center font-mono p-1.5 border border-slate-300 bg-teal-100 text-[10px]">${formatIPDiff(sumDeresanTarget-sumDeresanTargetPrev)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-semibold p-1.5 border border-slate-300 text-rose-700">Belum Target</td>
+                                        ${KELAS_KEYS_TAHFIDH.map(k => {
+                                            const tot = targetStats.deresan.total[k] || 1; const val = targetStats.deresan.belum[k] || 0; const valPrev = targetStats.deresan.belumPrev[k] || 0; const pct = Math.round((val/tot)*100);
+                                            return `<td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-rose-700 bg-rose-50/40">${pct}%</td><td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-50/40 text-[8.5px]">${formatIPDiff(val-valPrev)}</td>`;
+                                        }).join('')}
+                                        <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${sumDeresanBelum}</td>
+                                        <td class="text-center font-mono font-bold p-1.5 border border-slate-300 bg-rose-100 text-rose-800">${100-pctDeresanTarget}%</td>
+                                        <td class="text-center font-mono p-1.5 border border-slate-300 bg-rose-100 text-[10px]">${formatIPDiff(sumDeresanBelum-sumDeresanBelumPrev)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
+            </div>
+
+            <!-- Halaman Tahfidh 2: Matriks Juz -->
+            <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+            <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+                <div>
+                    <div class="text-center mb-2">
+                        <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">REKAPITULASI PENDAPATAN HAFALAN SANTRI PER KELAS</h2>
+                        <p class="text-xs font-semibold text-slate-600 mt-0.5">Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span></p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="tahfidh-table">
+                            <thead>
+                                <tr>
+                                    <th class="th-tahfidh-orange" style="width: 120px; text-align: center;">KETERANGAN / JUZ</th>
+                                    ${KELAS_KEYS_TAHFIDH.map(k => `<th class="th-tahfidh-orange">Kelas ${k}</th><th class="th-tahfidh-orange" style="width: 35px;">IP</th>`).join('')}
+                                    <th class="th-tahfidh-orange" style="width: 100px; text-align: center;">JUMLAH SANTRI</th>
+                                    <th class="th-tahfidh-orange" style="width: 40px; text-align: center;">IP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="bg-yellow-100 font-bold">
+                                    <td class="text-center p-1 border border-slate-300 text-[10px]">Khotimin</td>
+                                    ${KELAS_KEYS_TAHFIDH.map(k => {const val = jmW.khotimin[k] || 0; const valPrev = jmWPrev.khotimin[k] || 0; return `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-yellow-50">${formatIPDiff(val - valPrev)}</td>`; }).join('')}
+                                    <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${totKhotimin}</td>
+                                    <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-yellow-50">${formatIPDiff(totKhotimin - totKhotiminPrev)}</td>
+                                </tr>
+                                <tr class="bg-blue-100 font-bold">
+                                    <td class="text-center p-1 border border-slate-300 text-[10px]">Khatam</td>
+                                    ${KELAS_KEYS_TAHFIDH.map(k => {const val = jmW.khatam[k] || 0; const valPrev = jmWPrev.khatam[k] || 0; return `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-blue-50">${formatIPDiff(val - valPrev)}</td>`; }).join('')}
+                                    <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${totKhatam}</td>
+                                    <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-blue-50">${formatIPDiff(totKhatam - totKhatamPrev)}</td>
+                                </tr>
+                                ${juzRowsHTML}
+                                <tr class="bg-rose-50 font-bold text-rose-800">
+                                    <td class="text-center p-1 border border-slate-300 text-[10px]">Belum Setor</td>
+                                    ${KELAS_KEYS_TAHFIDH.map(k => {const val = jmW.belumSetor[k] || 0; const valPrev = jmWPrev.belumSetor[k] || 0; return `<td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${val}</td><td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(val - valPrev)}</td>`; }).join('')}
+                                    <td class="text-center font-mono p-1 border border-slate-300 text-[10px]">${totBelumSetor}</td>
+                                    <td class="text-center font-mono p-1 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(totBelumSetor - totBelumSetorPrev)}</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-slate-200 font-black text-slate-900">
+                                    <td class="text-center p-1.5 border border-slate-300 text-[10.5px]">JUMLAH SANTRI AKTIF</td>
+                                    ${KELAS_KEYS_TAHFIDH.map(k => {const val = jmW.total[k] || 0; const valPrev = jmWPrev.total[k] || 0; return `<td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${val}</td><td class="text-center font-mono p-1.5 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(val - valPrev)}</td>`; }).join('')}
+                                    <td class="text-center font-mono p-1.5 border border-slate-300 text-[10.5px]">${totSantriAktif}</td>
+                                    <td class="text-center font-mono p-1.5 border border-slate-300 text-[8.5px] bg-white">${formatIPDiff(totSantriAktif - totSantriAktifPrev)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <div class="text-center text-[10px] text-slate-400 font-serif pt-3">${pageNumberCounter++}</div>
+            </div>`;
+
+            // Halaman Tahfidh 3: Per Halaqoh USTADZ (Dichunk agar aman)
             const selYear = parseInt(selectedBulan.split('-')[0], 10);
             const selMonth = parseInt(selectedBulan.split('-')[1], 10);
-            let prevMNum = selMonth - 1;
-            let prevYNum = selYear;
-            if(prevMNum === 0){ prevMNum = 12; prevYNum--; }
+            let prevMNum = selMonth - 1; let prevYNum = selYear;
+            if (prevMNum === 0){ prevMNum = 12; prevYNum--; }
             const monthsId = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sept", "Okt", "Nov", "Des"];
             const currLbl = monthsId[selMonth - 1] + "'" + String(selYear).slice(-2);
             const prevLbl = monthsId[prevMNum - 1] + "'" + String(prevYNum).slice(-2);
+            const formatIP = (ip) => {if (ip > 0) return `<span class="text-emerald-600 font-bold">▲ ${ip}</span>`; if (ip < 0) return `<span class="text-rose-600 font-bold">▼ ${Math.abs(ip)}</span>`; return `<span class="text-slate-400 font-bold">-</span>`; };
 
-            const formatIP = (ip) => {
-              if (ip > 0) return `<span class="text-emerald-600 font-bold">▲ ${ip}</span>`;
-              if (ip < 0) return `<span class="text-rose-600 font-bold">▼ ${Math.abs(ip)}</span>`;
-              return `<span class="text-slate-400 font-bold">-</span>`;
-            };
-
-            // Hitung Baris Total
             let tJml = 0, tZiadah = 0, tBoyong = 0, tKhatam = 0, tKhotimin = 0;
             let tPojokPY = 0, tPojokPN = 0, tPojokCY = 0, tPojokCN = 0;
             let tLembagaPY = 0, tLembagaPN = 0, tLembagaCY = 0, tLembagaCN = 0;
             let tDeresanPY = 0, tDeresanPN = 0, tDeresanCY = 0, tDeresanCN = 0;
 
-            halaqohRows.forEach(h => {
+            let hRowsHTML = '';
+            halaqohRows.forEach((h, hIdx) => {
                 tJml += h.jml; tZiadah += h.masihZiadah; tBoyong += h.santriBoyong; tKhatam += h.santriKhatam; tKhotimin += h.santriKhotimin;
                 tPojokPY += h.passPojokPrev; tPojokPN += h.failPojokPrev; tPojokCY += h.passPojok; tPojokCN += h.failPojok;
                 tLembagaPY += h.passLembagaPrev; tLembagaPN += h.failLembagaPrev; tLembagaCY += h.passLembaga; tLembagaCN += h.failLembaga;
                 tDeresanPY += h.passDeresanPrev; tDeresanPN += h.failDeresanPrev; tDeresanCY += h.passDeresan; tDeresanCN += h.failDeresan;
+
+                hRowsHTML += `
+                <tr class="hover:bg-slate-50 border-b border-slate-300 text-center">
+                    <td class="font-bold font-mono text-slate-500">${hIdx + 1}</td>
+                    <td class="font-bold text-slate-900 text-left truncate px-1">${h.nama}</td>
+                    <td class="font-bold font-mono text-slate-700">${h.kamar}</td>
+                    <td class="text-[9px] text-slate-600 font-semibold">${h.kls}</td>
+                    <td class="font-mono font-bold text-slate-800">${h.jml}</td>
+                    <td class="font-mono text-emerald-700 font-bold">${h.masihZiadah}</td>
+                    <td class="font-mono text-slate-500">${h.santriBoyong}</td>
+                    <td class="font-mono font-bold text-blue-700">${h.santriKhatam}</td>
+                    <td class="font-mono font-bold text-purple-700">${h.santriKhotimin}</td>
+                    <td class="font-mono font-bold text-emerald-700 bg-emerald-50/40">${h.passPojokPrev}</td>
+                    <td class="font-mono font-bold text-rose-700 bg-rose-50/40">${h.failPojokPrev}</td>
+                    <td class="font-mono font-bold text-emerald-700 bg-emerald-50/80">${h.passPojok}</td>
+                    <td class="font-mono font-bold text-rose-700 bg-rose-50/80">${h.failPojok}</td>
+                    <td class="text-[9px] bg-slate-50">${formatIP(h.ipPojok)}</td>
+                    <td class="font-mono font-bold ${h.pctPojok >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-50 text-rose-700'}">${h.pctPojok}%</td>
+                    <td class="font-mono font-bold text-blue-700 bg-blue-50/40">${h.passLembagaPrev}</td>
+                    <td class="font-mono font-bold text-rose-700 bg-rose-50/40">${h.failLembagaPrev}</td>
+                    <td class="font-mono font-bold text-blue-700 bg-blue-50/80">${h.passLembaga}</td>
+                    <td class="font-mono font-bold text-rose-700 bg-rose-50/80">${h.failLembaga}</td>
+                    <td class="text-[9px] bg-slate-50">${formatIP(h.ipLembaga)}</td>
+                    <td class="font-mono font-bold ${h.pctLembaga >= 80 ? 'bg-blue-100 text-blue-800' : 'bg-rose-50 text-rose-700'}">${h.pctLembaga}%</td>
+                    <td class="font-mono font-bold text-teal-700 bg-teal-50/40">${h.passDeresanPrev}</td>
+                    <td class="font-mono font-bold text-rose-700 bg-rose-50/40">${h.failDeresanPrev}</td>
+                    <td class="font-mono font-bold text-teal-700 bg-teal-50/80">${h.passDeresan}</td>
+                    <td class="font-mono font-bold text-rose-700 bg-rose-50/80">${h.failDeresan}</td>
+                    <td class="text-[9px] bg-slate-50">${formatIP(h.ipDeresan)}</td>
+                    <td class="font-mono font-bold ${h.pctDeresan >= 80 ? 'bg-teal-100 text-teal-800' : 'bg-rose-50 text-rose-700'}">${h.pctDeresan}%</td>
+                </tr>`;
             });
 
-            const tPojokIP = tPojokCY - tPojokPY;
-            const tPojokPct = tJml > 0 ? Math.round((tPojokCY / tJml) * 100) : 0;
-            const tLembagaIP = tLembagaCY - tLembagaPY;
-            const tLembagaPct = tJml > 0 ? Math.round((tLembagaCY / tJml) * 100) : 0;
-            const tDeresanIP = tDeresanCY - tDeresanPY;
-            const tDeresanPct = tJml > 0 ? Math.round((tDeresanCY / tJml) * 100) : 0;
+            // Pagination Chunking Rekap Halaqoh
+            let allHalaqohRows = hRowsHTML.split('</tr>').filter(r => r.trim() !== '');
+            const rppHalaqoh = 25;
 
-            // PASTIKAN BARIS DI BAWAH INI MEMILIKI TANDA BACKTICK ( ` )
-            pagesHTML += `
-            <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+            for (let i = 0; i < allHalaqohRows.length; i += rppHalaqoh) {
+                let chunk = allHalaqohRows.slice(i, i + rppHalaqoh).join('</tr>') + '</tr>';
+                pagesHTML += `
+                <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+                <div class="page-break a4-landscape-page page-sheet p-6 sm:p-8 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+                    <div>
+                        <div class="text-center mb-3">
+                            <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">REKAPITULASI CAPAIAN PER HALAQOH USTADZ</h2>
+                            <p class="text-xs font-semibold text-slate-600 mt-0.5">Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span></p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="tahfidh-table">
+                                <thead>
+                                    <tr>
+                                        <th rowspan="3" class="th-tahfidh-orange">NO</th>
+                                        <th rowspan="3" class="th-tahfidh-orange" style="min-width: 100px;">HALAQOH USTADZ</th>
+                                        <th rowspan="3" class="th-tahfidh-orange">KMR</th>
+                                        <th rowspan="3" class="th-tahfidh-orange">KLS</th>
+                                        <th rowspan="3" class="th-tahfidh-orange">JML</th>
+                                        <th rowspan="3" class="th-tahfidh-orange">ZIADAH</th>
+                                        <th rowspan="3" class="th-tahfidh-orange">BOYONG</th>
+                                        <th rowspan="3" class="th-tahfidh-orange">KHATAM</th>
+                                        <th rowspan="3" class="th-tahfidh-orange">KHOTI<br>MIN</th>
+                                        <th colspan="6" class="th-tahfidh-green">TARGET POJOKAN</th>
+                                        <th colspan="6" class="th-tahfidh-yellow">TARGET LEMBAGA</th>
+                                        <th colspan="6" class="th-tahfidh-blue">TARGET DERESAN</th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="2" class="th-tahfidh-green">${prevLbl}</th>
+                                        <th colspan="2" class="th-tahfidh-green">${currLbl}</th>
+                                        <th rowspan="2" class="th-tahfidh-green">IP</th>
+                                        <th rowspan="2" class="th-tahfidh-green">%</th>
+                                        <th colspan="2" class="th-tahfidh-yellow">${prevLbl}</th>
+                                        <th colspan="2" class="th-tahfidh-yellow">${currLbl}</th>
+                                        <th rowspan="2" class="th-tahfidh-yellow">IP</th>
+                                        <th rowspan="2" class="th-tahfidh-yellow">%</th>
+                                        <th colspan="2" class="th-tahfidh-blue">${prevLbl}</th>
+                                        <th colspan="2" class="th-tahfidh-blue">${currLbl}</th>
+                                        <th rowspan="2" class="th-tahfidh-blue">IP</th>
+                                        <th rowspan="2" class="th-tahfidh-blue">%</th>
+                                    </tr>
+                                    <tr style="text-align: center; font-weight: bold;">
+                                        <th class="th-tahfidh-green">Y</th><th class="th-tahfidh-green text-rose-800">N</th>
+                                        <th class="th-tahfidh-green">Y</th><th class="th-tahfidh-green text-rose-800">N</th>
+                                        <th class="th-tahfidh-yellow">Y</th><th class="th-tahfidh-yellow text-rose-800">N</th>
+                                        <th class="th-tahfidh-yellow">Y</th><th class="th-tahfidh-yellow text-rose-800">N</th>
+                                        <th class="th-tahfidh-blue">Y</th><th class="th-tahfidh-blue text-rose-800">N</th>
+                                        <th class="th-tahfidh-blue">Y</th><th class="th-tahfidh-blue text-rose-800">N</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${chunk}
+                                </tbody>
+                                ${i + rppHalaqoh >= allHalaqohRows.length ? `
+                                <tfoot>
+                                    <tr class="bg-orange-100 font-black text-slate-900 text-[10px] text-center border-t-2 border-slate-800">
+                                        <td colspan="4" class="p-2 border border-slate-300">TOTAL / RATA-RATA SANTRI </td>
+                                        <td class="p-2 border border-slate-300">${tJml}</td>
+                                        <td class="p-2 border border-slate-300">${tZiadah}</td>
+                                        <td class="p-2 border border-slate-300">${tBoyong}</td>
+                                        <td class="p-2 border border-slate-300">${tKhatam}</td>
+                                        <td class="p-2 border border-slate-300">${tKhotimin}</td>
+                                        <td class="p-2 border border-slate-300 text-emerald-800 bg-emerald-100/50">${tPojokPY}</td>
+                                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-100/50">${tPojokPN}</td>
+                                        <td class="p-2 border border-slate-300 text-emerald-800 bg-emerald-200/50">${tPojokCY}</td>
+                                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-200/50">${tPojokCN}</td>
+                                        <td class="p-2 border border-slate-300 text-[9px] bg-white">${formatIP(tPojokCY - tPojokPY)}</td>
+                                        <td class="p-2 border border-slate-300">${tJml > 0 ? Math.round((tPojokCY / tJml) * 100) : 0}%</td>
+                                        <td class="p-2 border border-slate-300 text-blue-800 bg-blue-100/50">${tLembagaPY}</td>
+                                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-100/50">${tLembagaPN}</td>
+                                        <td class="p-2 border border-slate-300 text-blue-800 bg-blue-200/50">${tLembagaCY}</td>
+                                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-200/50">${tLembagaCN}</td>
+                                        <td class="p-2 border border-slate-300 text-[9px] bg-white">${formatIP(tLembagaCY - tLembagaPY)}</td>
+                                        <td class="p-2 border border-slate-300">${tJml > 0 ? Math.round((tLembagaCY / tJml) * 100) : 0}%</td>
+                                        <td class="p-2 border border-slate-300 text-teal-800 bg-teal-100/50">${tDeresanPY}</td>
+                                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-100/50">${tDeresanPN}</td>
+                                        <td class="p-2 border border-slate-300 text-teal-800 bg-teal-200/50">${tDeresanCY}</td>
+                                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-200/50">${tDeresanCN}</td>
+                                        <td class="p-2 border border-slate-300 text-[9px] bg-white">${formatIP(tDeresanCY - tDeresanPY)}</td>
+                                        <td class="p-2 border border-slate-300">${tJml > 0 ? Math.round((tDeresanCY / tJml) * 100) : 0}%</td>
+                                    </tr>
+                                </tfoot>` : ''}
+                            </table>
+                        </div>
+                    </div>
+                    <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
+                </div>`;
+            }
 
-            <div class="page-break a4-landscape-page page-sheet p-4 sm:p-6 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
-              <div>
-                <div class="kop-border pb-3 mb-3 flex items-center gap-5">
-                  <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" class="w-16 h-16 object-contain shrink-0" />
-                  <div class="flex-1 text-center pr-6">
-                    <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
-                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP</h1>
-                    <p class="text-[10px] text-slate-600 mt-0.5">Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah</p>
-                  </div>
+            // Halaman Tahfidh 4: Rincian Per Santri (Mencegah Overlap Parah 400 Baris)
+            const targetSantriData = Array.from(new Set(Object.values(tahfidhData.santriById)));
+            let sortedSantri = targetSantriData.sort((a, b) => {
+                let klsA = mapKelasTarget(a.kelas) || '7'; let klsB = mapKelasTarget(b.kelas) || '7';
+                if (klsA !== klsB) return klsA.localeCompare(klsB, undefined, {numeric: true});
+                let kmrA = String(a.kamar || '-').trim(); let kmrB = String(b.kamar || '-').trim();
+                if (kmrA !== kmrB) return kmrA.localeCompare(kmrB, undefined, {numeric: true});
+                let namaA = String(a.nama || a.nama_siswa || '').trim(); let namaB = String(b.nama || b.nama_siswa || '').trim();
+                return namaA.localeCompare(namaB);
+            });
+
+            let rincianRowsHTML = '';
+            sortedSantri.forEach((s, idx) => {
+                const cls = mapKelasTarget(s.kelas) || '7';
+                let zAwalLog = null, zAwalDate = '9999-99-99'; let zAkhirLog = null, zAkhirDate = '0000-00-00';
+                let daAwalLog = null, daAwalDate = '9999-99-99'; let daAkhirLog = null, daAkhirDate = '0000-00-00';
+                let dbAwalLog = null, dbAwalDate = '9999-99-99'; let dbAkhirLog = null, dbAkhirDate = '0000-00-00';
+
+                logsTahfidhData.forEach(log => {
+                    if (isSantriMatch(log, s)) {
+                        let logBulan = ''; const logDateStr = String(log.tanggal || log.created_at || '');
+                        if (logDateStr) { const parts = logDateStr.split(' ')[0].split('T')[0].split('-'); if (parts.length >= 2) logBulan = parts[1]; }
+                        if (logBulan === bInfo.bulanDigit || logBulan === String(parseInt(bInfo.bulanDigit, 10))) {
+                            const kegRaw = String(log.kegiatan || '').toLowerCase(); const keg = kegRaw.replace(/[^a-z0-9]/g, '');
+                            const isZ = keg.includes('ziyadah') || keg === '' || keg.includes('tambah');
+                            const isM = keg.includes('muroja') || keg.includes('muraja') || keg.includes('ulang') || keg.includes('deresan');
+                            const hAw = safeExtractNum(log.juz_awal) > 0; const hAk = safeExtractNum(log.juz_akhir) > 0;
+                            if (isZ) {
+                                if (hAw && logDateStr < zAwalDate) { zAwalLog = log; zAwalDate = logDateStr; }
+                                if (hAk && logDateStr >= zAkhirDate) { zAkhirLog = log; zAkhirDate = logDateStr; }
+                            } else if (isM) {
+                                if (kegRaw.includes(' b') || kegRaw.includes('lama') || kegRaw.includes('sabqi') || kegRaw.includes('manzil')) {
+                                    if (hAw && logDateStr < dbAwalDate) { dbAwalLog = log; dbAwalDate = logDateStr; }
+                                    if (hAk && logDateStr >= dbAkhirDate) { dbAkhirLog = log; dbAkhirDate = logDateStr; }
+                                } else {
+                                    if (hAw && logDateStr < daAwalDate) { daAwalLog = log; daAwalDate = logDateStr; }
+                                    if (hAk && logDateStr >= daAkhirDate) { daAkhirLog = log; daAkhirDate = logDateStr; }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                const gV = (obj, key) => (obj && safeExtractNum(obj[key]) > 0) ? safeExtractNum(obj[key]) : '-';
+                let awJz = gV(zAwalLog, 'juz_awal'); let awPj = gV(zAwalLog, 'pojok_awal');
+                let akJz = gV(zAkhirLog, 'juz_akhir'); let akPj = gV(zAkhirLog, 'pojok_akhir');
+                if (akJz === '-') akJz = s.maxZiyadahJuz || '-'; if (akPj === '-') akPj = s.maxZiyadahPojok || '-';
+                let daAwJz = gV(daAwalLog, 'juz_awal'); let daAwPj = gV(daAwalLog, 'pojok_awal');
+                let daAkJz = gV(daAkhirLog, 'juz_akhir'); let daAkPj = gV(daAkhirLog, 'pojok_akhir');
+                let dbAwJz = gV(dbAwalLog, 'juz_awal'); let dbAwPj = gV(dbAwalLog, 'pojok_awal');
+                let dbAkJz = gV(dbAkhirLog, 'juz_akhir'); let dbAkPj = gV(dbAkhirLog, 'pojok_akhir');
+
+                const ht = (j1, p1, j2, p2) => {
+                    if (j1 !== '-' && p1 !== '-' && j2 !== '-' && p2 !== '-') {
+                        let start = getAbsolutePojok(j1, p1); let end = getAbsolutePojok(j2, p2);
+                        if (end >= start) return (end - start) + 1;
+                    } return 0;
+                };
+
+                let capPojokBulan = ht(awJz, awPj, akJz, akPj);
+                if (capPojokBulan === 0 && s.totalZiyadahBulan > 0) capPojokBulan = Math.round(s.totalZiyadahBulan);
+                let cDrNum = s.totalMurojaahBulan || 0; let capDr = Number.isInteger(cDrNum) ? cDrNum : parseFloat(cDrNum.toFixed(2));
+
+                const ketPj = capPojokBulan >= (targetStats.pojokan.min[cls] || 20) ? 'Y' : 'N';
+                const ketDr = capDr >= (targetStats.deresan.min[cls] || 30) ? 'Y' : 'N';
+                
+                const bStrCur = String(selectedBulan.split('-')[1]).padStart(2, '0');
+                const bIntCur = String(parseInt(bStrCur, 10));
+                const cTL = customTargetsLembaga[`${bStrCur}_${cls}`] || customTargetsLembaga[`${bIntCur}_${cls}`] || DefaultTargetLembaga[bStrCur]?.[cls] || { j: 30, p: 15 };
+                const absTL = getAbsolutePojok(cTL.juz || cTL.j, cTL.pojokan || cTL.p);
+                const isKhatam = s.hasKhatamLog || s.maxZiyadahAbs >= (29 * 20);
+                const ketLembaga = (isKhatam || (absTL > 0 && s.maxZiyadahAbs >= absTL)) ? 'Y' : 'N';
+
+                rincianRowsHTML += `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-300 text-center text-slate-800">
+                    <td class="p-1 border border-slate-300 font-mono text-[9px]">${idx + 1}</td>
+                    <td class="p-1 border border-slate-300 font-bold text-left text-[9px] truncate px-1">${s.nama || s.nama_siswa}</td>
+                    <td class="p-1 border border-slate-300 text-[9px]">${cls}</td>
+                    <td class="p-1 border border-slate-300 text-[9px]">${s.status || 'Ziyadah'}</td>
+                    <td class="p-1 border border-slate-300 text-[9px]">${s.kamar || '-'}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] truncate px-1">${s.halaqoh || '-'}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-700">${awJz}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-700">${awPj}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-bold text-emerald-700">${akJz}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-bold text-emerald-700">${akPj}</td>
+                    <td class="p-1 border border-slate-300 font-black bg-emerald-50 text-emerald-800 text-[9px]">${capPojokBulan}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-black ${ketPj==='Y'?'text-emerald-600 bg-emerald-50':'text-rose-600 bg-rose-50'}">${ketPj}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-black ${ketLembaga==='Y'?'text-blue-600 bg-blue-50':'text-rose-600 bg-rose-50'}">${ketLembaga}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] bg-amber-50/30" colspan="2">Juz ${cTL.juz||cTL.j||'-'} P.${cTL.pojokan||cTL.p||'-'}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAwJz}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAwPj}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAkJz}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${daAkPj}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${dbAwJz}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${dbAwPj}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${dbAkJz}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${dbAkPj}</td>
+                    <td class="p-1 border border-slate-300 font-black bg-blue-50 text-blue-800 text-[9px]">${capDr}</td>
+                    <td class="p-1 border border-slate-300 text-[9px] font-black ${ketDr==='Y'?'text-blue-600 bg-blue-50':'text-rose-600 bg-rose-50'}">${ketDr}</td>
+                </tr>`;
+            });
+
+            // Pagination Chunking Rincian Tahfidh
+            let allRincianRows = rincianRowsHTML.split('</tr>').filter(r => r.trim() !== '');
+            const rppTahfidh = 22; // 22 Baris per halaman
+
+            for (let i = 0; i < allRincianRows.length; i += rppTahfidh) {
+                let chunk = allRincianRows.slice(i, i + rppTahfidh).join('</tr>') + '</tr>';
+                pagesHTML += `
+                <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+                <div class="page-break a4-landscape-page page-sheet p-5 sm:p-6 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+                    <div>
+                        <div class="text-center mb-2">
+                            <h2 class="text-xs font-black uppercase text-slate-900 tracking-wider">RINCIAN DATA PERKEMBANGAN HAFALAN SANTRI</h2>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="tahfidh-table w-full">
+                                <thead>
+                                    <tr style="background-color: #f1f5f9;">
+                                        <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">NO</th>
+                                        <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">NAMA</th>
+                                        <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">KLS</th>
+                                        <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">STATUS</th>
+                                        <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">KMR</th>
+                                        <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">HALAQOH</th>
+                                        <th colspan="5" class="border border-slate-300 p-1 text-[9px] bg-green-100 text-green-900">ZIYADAH</th>
+                                        <th rowspan="3" class="border border-slate-300 p-1 text-[9px] bg-green-100 text-green-900">TARGET<br>POJOK</th>
+                                        <th rowspan="3" class="border border-slate-300 p-1 text-[9px] bg-yellow-100 text-amber-900">PANTAUAN<br>LEMBAGA</th>
+                                        <th colspan="2" rowspan="2" class="border border-slate-300 p-1 text-[9px] bg-yellow-100 text-amber-900">TARGET<br>LEMBAGA</th>
+                                        <th colspan="4" class="border border-slate-300 p-1 text-[9px] bg-blue-100 text-blue-900">DERESAN A</th>
+                                        <th colspan="4" class="border border-slate-300 p-1 text-[9px] bg-blue-100 text-blue-900">DERESAN B</th>
+                                        <th rowspan="3" class="border border-slate-300 p-1 text-[9px] bg-blue-100 text-blue-900">TOTAL<br>DERES</th>
+                                        <th rowspan="3" class="border border-slate-300 p-1 text-[9px] bg-blue-100 text-blue-900">TARGET<br>DERES</th>
+                                    </tr>
+                                    <tr style="background-color: #f1f5f9;">
+                                        <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-green-50">AWAL</th>
+                                        <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-green-50">AKHIR</th>
+                                        <th rowspan="2" class="border border-slate-300 p-1 text-[9px] bg-green-50">JML</th>
+                                        <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-blue-50">AWAL</th>
+                                        <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-blue-50">AKHIR</th>
+                                        <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-blue-50">AWAL</th>
+                                        <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-blue-50">AKHIR</th>
+                                    </tr>
+                                    <tr style="background-color: #f1f5f9;">
+                                        <th class="border border-slate-300 p-1 text-[8px] bg-green-50">Jz</th><th class="border border-slate-300 p-1 text-[8px] bg-green-50">Pj</th>
+                                        <th class="border border-slate-300 p-1 text-[8px] bg-green-50">Jz</th><th class="border border-slate-300 p-1 text-[8px] bg-green-50">Pj</th>
+                                        <th class="border border-slate-300 p-1 text-[8px] bg-amber-50">Jz</th><th class="border border-slate-300 p-1 text-[8px] bg-amber-50">Pj</th>
+                                        <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Jz</th><th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Pj</th>
+                                        <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Jz</th><th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Pj</th>
+                                        <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Jz</th><th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Pj</th>
+                                        <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Jz</th><th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Pj</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${chunk}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
                 </div>
-
-                <div class="text-center mb-3">
-                  <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">REKAPITULASI CAPAIAN PER HALAQOH USTADZ </h2>
-                  <p class="text-xs font-semibold text-slate-600 mt-0.5">Unit Kerja: <span class="text-blue-700 font-bold">Pondok Tahfidh</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span></p>
-                </div>
-
-                <div class="overflow-x-auto">
-                  <table class="tahfidh-table">
-                   <thead>
-                      <tr>
-                        <th rowspan="3" class="th-tahfidh-orange">NO</th>
-                        <th rowspan="3" class="th-tahfidh-orange" style="min-width: 100px;">HALAQOH USTADZ</th>
-                        <th rowspan="3" class="th-tahfidh-orange">KMR</th>
-                        <th rowspan="3" class="th-tahfidh-orange">KLS</th>
-                        <th rowspan="3" class="th-tahfidh-orange">JML</th>
-                        <th rowspan="3" class="th-tahfidh-orange">ZIADAH</th>
-                        <th rowspan="3" class="th-tahfidh-orange">BOYONG</th>
-                        <th rowspan="3" class="th-tahfidh-orange">KHATAM</th>
-                        <th rowspan="3" class="th-tahfidh-orange">KHOTI<br>MIN</th>
-                        <th colspan="6" class="th-tahfidh-green">TARGET POJOKAN</th>
-                        <th colspan="6" class="th-tahfidh-yellow">TARGET LEMBAGA</th>
-                        <th colspan="6" class="th-tahfidh-blue">TARGET DERESAN</th>
-                      </tr>
-                      <tr>
-                        <th colspan="2" class="th-tahfidh-green">${prevLbl}</th>
-                        <th colspan="2" class="th-tahfidh-green">${currLbl}</th>
-                        <th rowspan="2" class="th-tahfidh-green">IP</th>
-                        <th rowspan="2" class="th-tahfidh-green">%</th>
-
-                        <th colspan="2" class="th-tahfidh-yellow">${prevLbl}</th>
-                        <th colspan="2" class="th-tahfidh-yellow">${currLbl}</th>
-                        <th rowspan="2" class="th-tahfidh-yellow">IP</th>
-                        <th rowspan="2" class="th-tahfidh-yellow">%</th>
-
-                        <th colspan="2" class="th-tahfidh-blue">${prevLbl}</th>
-                        <th colspan="2" class="th-tahfidh-blue">${currLbl}</th>
-                        <th rowspan="2" class="th-tahfidh-blue">IP</th>
-                        <th rowspan="2" class="th-tahfidh-blue">%</th>
-                      </tr>
-                      <tr style="text-align: center; font-weight: bold;">
-                        <th class="th-tahfidh-green">Y</th><th class="th-tahfidh-green text-rose-800">N</th>
-                        <th class="th-tahfidh-green">Y</th><th class="th-tahfidh-green text-rose-800">N</th>
-
-                        <th class="th-tahfidh-yellow">Y</th><th class="th-tahfidh-yellow text-rose-800">N</th>
-                        <th class="th-tahfidh-yellow">Y</th><th class="th-tahfidh-yellow text-rose-800">N</th>
-
-                        <th class="th-tahfidh-blue">Y</th><th class="th-tahfidh-blue text-rose-800">N</th>
-                        <th class="th-tahfidh-blue">Y</th><th class="th-tahfidh-blue text-rose-800">N</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${halaqohRows.map((h, hIdx) => `
-                        <tr class="hover:bg-slate-50 border-b border-slate-300 text-center">
-                          <td class="font-bold font-mono text-slate-500">${hIdx + 1}</td>
-                          <td class="font-bold text-slate-900 text-left truncate">${h.nama}</td>
-                          <td class="font-bold font-mono text-slate-700">${h.kamar}</td>
-                          <td class="text-[9px] text-slate-600 font-semibold">${h.kls}</td>
-                          <td class="font-mono font-bold text-slate-800">${h.jml}</td>
-                          <td class="font-mono text-emerald-700 font-bold">${h.masihZiadah}</td>
-                          <td class="font-mono text-slate-500">${h.santriBoyong}</td>
-                          <td class="font-mono font-bold text-blue-700">${h.santriKhatam}</td>
-                          <td class="font-mono font-bold text-purple-700">${h.santriKhotimin}</td>
-
-                          <td class="font-mono font-bold text-emerald-700 bg-emerald-50/40">${h.passPojokPrev}</td>
-                          <td class="font-mono font-bold text-rose-700 bg-rose-50/40">${h.failPojokPrev}</td>
-                          <td class="font-mono font-bold text-emerald-700 bg-emerald-50/80">${h.passPojok}</td>
-                          <td class="font-mono font-bold text-rose-700 bg-rose-50/80">${h.failPojok}</td>
-                          <td class="text-[9px] bg-slate-50">${formatIP(h.ipPojok)}</td>
-                          <td class="font-mono font-bold ${h.pctPojok >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-50 text-rose-700'}">${h.pctPojok}%</td>
-
-                          <td class="font-mono font-bold text-blue-700 bg-blue-50/40">${h.passLembagaPrev}</td>
-                          <td class="font-mono font-bold text-rose-700 bg-rose-50/40">${h.failLembagaPrev}</td>
-                          <td class="font-mono font-bold text-blue-700 bg-blue-50/80">${h.passLembaga}</td>
-                          <td class="font-mono font-bold text-rose-700 bg-rose-50/80">${h.failLembaga}</td>
-                          <td class="text-[9px] bg-slate-50">${formatIP(h.ipLembaga)}</td>
-                          <td class="font-mono font-bold ${h.pctLembaga >= 80 ? 'bg-blue-100 text-blue-800' : 'bg-rose-50 text-rose-700'}">${h.pctLembaga}%</td>
-
-                          <td class="font-mono font-bold text-teal-700 bg-teal-50/40">${h.passDeresanPrev}</td>
-                          <td class="font-mono font-bold text-rose-700 bg-rose-50/40">${h.failDeresanPrev}</td>
-                          <td class="font-mono font-bold text-teal-700 bg-teal-50/80">${h.passDeresan}</td>
-                          <td class="font-mono font-bold text-rose-700 bg-rose-50/80">${h.failDeresan}</td>
-                          <td class="text-[9px] bg-slate-50">${formatIP(h.ipDeresan)}</td>
-                          <td class="font-mono font-bold ${h.pctDeresan >= 80 ? 'bg-teal-100 text-teal-800' : 'bg-rose-50 text-rose-700'}">${h.pctDeresan}%</td>
-                        </tr>
-                      `).join('')}
-                    </tbody>
-                    <tfoot>
-                      <tr class="bg-orange-100 font-black text-slate-900 text-[10px] text-center border-t-2 border-slate-800">
-                        <td colspan="4" class="p-2 border border-slate-300">TOTAL / RATA-RATA SANTRI </td>
-                        <td class="p-2 border border-slate-300">${tJml}</td>
-                        <td class="p-2 border border-slate-300">${tZiadah}</td>
-                        <td class="p-2 border border-slate-300">${tBoyong}</td>
-                        <td class="p-2 border border-slate-300">${tKhatam}</td>
-                        <td class="p-2 border border-slate-300">${tKhotimin}</td>
-
-                        <td class="p-2 border border-slate-300 text-emerald-800 bg-emerald-100/50">${tPojokPY}</td>
-                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-100/50">${tPojokPN}</td>
-                        <td class="p-2 border border-slate-300 text-emerald-800 bg-emerald-200/50">${tPojokCY}</td>
-                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-200/50">${tPojokCN}</td>
-                        <td class="p-2 border border-slate-300 text-[9px] bg-white">${formatIP(tPojokIP)}</td>
-                        <td class="p-2 border border-slate-300 ${tPojokPct >= 80 ? 'text-emerald-800' : 'text-rose-700'}">${tPojokPct}%</td>
-
-                        <td class="p-2 border border-slate-300 text-blue-800 bg-blue-100/50">${tLembagaPY}</td>
-                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-100/50">${tLembagaPN}</td>
-                        <td class="p-2 border border-slate-300 text-blue-800 bg-blue-200/50">${tLembagaCY}</td>
-                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-200/50">${tLembagaCN}</td>
-                        <td class="p-2 border border-slate-300 text-[9px] bg-white">${formatIP(tLembagaIP)}</td>
-                        <td class="p-2 border border-slate-300 ${tLembagaPct >= 80 ? 'text-blue-800' : 'text-rose-700'}">${tLembagaPct}%</td>
-
-                        <td class="p-2 border border-slate-300 text-teal-800 bg-teal-100/50">${tDeresanPY}</td>
-                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-100/50">${tDeresanPN}</td>
-                        <td class="p-2 border border-slate-300 text-teal-800 bg-teal-200/50">${tDeresanCY}</td>
-                        <td class="p-2 border border-slate-300 text-rose-800 bg-rose-200/50">${tDeresanCN}</td>
-                        <td class="p-2 border border-slate-300 text-[9px] bg-white">${formatIP(tDeresanIP)}</td>
-                        <td class="p-2 border border-slate-300 ${tDeresanPct >= 80 ? 'text-teal-800' : 'text-rose-700'}">${tDeresanPct}%</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              </div>
-
-              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
-            </div>
-          `;
-          // PASTIKAN BARIS DI ATAS INI MEMILIKI TANDA BACKTICK ( ` ) DAN TITIK KOMA ( ; )
-        // --- BAGIAN TAMBAHAN: HALAMAN 4 RINCIAN PER SANTRI ---
-        // Menggunakan Set untuk menghapus duplikat referensi objek (karena 1 santri punya key ID & NIS)
-        const targetSantriData = Array.from(new Set(Object.values(tahfidhData.santriById)));
-          
-         // 1. Urutkan Santri: Kelas -> Kamar -> Nama
-          let sortedSantri = targetSantriData.sort((a, b) => {
-              // Urutkan berdasarkan Kelas terlebih dahulu
-              let klsA = mapKelasTarget(a.kelas) || '7';
-              let klsB = mapKelasTarget(b.kelas) || '7';
-              if (klsA !== klsB) return klsA.localeCompare(klsB, undefined, {numeric: true});
-              
-              // Jika Kelas sama, urutkan berdasarkan Nomor Kamar
-              let kmrA = String(a.kamar || '-').trim();
-              let kmrB = String(b.kamar || '-').trim();
-              if (kmrA !== kmrB) return kmrA.localeCompare(kmrB, undefined, {numeric: true});
-              
-              // Jika Kamar juga sama, urutkan sesuai abjad Nama
-              let namaA = String(a.nama || a.nama_siswa || '').trim();
-              let namaB = String(b.nama || b.nama_siswa || '').trim();
-              return namaA.localeCompare(namaB);
-          });
-          
-         let rincianRowsHTML = '';
-          sortedSantri.forEach((s, idx) => {
-              const cls = mapKelasTarget(s.kelas) || '7';
-
-              // --- CARI AWAL & AKHIR BERDASARKAN TANGGAL KRONOLOGIS ---
-              let zAwalLog = null, zAwalDate = '9999-99-99';
-              let zAkhirLog = null, zAkhirDate = '0000-00-00';
-              let daAwalLog = null, daAwalDate = '9999-99-99';
-              let daAkhirLog = null, daAkhirDate = '0000-00-00';
-              let dbAwalLog = null, dbAwalDate = '9999-99-99';
-              let dbAkhirLog = null, dbAkhirDate = '0000-00-00';
-
-              logsTahfidhData.forEach(log => {
-                  if (isSantriMatch(log, s)) {
-                      let logBulan = '';
-                      const logDateStr = String(log.tanggal || log.created_at || ''); 
-                      
-                      if (logDateStr) {
-                          const parts = logDateStr.split(' ')[0].split('T')[0].split('-');
-                          if (parts.length >= 2) logBulan = parts[1];
-                      }
-                      
-                      const isCurMonth = (logBulan === bInfo.bulanDigit || logBulan === String(parseInt(bInfo.bulanDigit, 10)));
-                      
-                      if (isCurMonth) {
-                          const kegRaw = String(log.kegiatan || '').toLowerCase();
-                          const keg = kegRaw.replace(/[^a-z0-9]/g, '');
-                          const isZiyadah = keg.includes('ziyadah') || keg === '' || keg.includes('tambah');
-                          const isMurojaah = keg.includes('muroja') || keg.includes('muraja') || keg.includes('ulang') || keg.includes('deresan');
-                          
-                          const hasAwal = safeExtractNum(log.juz_awal) > 0;
-                          const hasAkhir = safeExtractNum(log.juz_akhir) > 0;
-                          
-                          if (isZiyadah) {
-                              if (hasAwal && logDateStr < zAwalDate) { zAwalLog = log; zAwalDate = logDateStr; }
-                              if (hasAkhir && logDateStr >= zAkhirDate) { zAkhirLog = log; zAkhirDate = logDateStr; }
-                          } else if (isMurojaah) {
-                              const isDeresanB = kegRaw.includes(' b') || kegRaw.includes('lama') || kegRaw.includes('sabqi') || kegRaw.includes('manzil');
-                              if (isDeresanB) {
-                                  if (hasAwal && logDateStr < dbAwalDate) { dbAwalLog = log; dbAwalDate = logDateStr; }
-                                  if (hasAkhir && logDateStr >= dbAkhirDate) { dbAkhirLog = log; dbAkhirDate = logDateStr; }
-                              } else {
-                                  if (hasAwal && logDateStr < daAwalDate) { daAwalLog = log; daAwalDate = logDateStr; }
-                                  if (hasAkhir && logDateStr >= daAkhirDate) { daAkhirLog = log; daAkhirDate = logDateStr; }
-                              }
-                          }
-                      }
-                  }
-              });
-
-              const getVal = (logObj, key) => (logObj && safeExtractNum(logObj[key]) > 0) ? safeExtractNum(logObj[key]) : '-';
-
-              let awalJuz = getVal(zAwalLog, 'juz_awal');
-              let awalPojok = getVal(zAwalLog, 'pojok_awal');
-              let akhirJuz = getVal(zAkhirLog, 'juz_akhir');
-              let akhirPojok = getVal(zAkhirLog, 'pojok_akhir');
-              
-              if (akhirJuz === '-') akhirJuz = s.maxZiyadahJuz || '-';
-              if (akhirPojok === '-') akhirPojok = s.maxZiyadahPojok || '-';
-
-              let awalJuzDeresA = getVal(daAwalLog, 'juz_awal');
-              let awalPojokDeresA = getVal(daAwalLog, 'pojok_awal');
-              let akhirJuzDeresA = getVal(daAkhirLog, 'juz_akhir');
-              let akhirPojokDeresA = getVal(daAkhirLog, 'pojok_akhir');
-
-              let awalJuzDeresB = getVal(dbAwalLog, 'juz_awal');
-              let awalPojokDeresB = getVal(dbAwalLog, 'pojok_awal');
-              let akhirJuzDeresB = getVal(dbAkhirLog, 'juz_akhir');
-              let akhirPojokDeresB = getVal(dbAkhirLog, 'pojok_akhir');
-
-              // --- KALKULASI JML (AKHIR - AWAL + 1) KHUSUS ZIYADAH ---
-              const hitungJarakPojok = (jz1, pj1, jz2, pj2) => {
-                  if (jz1 !== '-' && pj1 !== '-' && jz2 !== '-' && pj2 !== '-') {
-                      let start = getAbsolutePojok(jz1, pj1);
-                      let end = getAbsolutePojok(jz2, pj2);
-                      if (end >= start) return (end - start) + 1;
-                  }
-                  return 0; 
-              };
-
-              let capPojokBulan = hitungJarakPojok(awalJuz, awalPojok, akhirJuz, akhirPojok);
-              if (capPojokBulan === 0 && s.totalZiyadahBulan > 0) {
-                  capPojokBulan = Math.round(s.totalZiyadahBulan);
-              }
-
-              let capDeresanBulanNum = s.totalMurojaahBulan || 0;
-              let capDeresanBulan = Number.isInteger(capDeresanBulanNum) ? capDeresanBulanNum : parseFloat(capDeresanBulanNum.toFixed(2));
-
-              // Evaluasi Pojok & Deresan (Y/N)
-              const targetPojokMin = tahfidhData.targetStats.pojokan.min[cls] || 20;
-              const ketPojok = capPojokBulan >= targetPojokMin ? 'Y' : 'N';
-              
-              const targetDeresanMin = tahfidhData.targetStats.deresan.min[cls] || 30;
-              const ketDeresan = capDeresanBulan >= targetDeresanMin ? 'Y' : 'N';
-              
-              // Evaluasi Lembaga
-              const bStrCur = String(selectedBulan.split('-')[1]).padStart(2, '0');
-              const bIntCur = String(parseInt(bStrCur, 10));
-              const isKhatam = s.hasKhatamLog || s.maxZiyadahAbs >= (29 * 20);
-              const cTL = customTargetsLembaga[`${bStrCur}_${cls}`] || customTargetsLembaga[`${bIntCur}_${cls}`] || DefaultTargetLembaga[bStrCur]?.[cls] || { j: 30, p: 15 };
-              const absTL = getAbsolutePojok(cTL.juz || cTL.j, cTL.pojokan || cTL.p);
-              const ketLembaga = (isKhatam || (absTL > 0 && s.maxZiyadahAbs >= absTL)) ? 'Y' : 'N';
-
-              rincianRowsHTML += `
-              <tr class="hover:bg-slate-50 transition border-b border-slate-300 text-center text-slate-800">
-                  <td class="p-1 border border-slate-300 font-mono text-[9px]">${idx + 1}</td>
-                  <td class="p-1 border border-slate-300 font-bold text-left text-[9px] truncate max-w-[120px] whitespace-nowrap overflow-hidden">${s.nama || s.nama_siswa}</td>
-                  <td class="p-1 border border-slate-300 text-[9px]">${cls}</td>
-                  <td class="p-1 border border-slate-300 text-[9px]">${s.status || 'Ziyadah'}</td>
-                  <td class="p-1 border border-slate-300 text-[9px]">${s.kamar || '-'}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] truncate max-w-[100px] whitespace-nowrap overflow-hidden">${s.halaqoh || '-'}</td>
-                  
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-700">${awalJuz}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-blue-700">${awalPojok}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-emerald-700">${akhirJuz}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-emerald-700">${akhirPojok}</td>
-                  <td class="p-1 border border-slate-300 font-black bg-emerald-50 text-emerald-800 text-[9px]">${capPojokBulan}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] font-black ${ketPojok==='Y'?'text-emerald-600 bg-emerald-50/50':'text-rose-600 bg-rose-50/50'}">${ketPojok}</td>
-                  
-                  <td class="p-1 border border-slate-300 text-[9px] font-black ${ketLembaga==='Y'?'text-blue-600 bg-blue-50/50':'text-rose-600 bg-rose-50/50'}">${ketLembaga}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] bg-amber-50/30" colspan="2">Juz ${cTL.juz||cTL.j||'-'} P.${cTL.pojokan||cTL.p||'-'}</td>
-                  
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${awalJuzDeresA}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${awalPojokDeresA}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${akhirJuzDeresA}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-indigo-700">${akhirPojokDeresA}</td>
-                  
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${awalJuzDeresB}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${awalPojokDeresB}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${akhirJuzDeresB}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] font-bold text-purple-700">${akhirPojokDeresB}</td>
-                  
-                  <td class="p-1 border border-slate-300 font-black bg-blue-50 text-blue-800 text-[9px]">${capDeresanBulan}</td>
-                  <td class="p-1 border border-slate-300 text-[9px] font-black ${ketDeresan==='Y'?'text-blue-600 bg-blue-50/50':'text-rose-600 bg-rose-50/50'}">${ketDeresan}</td>
-              </tr>`;
-          });
-          
-          pagesHTML += `
-          <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
-          <div class="page-break a4-landscape-page page-sheet p-4 sm:p-6 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
-              <div>
-                  <div class="kop-border pb-2 mb-3 flex items-center gap-4">
-                      <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" class="w-12 h-12 object-contain shrink-0" />
-                      <div class="flex-1 text-center pr-6">
-                          <h1 class="text-sm font-black text-slate-900 tracking-tight font-serif uppercase">PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP</h1>
-                          <p class="text-[9px] text-slate-600 mt-0.5">Periode Evaluasi: ${bInfo.lengkap}</p>
-                      </div>
-                  </div>
-                  
-                  <div class="text-center mb-2">
-                      <h2 class="text-xs font-black uppercase text-slate-900 tracking-wider">RINCIAN DATA PERKEMBANGAN HAFALAN SANTRI</h2>
-                  </div>
-                  
-                  <div class="overflow-x-auto">
-                      <table class="tahfidh-table w-full">
-                          <thead>
-                              <tr style="background-color: #f1f5f9;">
-                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">NO</th>
-                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">NAMA</th>
-                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">KLS</th>
-                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">STATUS</th>
-                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">KMR</th>
-                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px]">HALAQOH</th>
-                                  <th colspan="5" class="border border-slate-300 p-1 text-[9px] bg-green-100 text-green-900">ZIYADAH</th>
-                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px] bg-green-100 text-green-900">TARGET<br>POJOK</th>
-                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px] bg-yellow-100 text-amber-900">PANTAUAN<br>LEMBAGA</th>
-                                  <th colspan="2" rowspan="2" class="border border-slate-300 p-1 text-[9px] bg-yellow-100 text-amber-900">TARGET<br>LEMBAGA</th>
-                                  <th colspan="4" class="border border-slate-300 p-1 text-[9px] bg-blue-100 text-blue-900">DERESAN A</th>
-                                  <th colspan="4" class="border border-slate-300 p-1 text-[9px] bg-blue-100 text-blue-900">DERESAN B</th>
-                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px] bg-blue-100 text-blue-900">TOTAL<br>DERES</th>
-                                  <th rowspan="3" class="border border-slate-300 p-1 text-[9px] bg-blue-100 text-blue-900">TARGET<br>DERES</th>
-                              </tr>
-                              <tr style="background-color: #f1f5f9;">
-                                  <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-green-50">AWAL</th>
-                                  <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-green-50">AKHIR</th>
-                                  <th rowspan="2" class="border border-slate-300 p-1 text-[9px] bg-green-50">JML</th>
-                                  
-                                  <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-blue-50">AWAL</th>
-                                  <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-blue-50">AKHIR</th>
-                                  <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-blue-50">AWAL</th>
-                                  <th colspan="2" class="border border-slate-300 p-1 text-[9px] bg-blue-50">AKHIR</th>
-                              </tr>
-                              <tr style="background-color: #f1f5f9;">
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-green-50">Jz</th>
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-green-50">Pj</th>
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-green-50">Jz</th>
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-green-50">Pj</th>
-                                  
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-amber-50">Jz</th>
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-amber-50">Pj</th>
-                                  
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Jz</th>
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Pj</th>
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Jz</th>
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Pj</th>
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Jz</th>
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Pj</th>
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Jz</th>
-                                  <th class="border border-slate-300 p-1 text-[8px] bg-blue-50">Pj</th>
-                              </tr>
-                          </thead>
-                          <tbody>
-                              ${rincianRowsHTML}
-                          </tbody>
-                      </table>
-                  </div>
-              </div>
-              <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
-          </div>
-          `;  
+                `;
+            }
         }
 
-        const tabunganData = getTabunganReportData();
+        // --- HALAMAN REKAPITULASI KEBERSIHAN (DENGAN PAGINATION CHUNKING) ---
+        const rekapKebersihanList = getRekapKebersihanData();
+        if (rekapKebersihanList.length > 0) {
+            let kebersihanRowsHTML = '';
+            rekapKebersihanList.forEach((k, idx) => {
+                let riwayatHTML = '';
+                if (k.riwayatKasus && k.riwayatKasus.length > 0) {
+                    riwayatHTML = `<ul class="space-y-1 pl-3 list-disc m-0">`;
+                    k.riwayatKasus.forEach(r => {
+                        const formatTanggal = r.tanggal.split('-').reverse().join('/');
+                        riwayatHTML += `<li><span class="font-bold">[${formatTanggal}]</span> ${r.keterangan}</li>`;
+                    });
+                    riwayatHTML += `</ul>`;
+                } else {
+                    riwayatHTML = `<span class="italic text-slate-400 font-bold">Bersih</span>`;
+                }
+                kebersihanRowsHTML += `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                    <td class="border border-slate-300 p-2 text-center font-mono font-bold text-slate-500 w-10">${idx + 1}</td>
+                    <td class="border border-slate-300 p-2 font-bold text-slate-900 text-center">${k.nama_kamar}</td>
+                    <td class="border border-slate-300 p-2 text-slate-800">${k.wali_halaqoh || '-'}</td>
+                    <td class="border border-slate-300 p-2 text-center font-bold ${k.totalKasus > 0 ? 'text-rose-700 bg-rose-50/50' : 'text-emerald-700 bg-emerald-50/50'}">${k.totalKasus} Kali</td>
+                    <td class="border border-slate-300 p-2 text-center font-bold ${k.persentase < 70 ? 'text-rose-700 bg-rose-50/50' : 'text-emerald-700 bg-emerald-50/50'}">${k.persentase.toFixed(1)}%</td>
+                    <td class="border border-slate-300 p-2 text-[11px] leading-relaxed">${riwayatHTML}</td>
+                </tr>`;
+            });
 
-        let tabunganRowsHTML = '';
-        tabunganData.rowsPerKelas.forEach((rk) => {
-          const pctSaldo = tabunganData.totalSaldoAll > 0 
-            ? ((rk.totalTabungan / tabunganData.totalSaldoAll) * 100).toFixed(1) 
-            : '0.0';
-          const rataRata = rk.jmlSiswa > 0 
-            ? Math.round(rk.totalTabungan / rk.jmlSiswa) 
-            : 0;
+            // Pagination Chunking Kebersihan
+            let allKebersihanRows = kebersihanRowsHTML.split('</tr>').filter(r => r.trim() !== '');
+            const rppKeb = 18; // 18 Baris per halaman
 
-          tabunganRowsHTML += `
-            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
-              <td class="border border-slate-300 p-2 text-center font-mono font-bold text-slate-500 w-10">
-                ${rk.no}
-              </td>
-              <td class="border border-slate-300 p-2 font-bold text-slate-900">
-                Kelas ${rk.kelas}
-              </td>
-              <td class="border border-slate-300 p-2 text-center font-mono font-bold text-slate-700">
-                ${rk.jmlSiswa} Santri
-              </td>
-              <td class="border border-slate-300 p-2 text-right font-mono font-bold text-emerald-700 bg-emerald-50/30">
-                ${formatRupiah(rk.totalTabungan)}
-              </td>
-              <td class="border border-slate-300 p-2 text-right font-mono font-semibold text-slate-800">
-                ${formatRupiah(rataRata)}
-              </td>
-              <td class="border border-slate-300 p-2 text-center font-mono font-bold text-blue-700 bg-blue-50/30">
-                ${pctSaldo}%
-              </td>
-            </tr>
-          `;
-        });
-
-      }
-
-      // --- HALAMAN REKAPITULASI KEBERSIHAN (TAMPILAN WEB & PRINT BROWSER) ---
-    const rekapKebersihanList = getRekapKebersihanData();
-    if (rekapKebersihanList.length > 0) {
-      let kebersihanRowsHTML = '';
-      rekapKebersihanList.forEach((k, idx) => {
-        let riwayatHTML = '';
-        if(k.riwayatKasus && k.riwayatKasus.length > 0) {
-          riwayatHTML = `<ul class="space-y-1 pl-3 list-disc m-0">`;
-          k.riwayatKasus.forEach(r => {
-            const formatTanggal = r.tanggal.split('-').reverse().join('/');
-            riwayatHTML += `<li><span class="font-bold">[${formatTanggal}]</span> ${r.keterangan}</li>`;
-          });
-          riwayatHTML += `</ul>`;
-        } else {
-          riwayatHTML = `<span class="italic text-slate-400 font-bold">Bersih</span>`;
+            for (let i = 0; i < allKebersihanRows.length; i += rppKeb) {
+                let chunk = allKebersihanRows.slice(i, i + rppKeb).join('</tr>') + '</tr>';
+                pagesHTML += `
+                <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+                <div class="page-break a4-landscape-page page-sheet p-6 sm:p-8 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+                    <div>
+                        <div class="text-center mb-3">
+                            <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider"> LAPORAN MONITORING KETIDAKBERSIHAN KAMAR SANTRI </h2>
+                            <p class="text-xs font-semibold text-slate-600 mt-0.5"> Unit Kerja: <span class="text-blue-700 font-bold">Waka Kebersihan</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span> </p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px; text-align: center;">NO</th>
+                                        <th style="width: 80px; text-align: center;">NAMA KAMAR</th>
+                                        <th style="width: 180px; text-align: left;">WALI HALAQOH</th>
+                                        <th style="width: 90px; text-align: center;">TIDAK BERSIH</th>
+                                        <th style="width: 100px; text-align: center;">% KEBERSIHAN</th>
+                                        <th style="text-align: left;">KETERANGAN / CATATAN KETIDAKBERSIHAN</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${chunk}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
+                </div>
+                `;
+            }
         }
-        
-        kebersihanRowsHTML += `
-          <tr class="hover:bg-slate-50 transition border-b border-slate-200">
-            <td class="border border-slate-300 p-2 text-center font-mono font-bold text-slate-500 w-10">${idx + 1}</td>
-            <td class="border border-slate-300 p-2 font-bold text-slate-900 text-center">${k.nama_kamar}</td>
-            <td class="border border-slate-300 p-2 text-slate-800">${k.wali_halaqoh || '-'}</td>
-            <td class="border border-slate-300 p-2 text-center font-bold ${k.totalKasus > 0 ? 'text-rose-700 bg-rose-50/50' : 'text-emerald-700 bg-emerald-50/50'}">${k.totalKasus} Kali</td>
-            <td class="border border-slate-300 p-2 text-center font-bold ${k.persentase < 70 ? 'text-rose-700 bg-rose-50/50' : 'text-emerald-700 bg-emerald-50/50'}">${k.persentase.toFixed(1)}%</td>
-            <td class="border border-slate-300 p-2 text-[11px] leading-relaxed">${riwayatHTML}</td>
-          </tr>
-        `;
-      });
 
-      pagesHTML += `
-        <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
-        <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
-          <div>
-            <div class="kop-border pb-3 mb-4 flex items-center gap-5">
-              <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" class="w-16 h-16 object-contain shrink-0" />
-              <div class="flex-1 text-center pr-6">
-                <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
-                <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
-                  PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                </h1>
-                <p class="text-[10px] text-slate-600 mt-0.5">
-                  Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                </p>
-              </div>
-            </div>
-            <div class="text-center mb-3">
-              <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
-                LAPORAN MONITORING KETIDAKBERSIHAN KAMAR SANTRI
-              </h2>
-              <p class="text-xs font-semibold text-slate-600 mt-0.5">
-                Unit Kerja: <span class="text-blue-700 font-bold">Waka Kebersihan</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
-              </p>
-            </div>
-            
-            <div class="overflow-x-auto">
-              <table class="excel-table">
-                <thead>
-                  <tr>
-                    <th style="width: 40px; text-align: center;">NO</th>
-                    <th style="width: 80px; text-align: center;">NAMA KAMAR</th>
-                    <th style="width: 180px; text-align: left;">WALI HALAQOH</th>
-                    <th style="width: 90px; text-align: center;">TIDAK BERSIH</th>
-                    <th style="width: 100px; text-align: center;">% KEBERSIHAN</th>
-                    <th style="text-align: left;">KETERANGAN / CATATAN KETIDAKBERSIHAN</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${kebersihanRowsHTML}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
-        </div>
-      `;
-    }
-      // --- HALAMAN REKAPITULASI PELANGGARAN SANTRI (TAMPILAN WEB & PRINT BROWSER) ---
-    const rekapPelanggaranList = getRekapPelanggaranData();
-    if (rekapPelanggaranList.length > 0) {
-      let pelanggaranRowsHTML = '';
-      rekapPelanggaranList.forEach((p, idx) => {
-        // Logika warna badge (kapsul status SP)
-        let badgeClass = 'bg-slate-100 text-slate-700 border-slate-300';
-        if (p.sp === 'Dikeluarkan') badgeClass = 'bg-rose-100 text-rose-800 border-rose-300';
-        else if (p.sp && p.sp !== 'Tanpa SP') badgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
+        // --- HALAMAN REKAPITULASI PELANGGARAN SANTRI (DENGAN PAGINATION CHUNKING) ---
+        const rekapPelanggaranList = getRekapPelanggaranData();
+        if (rekapPelanggaranList.length > 0) {
+            let pelanggaranRowsHTML = '';
+            rekapPelanggaranList.forEach((p, idx) => {
+                let badgeClass = 'bg-slate-100 text-slate-700 border-slate-300';
+                if (p.sp === 'Dikeluarkan') badgeClass = 'bg-rose-100 text-rose-800 border-rose-300';
+                else if (p.sp && p.sp !== 'Tanpa SP') badgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
+                pelanggaranRowsHTML += `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                    <td class="border border-slate-300 p-2 text-center font-mono text-slate-600 w-[80px]">${p.tanggal || '-'}</td>
+                    <td class="border border-slate-300 p-2 font-bold text-slate-900 uppercase px-2">${p.nama || '-'}</td>
+                    <td class="border border-slate-300 p-2 text-center text-slate-700">${p.jenjang || '-'}</td>
+                    <td class="border border-slate-300 p-2 text-center font-bold text-slate-800">${p.kelas || '-'}</td>
+                    <td class="border border-slate-300 p-2 text-slate-800 px-2">${p.halaqoh || '-'}</td>
+                    <td class="border border-slate-300 p-2 text-slate-900 font-semibold px-2">${p.pelanggaran || '-'}</td>
+                    <td class="border border-slate-300 p-2 text-[11px] leading-relaxed whitespace-pre-wrap px-2">${p.sanksi || '-'}</td>
+                    <td class="border border-slate-300 p-2 text-center">
+                        <span class="inline-block px-2 py-1 rounded text-[10px] font-bold border ${badgeClass}">${p.sp || 'Tanpa SP'}</span>
+                    </td>
+                </tr>`;
+            });
 
-        pelanggaranRowsHTML += `
-          <tr class="hover:bg-slate-50 transition border-b border-slate-200">
-            <td class="border border-slate-300 p-2 text-center font-mono text-slate-600 w-[80px]">${p.tanggal || '-'}</td>
-            <td class="border border-slate-300 p-2 font-bold text-slate-900 uppercase">${p.nama || '-'}</td>
-            <td class="border border-slate-300 p-2 text-center text-slate-700">${p.jenjang || '-'}</td>
-            <td class="border border-slate-300 p-2 text-center font-bold text-slate-800">${p.kelas || '-'}</td>
-            <td class="border border-slate-300 p-2 text-slate-800">${p.halaqoh || '-'}</td>
-            <td class="border border-slate-300 p-2 text-slate-900 font-semibold">${p.pelanggaran || '-'}</td>
-            <td class="border border-slate-300 p-2 text-[11px] leading-relaxed whitespace-pre-wrap">${p.sanksi || '-'}</td>
-            <td class="border border-slate-300 p-2 text-center">
-              <span class="inline-block px-2 py-1 rounded text-[10px] font-bold border ${badgeClass}">
-                ${p.sp || 'Tanpa SP'}
-              </span>
-            </td>
-          </tr>
-        `;
-      });
+            // Pagination Chunking Pelanggaran
+            let allPelanggaranRows = pelanggaranRowsHTML.split('</tr>').filter(r => r.trim() !== '');
+            const rppPel = 22; // 22 Baris per halaman
 
-      pagesHTML += `
-        <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
-        <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
-          <div>
-            <div class="kop-border pb-3 mb-4 flex items-center gap-5">
-              <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" class="w-16 h-16 object-contain shrink-0" />
-              <div class="flex-1 text-center pr-6">
-                <h3 class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">YAYASAN ASEM BUNGKUK PATI</h3>
-                <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight font-serif">
-                  PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                </h1>
-                <p class="text-[10px] text-slate-600 mt-0.5">
-                  Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                </p>
-              </div>
-            </div>
-            <div class="text-center mb-3">
-              <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider">
-                LAPORAN DATA PELANGGARAN SANTRI (KEDISIPLINAN)
-              </h2>
-              <p class="text-xs font-semibold text-slate-600 mt-0.5">
-                Unit Kerja: <span class="text-blue-700 font-bold">Keamanan</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span>
-              </p>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="excel-table">
-                <thead>
-                  <tr>
-                    <th style="width: 80px; text-align: center;">TANGGAL</th>
-                    <th style="width: 170px; text-align: left;">NAMA SANTRI</th>
-                    <th style="width: 60px; text-align: center;">JENJANG</th>
-                    <th style="width: 60px; text-align: center;">KELAS</th>
-                    <th style="width: 130px; text-align: left;">HALAQOH</th>
-                    <th style="width: 150px; text-align: left;">PELANGGARAN</th>
-                    <th style="text-align: left;">SANKSI</th>
-                    <th style="width: 90px; text-align: center;">STATUS SP</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${pelanggaranRowsHTML}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
-        </div>
-      `;
+            for (let i = 0; i < allPelanggaranRows.length; i += rppPel) {
+                let chunk = allPelanggaranRows.slice(i, i + rppPel).join('</tr>') + '</tr>';
+                pagesHTML += `
+                <div class="page-break-separator" style="page-break-before: always; break-before: page; height: 0; clear: both;"></div>
+                <div class="page-break a4-landscape-page page-sheet p-6 sm:p-8 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative" style="page-break-before: always; break-before: page;">
+                    <div>
+                        <div class="text-center mb-3">
+                            <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 tracking-wider"> LAPORAN DATA PELANGGARAN SANTRI (KEDISIPLINAN) </h2>
+                            <p class="text-xs font-semibold text-slate-600 mt-0.5"> Unit Kerja: <span class="text-blue-700 font-bold">Keamanan</span> &bull; Periode Evaluasi: <span class="text-purple-700 font-bold">${bInfo.lengkap}</span> </p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px; text-align: center;">TANGGAL</th>
+                                        <th style="width: 170px; text-align: left; padding-left:8px;">NAMA SANTRI</th>
+                                        <th style="width: 60px; text-align: center;">JENJANG</th>
+                                        <th style="width: 60px; text-align: center;">KELAS</th>
+                                        <th style="width: 130px; text-align: left; padding-left:8px;">HALAQOH</th>
+                                        <th style="width: 150px; text-align: left; padding-left:8px;">PELANGGARAN</th>
+                                        <th style="text-align: left; padding-left:8px;">SANKSI</th>
+                                        <th style="width: 90px; text-align: center;">STATUS SP</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${chunk}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="text-center text-[10px] text-slate-400 font-serif pt-4">${pageNumberCounter++}</div>
+                </div>
+                `;
+            }
+        }
+
+        container.innerHTML = pagesHTML;
     }
       
-      container.innerHTML = pagesHTML;
-    }
-
     function filterLaporanByDivisi() {
       const val = document.getElementById('selectDivisi').value;
       renderTableData(val);
