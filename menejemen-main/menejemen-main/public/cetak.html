@@ -2501,1343 +2501,274 @@ function getRekapPelanggaranData() {
     }, 1500);
 }
     
-    function downloadDOCX() {
-      try {
+   function downloadDOCX() {
+        showNotification("Memproses dokumen Word (DOCX)...", false);
+        
         const bInfo = getNamaBulanTahun(selectedBulan);
         const valDiv = document.getElementById('selectDivisi').value;
-
         let targetDivisions = [];
         let unitFileTag = 'Semua_Divisi';
+        
         if (valDiv === 'all') {
-          targetDivisions = divisionsData.filter(d => templatesData.some(t => Number(t.division_id) === Number(d.id)));
+            targetDivisions = divisionsData.filter(d => templatesData.some(t => Number(t.division_id) === Number(d.id)));
         } else {
-          targetDivisions = divisionsData.filter(d => Number(d.id) === Number(valDiv));
-          if (targetDivisions[0]) unitFileTag = targetDivisions[0].name.replace(/\s+/g, '_');
+            targetDivisions = divisionsData.filter(d => Number(d.id) === Number(valDiv));
+            if (targetDivisions[0]) unitFileTag = targetDivisions[0].name.replace(/\s+/g, '_');
         }
-
-        const filename = `Laporan_Bulanan_Lengkap_${unitFileTag}_${selectedBulan}.doc`;
 
         let wordDivisionsContent = '';
         let pageCounterWord = 3;
 
+        // --- 1. TABEL IKU ---
         targetDivisions.forEach((div) => {
-          const divTemplates = templatesData.filter(t => Number(t.division_id) === Number(div.id));
-          if (divTemplates.length === 0) return;
-
-          const groups = [];
-          const map = new Map();
-
-          divTemplates.forEach(tpl => {
-            const key = tpl.iku_id ? Number(tpl.iku_id) : `umum_${tpl.division_id}`;
-            if (!map.has(key)) {
-              const ikuObj = ikusData.find(i => Number(i.id) === Number(tpl.iku_id));
-              const newGroup = { iku: ikuObj, items: [] };
-              map.set(key, newGroup);
-              groups.push(newGroup);
-            }
-            map.get(key).items.push(tpl);
-          });
-
-          let tableRowsWord = '';
-          groups.forEach((grp, grpIdx) => {
-            const rowSpanCount = grp.items.length;
-            const iku = grp.iku;
-
-            grp.items.forEach((item, itemIdx) => {
-              const isFirst = itemIdx === 0;
-              const realisasi = calculateProgramRealisasi(item);
-              const targetTeks = item.target_teks || (item.target ? `${item.target}%` : '100%');
-              // --- KODE BARU UNTUK CATATAN (EKSPOR WORD) ---
-              const rawCatatan = catatanMap[item.id];
-              const catatan = (rawCatatan && rawCatatan.trim() !== '') ? rawCatatan.replace(/\n/g, '<br>') : '-';
-              // --- BATAS KODE BARU -----
-              
-              tableRowsWord += '<tr>';
-              if (isFirst) {
-                tableRowsWord += `
-                  <td rowspan="${rowSpanCount}" style="border: 1px solid #000000; padding: 5px; text-align: center; vertical-align: top; background-color: #f8fafc; font-weight: bold; width: 4%;">
-                    ${grpIdx + 1}
-                  </td>
-                  <td rowspan="${rowSpanCount}" style="border: 1px solid #000000; padding: 5px; vertical-align: top; width: 18%; font-size: 8.5pt;">
-                    ${iku ? `<b style="color: #1e3a8a;">${iku.kode_iku}</b><br><span style="color: #000000;">${iku.title}</span>` : '<i>Program Rutin Unit</i>'}
-                  </td>
-                `;
-              }
-
-              tableRowsWord += `
-                <td style="border: 1px solid #000000; padding: 5px; text-align: center; width: 7%; font-weight: bold; font-size: 8.5pt;">
-                  ${targetTeks}
-                </td>
-                <td style="border: 1px solid #000000; padding: 5px; text-align: center; width: 8%; color: #1d4ed8; font-weight: bold; background-color: #eff6ff; font-size: 8.5pt;">
-                  ${realisasi}
-                </td>
-                <td style="border: 1px solid #000000; padding: 5px; text-align: center; width: 8%; background-color: #f0fdf4; font-size: 8.5pt;">
-                  <!-- Kolom Yayasan Kosong -->
-                </td>
-                <td style="border: 1px solid #000000; padding: 5px; width: 20%; font-size: 8.5pt;">
-                  ${item.title}
-                </td>
-                <td style="border: 1px solid #000000; padding: 5px; text-align: center; width: 8%; font-size: 8pt;">
-                  ${item.timeframe || 'Bulanan'}
-                </td>
-                <td style="border: 1px solid #000000; padding: 5px; width: 27%; font-size: 8.5pt; line-height: 1.3;">
-                  ${catatan}
-                </td>
-              </tr>`;
+            const divTemplates = templatesData.filter(t => Number(t.division_id) === Number(div.id));
+            if (divTemplates.length === 0) return;
+            
+            const groups = [];
+            const map = new Map();
+            divTemplates.forEach(tpl => {
+                const key = tpl.iku_id ? Number(tpl.iku_id) : `umum_${tpl.division_id}`;
+                if (!map.has(key)) {
+                    const ikuObj = ikusData.find(i => Number(i.id) === Number(tpl.iku_id));
+                    const newGroup = { iku: ikuObj, items: [] };
+                    map.set(key, newGroup);
+                    groups.push(newGroup);
+                }
+                map.get(key).items.push(tpl);
             });
-          });
 
-          wordDivisionsContent += `
-            <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
-              <span style="mso-special-character: page-break;">&nbsp;</span>
-            </p>
-            <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
-            <div style="page-break-before: always; mso-break-type: section-break;"></div>
-
-            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
-              <tr>
-                <td width="55" valign="middle" align="left" style="width: 55px;">
-                  <img 
-                    src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
-                    alt="Logo" 
-                    width="44" 
-                    height="44" 
-                    style="width: 44px; height: 44px; border: 0;"
-                  />
-                </td>
-                <td align="center" valign="middle">
-                  <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
-                    YAYASAN ASEM BUNGKUK PATI
-                  </p>
-                  <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
-                    PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                  </p>
-                  <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
-                    Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                  </p>
-                </td>
-              </tr>
-            </table>
-
-            <div style="text-align: center; margin-bottom: 6pt;">
-              <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
-                LAPORAN CAPAIAN INDIKATOR KINERJA UTAMA (IKU)
-              </p>
-              <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
-                Unit Kerja: Divisi ${div.name} (${div.code}) &bull; Periode: ${bInfo.lengkap}
-              </p>
-              <p style="font-size: 7pt; color: #666666; margin: 1px 0 0 0;">
-                Tanggal Unduh: ${dateFormatted}
-              </p>
-            </div>
-
-            <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt;">
-              <thead>
-                <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold; font-size: 7.5pt;">
-                  <th style="border: 1px solid #000000; padding: 4px; width: 4%;">NO</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 18%;">INDIKATOR (IKU)</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 7%;">TARGET</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 8%; background-color: #e0e7ff; color: #1e3a8a;">REALISASI</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 8%; background-color: #ecfdf5; color: #065f46;">YAYASAN</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 20%;">KEGIATAN</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 8%;">WAKTU</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 27%;">CATATAN EVALUASI &amp; TINDAK LANJUT</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${tableRowsWord}
-              </tbody>
-            </table>
-
-            <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
-          `;
-        });
-
-        // Lembar Rekap Absensi Santri di Word (.doc)
-        if (valDiv === 'all') {
-          const attStatsWord = getMonthlyAttendanceStats(selectedBulan);
-
-          let rowsWordAbsensi = '';
-          attStatsWord.perClass.forEach((clsW, idxW) => {
-            rowsWordAbsensi += `
-              <tr>
-                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 6%; font-weight: bold;">
-                  ${idxW + 1}
-                </td>
-                <td style="border: 1px solid #000000; padding: 4px; width: 26%; font-weight: bold;">
-                  Kelas ${clsW.kelas}
-                </td>
-                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 11%; color: #047857; background-color: #ecfdf5; font-weight: bold;">
-                  ${clsW.hadir}
-                </td>
-                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 11%; color: #b45309; background-color: #fffbeb; font-weight: bold;">
-                  ${clsW.sakit}
-                </td>
-                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 11%; color: #1d4ed8; background-color: #eff6ff; font-weight: bold;">
-                  ${clsW.izin}
-                </td>
-                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 11%; color: #b91c1c; background-color: #fef2f2; font-weight: bold;">
-                  ${clsW.alpha}
-                </td>
-                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 12%; font-weight: bold;">
-                  ${clsW.total}
-                </td>
-                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 12%; font-weight: bold; background-color: #f1f5f9;">
-                  ${clsW.pct}%
-                </td>
-              </tr>
-            `;
-          });
-
-          wordDivisionsContent += `
-            <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
-              <span style="mso-special-character: page-break;">&nbsp;</span>
-            </p>
-            <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
-            <div style="page-break-before: always; mso-break-type: section-break;"></div>
-
-            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
-              <tr>
-                <td width="55" valign="middle" align="left" style="width: 55px;">
-                  <img 
-                    src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
-                    alt="Logo" 
-                    width="44" 
-                    height="44" 
-                    style="width: 44px; height: 44px; border: 0;"
-                  />
-                </td>
-                <td align="center" valign="middle">
-                  <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
-                    YAYASAN ASEM BUNGKUK PATI
-                  </p>
-                  <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
-                    PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                  </p>
-                  <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
-                    Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                  </p>
-                </td>
-              </tr>
-            </table>
-
-            <div style="text-align: center; margin-bottom: 8pt;">
-              <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
-                LAPORAN REKAPITULASI PRESENSI &amp; ABSENSI SANTRI
-              </p>
-              <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
-                Unit Pengelola: Keamanan; Kedisiplinan Santri &bull; Periode: ${bInfo.lengkap}
-              </p>
-            </div>
-
-            <!-- TABEL RINGKASAN METRIK PRESENSI DI WORD -->
-            <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8.5pt; text-align: center; margin-bottom: 8pt;">
-              <thead>
-                <tr style="font-weight: bold;">
-                  <th style="border: 1px solid #000000; width: 20%; background-color: #ecfdf5; color: #047857;">TOTAL HADIR</th>
-                  <th style="border: 1px solid #000000; width: 20%; background-color: #fffbeb; color: #b45309;">TOTAL SAKIT</th>
-                  <th style="border: 1px solid #000000; width: 20%; background-color: #eff6ff; color: #1d4ed8;">TOTAL IZIN</th>
-                  <th style="border: 1px solid #000000; width: 20%; background-color: #fef2f2; color: #b91c1c;">TOTAL ALPHA</th>
-                  <th style="border: 1px solid #000000; width: 20%; background-color: #f5f3ff; color: #6d28d9;">% KEHADIRAN SANTRI</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="font-weight: bold;">
-                  <td style="border: 1px solid #000000; padding: 5px; color: #047857;">${attStatsWord.totalHadir}</td>
-                  <td style="border: 1px solid #000000; padding: 5px; color: #b45309;">${attStatsWord.totalSakit}</td>
-                  <td style="border: 1px solid #000000; padding: 5px; color: #1d4ed8;">${attStatsWord.totalIzin}</td>
-                  <td style="border: 1px solid #000000; padding: 5px; color: #b91c1c;">${attStatsWord.totalAlpha}</td>
-                  <td style="border: 1px solid #000000; padding: 5px; color: #6d28d9;">${attStatsWord.globalPct}%</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt;">
-              <thead>
-                <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold; font-size: 7.5pt;">
-                  <th style="border: 1px solid #000000; padding: 4px; width: 6%;">NO</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 26%;">KELAS</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 11%; background-color: #ecfdf5; color: #047857;">HADIR</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 11%; background-color: #fffbeb; color: #b45309;">SAKIT</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 11%; background-color: #eff6ff; color: #1d4ed8;">IZIN</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 11%; background-color: #fef2f2; color: #b91c1c;">ALPHA</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 12%;">TOTAL SESI</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 12%; background-color: #e2e8f0;">PERSENTASE</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rowsWordAbsensi}
-              </tbody>
-            </table>
-
-            <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
-          `;
-
-          // Lembar Rekapitulasi Nilai 88 Rombel di Word
-          const rekapNilaiWord = getRekapNilaiPerRombel();
-          if (rekapNilaiWord.length > 0) {
-            const totalRombelW = rekapNilaiWord.length;
-            const rombelTuntasW = rekapNilaiWord.filter(r => r.is_tuntas).length;
-            const pctRombelTuntasW = ((rombelTuntasW / totalRombelW) * 100).toFixed(1);
-            const rataRataSemuaW = (
-              rekapNilaiWord.reduce((acc, curr) => acc + Number(curr.rata_rata || 0), 0) / totalRombelW
-            ).toFixed(2);
-
-            let rowsNilaiWord = '';
-            rekapNilaiWord.forEach((rnW, idxN) => {
-              rowsNilaiWord += `
-                <tr>
-                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 4%; font-weight: bold;">
-                    ${idxN + 1}
-                  </td>
-                  <td style="border: 1px solid #000000; padding: 4px; width: 22%; font-weight: bold;">
-                    ${rnW.nama_guru}
-                  </td>
-                  <td style="border: 1px solid #000000; padding: 4px; width: 20%; color: #1e3a8a;">
-                    ${rnW.nama_mapel}
-                  </td>
-                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 7%; font-weight: bold; background-color: #f8fafc;">
-                    ${rnW.kelas}
-                  </td>
-                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 6%; font-weight: bold;">
-                    ${rnW.kkm}
-                  </td>
-                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 7%; font-weight: bold;">
-                    ${rnW.jml_siswa}
-                  </td>
-                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 8%; background-color: #f8fafc; font-weight: bold;">
-                    ${rnW.rata_rata}
-                  </td>
-                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 8%; color: #b91c1c; font-weight: bold;">
-                    ${rnW.pct_below_kkm}%
-                  </td>
-                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 8%; color: #047857; font-weight: bold;">
-                    ${rnW.pct_above_kkm}%
-                  </td>
-                  <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 10%; font-weight: bold; background-color: ${rnW.is_tuntas ? '#ecfdf5' : '#fef2f2'}; color: ${rnW.is_tuntas ? '#065f46' : '#991b1b'};">
-                    ${rnW.is_tuntas ? 'Tuntas Baik' : '< 80% Tuntas'}
-                  </td>
-                </tr>
-              `;
+            let tableRowsWord = '';
+            groups.forEach((grp, grpIdx) => {
+                const rowSpanCount = grp.items.length;
+                const iku = grp.iku;
+                grp.items.forEach((item, itemIdx) => {
+                    const isFirst = itemIdx === 0;
+                    const realisasi = calculateProgramRealisasi(item);
+                    const targetTeks = item.target_teks || (item.target ? `${item.target}%` : '100%');
+                    const rawCatatan = catatanMap[item.id];
+                    const catatan = (rawCatatan && rawCatatan.trim() !== '') ? rawCatatan.replace(/\n/g, '<br>') : '-';
+                    
+                    tableRowsWord += '<tr>';
+                    if (isFirst) {
+                        tableRowsWord += `
+                        <td rowspan="${rowSpanCount}" style="border: 1px solid #000000; padding: 5px; text-align: center; vertical-align: top; background-color: #f8fafc; font-weight: bold; width: 4%;">
+                            ${grpIdx + 1}
+                        </td>
+                        <td rowspan="${rowSpanCount}" style="border: 1px solid #000000; padding: 5px; vertical-align: top; width: 18%; font-size: 8.5pt;">
+                            ${iku ? `<b style="color: #1e3a8a;">${iku.kode_iku}</b><br><span style="color: #000000;">${iku.title}</span>` : '<i>Program Rutin Unit</i>'}
+                        </td>`;
+                    }
+                    tableRowsWord += `
+                        <td style="border: 1px solid #000000; padding: 5px; text-align: center; width: 7%; font-weight: bold; font-size: 8.5pt;">${targetTeks}</td>
+                        <td style="border: 1px solid #000000; padding: 5px; text-align: center; width: 8%; color: #1d4ed8; font-weight: bold; background-color: #eff6ff; font-size: 8.5pt;">${realisasi}</td>
+                        <td style="border: 1px solid #000000; padding: 5px; text-align: center; width: 8%; background-color: #f0fdf4; font-size: 8.5pt;"></td>
+                        <td style="border: 1px solid #000000; padding: 5px; width: 20%; font-size: 8.5pt;">${item.title}</td>
+                        <td style="border: 1px solid #000000; padding: 5px; text-align: center; width: 8%; font-size: 8pt;">${item.timeframe || 'Bulanan'}</td>
+                        <td style="border: 1px solid #000000; padding: 5px; width: 27%; font-size: 8.5pt; line-height: 1.3;">${catatan}</td>
+                    </tr>`;
+                });
             });
 
             wordDivisionsContent += `
-              <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
-                <span style="mso-special-character: page-break;">&nbsp;</span>
-              </p>
-              <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
-              <div style="page-break-before: always; mso-break-type: section-break;"></div>
-
-              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
-                <tr>
-                  <td width="55" valign="middle" align="left" style="width: 55px;">
-                    <img 
-                      src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
-                      alt="Logo" 
-                      width="44" 
-                      height="44" 
-                      style="width: 44px; height: 44px; border: 0;"
-                    />
-                  </td>
-                  <td align="center" valign="middle">
-                    <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
-                      YAYASAN ASEM BUNGKUK PATI
-                    </p>
-                    <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
-                    PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                    </p>
-                    <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
-                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                    </p>
-                  </td>
-                </tr>
-              </table>
-
-              <div style="text-align: center; margin-bottom: 8pt;">
-                <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
-                  LAPORAN REKAPITULASI KETUNTASAN BELAJAR SISWA (LEGER NILAI)
-                </p>
-                <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
-                  Unit Pengelola: Kurikulum &amp; Akademik &bull; Periode: ${bInfo.lengkap}
-                </p>
-              </div>
-
-              <!-- TABEL RINGKASAN METRIK LEGER NILAI DI WORD -->
-              <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8.5pt; text-align: center; margin-bottom: 8pt;">
-                <thead>
-                  <tr style="font-weight: bold;">
-                    <th style="border: 1px solid #000000; width: 33.3%; background-color: #eff6ff; color: #1e3a8a;">TOTAL ROMBEL DIEVALUASI</th>
-                    <th style="border: 1px solid #000000; width: 33.3%; background-color: #f8fafc; color: #0f172a;">RATA-RATA KELAS GABUNGAN</th>
-                    <th style="border: 1px solid #000000; width: 33.4%; background-color: #ecfdf5; color: #065f46;">% KETUNTASAN ROMBEL TERCAPAI</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="font-weight: bold;">
-                    <td style="border: 1px solid #000000; padding: 5px; color: #1d4ed8;">${totalRombelW} Rombel</td>
-                    <td style="border: 1px solid #000000; padding: 5px; color: #0f172a;">${rataRataSemuaW}</td>
-                    <td style="border: 1px solid #000000; padding: 5px; color: #047857;">${pctRombelTuntasW}% (${rombelTuntasW}/${totalRombelW})</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 7.5pt;">
-                <thead>
-                  <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold; font-size: 7pt;">
-                    <th style="border: 1px solid #000000; padding: 4px; width: 4%;">NO</th>
-                    <th style="border: 1px solid #000000; padding: 4px; width: 22%; text-align: left;">NAMA GURU</th>
-                    <th style="border: 1px solid #000000; padding: 4px; width: 20%; text-align: left;">MATA PELAJARAN</th>
-                    <th style="border: 1px solid #000000; padding: 4px; width: 7%;">KELAS</th>
-                    <th style="border: 1px solid #000000; padding: 4px; width: 6%;">KKM</th>
-                    <th style="border: 1px solid #000000; padding: 4px; width: 7%;">JML SISWA</th>
-                    <th style="border: 1px solid #000000; padding: 4px; width: 8%;">RATA-RATA</th>
-                    <th style="border: 1px solid #000000; padding: 4px; width: 8%;">&lt; KKM (%)</th>
-                    <th style="border: 1px solid #000000; padding: 4px; width: 8%;">≥ KKM (%)</th>
-                    <th style="border: 1px solid #000000; padding: 4px; width: 10%;">STATUS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${rowsNilaiWord}
-                </tbody>
-              </table>
-
-              <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
-            `;
-          }
-
-          // --- HALAMAN REKAPITULASI KEBERSIHAN (KHUSUS EXPORT DOCX WORD) ---
-    const rekapKebersihanWord = getRekapKebersihanData();
-    if (rekapKebersihanWord.length > 0) {
-      let rowsKebersihanWord = '';
-      rekapKebersihanWord.forEach((k, idx) => {
-        let riwayatHTML = '';
-        if(k.riwayatKasus && k.riwayatKasus.length > 0) {
-          riwayatHTML = `<ul style="margin-top: 0; margin-bottom: 0; padding-left: 15px;">`;
-          k.riwayatKasus.forEach(r => {
-            const formatTanggal = r.tanggal.split('-').reverse().join('/');
-            riwayatHTML += `<li><b>[${formatTanggal}]</b> ${r.keterangan}</li>`;
-          });
-          riwayatHTML += `</ul>`;
-        } else {
-          riwayatHTML = `<i>Bersih</i>`;
-        }
-        
-        rowsKebersihanWord += `
-          <tr>
-            <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 4%; font-weight: bold;">${idx + 1}</td>
-            <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 8%; font-weight: bold;">${k.nama_kamar}</td>
-            <td style="border: 1px solid #000000; padding: 4px; width: 20%; font-weight: bold;">${k.wali_halaqoh || '-'}</td>
-            <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 10%; color: ${k.totalKasus > 0 ? '#b91c1c' : '#047857'}; font-weight: bold;">${k.totalKasus} Kali</td>
-            <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 10%; color: ${k.persentase < 70 ? '#b91c1c' : '#047857'}; font-weight: bold;">${k.persentase.toFixed(1)}%</td>
-            <td style="border: 1px solid #000000; padding: 4px; width: 48%; font-size: 8pt; line-height: 1.3;">${riwayatHTML}</td>
-          </tr>
-        `;
-      });
-
-      wordDivisionsContent += `
-        <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
-          <span style="mso-special-character: page-break;">&nbsp;</span>
-        </p>
-        <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
-        <div style="page-break-before: always; mso-break-type: section-break;"></div>
-        
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
-          <tr>
-            <td width="55" valign="middle" align="left" style="width: 55px;">
-              <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" width="44" height="44" style="width: 44px; height: 44px; border: 0;" />
-            </td>
-            <td align="center" valign="middle">
-              <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
-                YAYASAN ASEM BUNGKUK PATI
-              </p>
-              <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
-                PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-              </p>
-              <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
-                Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-              </p>
-            </td>
-          </tr>
-        </table>
-
-        <div style="text-align: center; margin-bottom: 8pt;">
-          <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
-            LAPORAN MONITORING KETIDAKBERSIHAN KAMAR SANTRI
-          </p>
-          <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
-            Unit Kerja: Waka Kebersihan &bull; Periode: ${bInfo.lengkap}
-          </p>
-        </div>
-
-        <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt;">
-          <thead>
-            <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold; font-size: 7.5pt;">
-              <th style="border: 1px solid #000000; padding: 4px; width: 4%;">NO</th>
-              <th style="border: 1px solid #000000; padding: 4px; width: 10%;">NAMA KAMAR</th>
-              <th style="border: 1px solid #000000; padding: 4px; width: 22%;">WALI HALAQOH</th>
-              <th style="border: 1px solid #000000; padding: 4px; width: 8%;">TIDAK BERSIH</th>
-              <th style="border: 1px solid #000000; padding: 4px; width: 8%;">% KEBERSIHAN</th>
-              <th style="border: 1px solid #000000; padding: 4px; width: 48%;">KETERANGAN / CATATAN KETIDAKBERSIHAN</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsKebersihanWord}
-          </tbody>
-        </table>
-        <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
-      `;
-    }
-          
-          // Lembar Ketahfidhan di Word
-          const tahfidhW = getTahfidhReportData(bInfo.bulanDigit);
-          if (tahfidhW && tahfidhW.targetStats && tahfidhW.juzMatrix) {
-            const { targetStats: tsW, juzMatrix: jmW, halaqohRows: hRowsW } = tahfidhW;
-
-            let sumPojokTargetW = 0, sumPojokBelumW = 0, sumPojokTotalW = 0;
-            let sumLembagaTargetW = 0, sumLembagaBelumW = 0, sumLembagaKhatamW = 0, sumLembagaKhotiminW = 0, sumLembagaTotalW = 0;
-            let sumDeresanTargetW = 0, sumDeresanBelumW = 0, sumDeresanTotalW = 0;
-
-            KELAS_KEYS_TAHFIDH.forEach(k => {
-              sumPojokTargetW += tsW.pojokan.target[k] || 0;
-              sumPojokBelumW += tsW.pojokan.belum[k] || 0;
-              sumPojokTotalW += tsW.pojokan.total[k] || 0;
-
-              sumLembagaTargetW += tsW.lembaga.target[k] || 0;
-              sumLembagaBelumW += tsW.lembaga.belum[k] || 0;
-              sumLembagaKhatamW += tsW.lembaga.khatam[k] || 0;
-              sumLembagaKhotiminW += tsW.lembaga.khotimin[k] || 0;
-              sumLembagaTotalW += tsW.lembaga.total[k] || 0;
-
-              sumDeresanTargetW += tsW.deresan.target[k] || 0;
-              sumDeresanBelumW += tsW.deresan.belum[k] || 0;
-              sumDeresanTotalW += tsW.deresan.total[k] || 0;
-            });
-
-            const pctPojokTargetW = sumPojokTotalW > 0 ? Math.round((sumPojokTargetW / sumPojokTotalW) * 100) : 0;
-            const pctLembagaTargetW = sumLembagaTotalW > 0 ? Math.round((sumLembagaTargetW / sumLembagaTotalW) * 100) : 0;
-            const pctDeresanTargetW = sumDeresanTotalW > 0 ? Math.round((sumDeresanTargetW / sumDeresanTotalW) * 100) : 0;
-
-            // Lembar 1 Tahfidh di Word
-            wordDivisionsContent += `
-              <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
-                <span style="mso-special-character: page-break;">&nbsp;</span>
-              </p>
-              <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
-              <div style="page-break-before: always; mso-break-type: section-break;"></div>
-
-              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
-                <tr>
-                  <td width="55" valign="middle" align="left" style="width: 55px;">
-                    <img 
-                      src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
-                      alt="Logo" 
-                      width="44" 
-                      height="44" 
-                      style="width: 44px; height: 44px; border: 0;"
-                    />
-                  </td>
-                  <td align="center" valign="middle">
-                    <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
-                      YAYASAN ASEM BUNGKUK PATI
-                    </p>
-                    <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
-                      PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                    </p>
-                    <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
-                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                    </p>
-                  </td>
-                </tr>
-              </table>
-
-              <div style="text-align: center; margin-bottom: 8pt;">
-                <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
-                  LAPORAN EVALUASI 3 TARGET KETAHFIDHAN SANTRI 
-                </p>
-                <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
-                  Unit Pengelola: Pondok Tahfidh &bull; Periode: ${bInfo.lengkap}
-                </p>
-              </div>
-
-              <!-- TABEL RINGKASAN METRIK TAHFIDH DI WORD -->
-              <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8.5pt; text-align: center; margin-bottom: 8pt;">
-                <thead>
-                  <tr style="font-weight: bold;">
-                    <th style="border: 1px solid #000000; width: 33.3%; background-color: #fce4d6; color: #9a3412;">TARGET POJOKAN (ZIYADAH)</th>
-                    <th style="border: 1px solid #000000; width: 33.3%; background-color: #fff2cc; color: #854d0e;">TARGET LEMBAGA</th>
-                    <th style="border: 1px solid #000000; width: 33.4%; background-color: #bdd7ee; color: #1e3a8a;">TARGET DERESAN (MUROJAAH)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="font-weight: bold;">
-                    <td style="border: 1px solid #000000; padding: 5px; color: #c2410c;">${pctPojokTargetW}% Tuntas (${sumPojokTargetW}/${sumPojokTotalW})</td>
-                    <td style="border: 1px solid #000000; padding: 5px; color: #a16207;">${pctLembagaTargetW}% Tuntas (${sumLembagaTargetW}/${sumLembagaTotalW})</td>
-                    <td style="border: 1px solid #000000; padding: 5px; color: #1d4ed8;">${pctDeresanTargetW}% Tuntas (${sumDeresanTargetW}/${sumDeresanTotalW})</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <p style="font-weight: bold; font-size: 8.5pt; margin: 6pt 0 2pt 0;">1. EVALUASI TARGET POJOKAN / ZIYADAH (KELAS VII - IX)</p>
-              <table width="100%" border="1" cellpadding="3" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt; margin-bottom: 6pt;">
-                <tr style="background-color: #f8cbad; font-weight: bold; text-align: center;">
-                  <th style="border: 1px solid #000000; width: 22%;">KETERANGAN</th>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 9%;">Kls ${k}</th><th style="border: 1px solid #000000; width: 6%;">%</th>`).join('')}
-                  <th style="border: 1px solid #000000; width: 12%;">TOTAL</th>
-                </tr>
-                <tr>
-                  <td style="border: 1px solid #000000; font-weight: bold; padding: 3px;">Tercapai</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => {
-                    const tot = tsW.pojokan.total[k] || 1;
-                    const val = tsW.pojokan.target[k] || 0;
-                    const pct = Math.round((val/tot)*100);
-                    return `<td style="border: 1px solid #000000; text-align: center; color: #047857; font-weight: bold;">${val}</td><td style="border: 1px solid #000000; text-align: center; color: #047857; font-weight: bold;">${pct}%</td>`;
-                  }).join('')}
-                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #ecfdf5;">${sumPojokTargetW} (${pctPojokTargetW}%)</td>
-                </tr>
-                <tr>
-                  <td style="border: 1px solid #000000; font-weight: bold; color: #b91c1c; padding: 3px;">Belum Target</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => {
-                    const tot = tsW.pojokan.total[k] || 1;
-                    const val = tsW.pojokan.belum[k] || 0;
-                    const pct = Math.round((val/tot)*100);
-                    return `<td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${val}</td><td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${pct}%</td>`;
-                  }).join('')}
-                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #fef2f2;">${sumPojokBelumW} (${100 - pctPojokTargetW}%)</td>
-                </tr>
-              </table>
-
-              <p style="font-weight: bold; font-size: 8.5pt; margin: 6pt 0 2pt 0;">2. EVALUASI TARGET LEMBAGA (KELAS VII - IX)</p>
-              <table width="100%" border="1" cellpadding="3" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt; margin-bottom: 6pt;">
-                <tr style="background-color: #fff2cc; font-weight: bold; text-align: center;">
-                  <th style="border: 1px solid #000000; width: 22%;">KETERANGAN</th>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 9%;">Kls ${k}</th><th style="border: 1px solid #000000; width: 6%;">%</th>`).join('')}
-                  <th style="border: 1px solid #000000; width: 12%;">TOTAL</th>
-                </tr>
-                <tr>
-                  <td style="border: 1px solid #000000; font-weight: bold; padding: 3px;">Tercapai</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => {
-                    const tot = tsW.lembaga.total[k] || 1;
-                    const val = tsW.lembaga.target[k] || 0;
-                    const pct = Math.round((val/tot)*100);
-                    return `<td style="border: 1px solid #000000; text-align: center; color: #1d4ed8; font-weight: bold;">${val}</td><td style="border: 1px solid #000000; text-align: center; color: #1d4ed8; font-weight: bold;">${pct}%</td>`;
-                  }).join('')}
-                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #eff6ff;">${sumLembagaTargetW} (${pctLembagaTargetW}%)</td>
-                </tr>
-                <tr>
-                  <td style="border: 1px solid #000000; font-weight: bold; color: #b91c1c; padding: 3px;">Belum Target</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => {
-                    const tot = tsW.lembaga.total[k] || 1;
-                    const val = tsW.lembaga.belum[k] || 0;
-                    const pct = Math.round((val/tot)*100);
-                    return `<td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${val}</td><td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${pct}%</td>`;
-                  }).join('')}
-                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #fef2f2;">${sumLembagaBelumW} (${100 - pctLembagaTargetW}%)</td>
-                </tr>
-                <tr>
-                  <td style="border: 1px solid #000000; font-weight: bold; color: #047857; padding: 3px;">Khatam 30 Juz</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => {
-                    const tot = tsW.lembaga.total[k] || 1;
-                    const val = tsW.lembaga.khatam[k] || 0;
-                    const pct = Math.round((val/tot)*100);
-                    return `<td style="border: 1px solid #000000; text-align: center; font-weight: bold; color: #047857;">${val}</td><td style="border: 1px solid #000000; text-align: center; font-weight: bold; color: #047857;">${pct}%</td>`;
-                  }).join('')}
-                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold;">${sumLembagaKhatamW} Santri</td>
-                </tr>
-              </table>
-
-              <p style="font-weight: bold; font-size: 8.5pt; margin: 6pt 0 2pt 0;">3. EVALUASI TARGET DERESAN / MUROJAAH (KELAS VII - IX)</p>
-              <table width="100%" border="1" cellpadding="3" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt; margin-bottom: 6pt;">
-                <tr style="background-color: #bdd7ee; font-weight: bold; text-align: center;">
-                  <th style="border: 1px solid #000000; width: 22%;">KETERANGAN</th>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 9%;">Kls ${k}</th><th style="border: 1px solid #000000; width: 6%;">%</th>`).join('')}
-                  <th style="border: 1px solid #000000; width: 12%;">TOTAL</th>
-                </tr>
-                <tr>
-                  <td style="border: 1px solid #000000; font-weight: bold; padding: 3px;">Tercapai</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => {
-                    const tot = tsW.deresan.total[k] || 1;
-                    const val = tsW.deresan.target[k] || 0;
-                    const pct = Math.round((val/tot)*100);
-                    return `<td style="border: 1px solid #000000; text-align: center; color: #0f766e; font-weight: bold;">${val}</td><td style="border: 1px solid #000000; text-align: center; color: #0f766e; font-weight: bold;">${pct}%</td>`;
-                  }).join('')}
-                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #f0fdfa;">${sumDeresanTargetW} (${pctDeresanTargetW}%)</td>
-                </tr>
-                <tr>
-                  <td style="border: 1px solid #000000; font-weight: bold; color: #b91c1c; padding: 3px;">Belum Target</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => {
-                    const tot = tsW.deresan.total[k] || 1;
-                    const val = tsW.deresan.belum[k] || 0;
-                    const pct = Math.round((val/tot)*100);
-                    return `<td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${val}</td><td style="border: 1px solid #000000; text-align: center; color: #b91c1c;">${pct}%</td>`;
-                  }).join('')}
-                  <td style="border: 1px solid #000000; text-align: center; font-weight: bold; background-color: #fef2f2;">${sumDeresanBelumW} (${100 - pctDeresanTargetW}%)</td>
-                </tr>
-              </table>
-
-              <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
-            `;
-
-            // Lembar 2 Tahfidh di Word
-            let rowsJuzWord = '';
-            DISPLAY_JUZ_ORDER.forEach(j => {
-              const rTot = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.juz[j][k] || 0), 0);
-              rowsJuzWord += `
-                <tr ${j === 30 ? 'style="background-color: #fffbeb;"' : ''}>
-                  <td style="border: 1px solid #000000; padding: 2px; text-align: center; font-weight: bold;">Juz ${j}</td>
-                  ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; padding: 2px; text-align: center;">${jmW.juz[j][k] || 0}</td>`).join('')}
-                  <td style="border: 1px solid #000000; padding: 2px; text-align: center; font-weight: bold; background-color: #f8fafc;">${rTot}</td>
-                </tr>
-              `;
-            });
-
-            const totBelumSetorW = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.belumSetor[k] || 0), 0);
-            const totSantriAktifW = KELAS_KEYS_TAHFIDH.reduce((sum, k) => sum + (jmW.total[k] || 0), 0);
-
-            wordDivisionsContent += `
-              <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
-                <span style="mso-special-character: page-break;">&nbsp;</span>
-              </p>
-              <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
-              <div style="page-break-before: always; mso-break-type: section-break;"></div>
-
-              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
-                <tr>
-                  <td width="55" valign="middle" align="left" style="width: 55px;">
-                    <img 
-                      src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
-                      alt="Logo" 
-                      width="44" 
-                      height="44" 
-                      style="width: 44px; height: 44px; border: 0;"
-                    />
-                  </td>
-                  <td align="center" valign="middle">
-                    <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
-                      YAYASAN ASEM BUNGKUK PATI
-                    </p>
-                    <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
-                      PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                    </p>
-                    <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
-                      Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                    </p>
-                  </td>
-                </tr>
-              </table>
-
-              <div style="text-align: center; margin-bottom: 8pt;">
-                <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
-                  REKAPITULASI PENDAPATAN HAFALAN SANTRI  PER KELAS
-                </p>
-                <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
-                  Unit Pengelola: Pondok Tahfidh &bull; Periode: ${bInfo.lengkap}
-                </p>
-              </div>
-
-              <table width="100%" border="1" cellpadding="2" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 7.5pt;">
-                <thead>
-                  <tr style="background-color: #f8cbad; text-align: center; font-weight: bold;">
-                    <th style="border: 1px solid #000000; width: 16%;">KETERANGAN / JUZ</th>
-                    ${KELAS_KEYS_TAHFIDH.map(k => `<th style="border: 1px solid #000000; width: 12%;">Kelas ${k}</th>`).join('')}
-                    <th style="border: 1px solid #000000; width: 12%;">TOTAL</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="background-color: #fef08a; font-weight: bold;">
-                    <td style="border: 1px solid #000000; padding: 2px; text-align: center;">Khotimin</td>
-                    ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; padding: 2px; text-align: center;">${jmW.khotimin[k] || 0}</td>`).join('')}
-                    <td style="border: 1px solid #000000; padding: 2px; text-align: center;">${tsW.lembaga.khotimin['12'] || 0}</td>
-                  </tr>
-                  <tr style="background-color: #dbeafe; font-weight: bold;">
-                    <td style="border: 1px solid #000000; padding: 2px; text-align: center;">Khatam</td>
-                    ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; padding: 2px; text-align: center;">${jmW.khatam[k] || 0}</td>`).join('')}
-                    <td style="border: 1px solid #000000; padding: 2px; text-align: center;">${sumLembagaKhatamW}</td>
-                  </tr>
-                  ${rowsJuzWord}
-                  <tr style="background-color: #fef2f2; font-weight: bold; color: #991b1b;">
-                    <td style="border: 1px solid #000000; padding: 2px; text-align: center;">Belum Setor</td>
-                    ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; padding: 2px; text-align: center;">${jmW.belumSetor[k] || 0}</td>`).join('')}
-                    <td style="border: 1px solid #000000; padding: 2px; text-align: center;">${totBelumSetorW}</td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr style="background-color: #e2e8f0; font-weight: bold;">
-                    <td style="border: 1px solid #000000; padding: 3px; text-align: center;">TOTAL SANTRI </td>
-                    ${KELAS_KEYS_TAHFIDH.map(k => `<td style="border: 1px solid #000000; padding: 3px; text-align: center;">${jmW.total[k] || 0}</td>`).join('')}
-                    <td style="border: 1px solid #000000; padding: 3px; text-align: center;">${totSantriAktifW}</td>
-                  </tr>
-                </tfoot>
-              </table>
-
-              <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 10pt;">${pageCounterWord++}</p>
-            `;
-
-            // Lembar 3 Tahfidh di Word
-            const formatIPWord = (ip) => {
-              if (ip > 0) return `<span style="color: #059669; font-weight: bold;">&#9650; ${ip}</span>`;
-              if (ip < 0) return `<span style="color: #e11d48; font-weight: bold;">&#9660; ${Math.abs(ip)}</span>`;
-              return `<span style="color: #94a3b8; font-weight: bold;">-</span>`;
-            };
-
-            const sYearW = parseInt(selectedBulan.split('-')[0], 10);
-            const sMonthW = parseInt(selectedBulan.split('-')[1], 10);
-            let pMNumW = sMonthW - 1; let pYNumW = sYearW;
-            if(pMNumW === 0){ pMNumW = 12; pYNumW--; }
-            const mLbls = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sept", "Okt", "Nov", "Des"];
-            const currLblW = mLbls[sMonthW - 1] + "'" + String(sYearW).slice(-2);
-            const prevLblW = mLbls[pMNumW - 1] + "'" + String(pYNumW).slice(-2);
-
-            let tJw=0, tZw=0, tBw=0, tKw=0, tKmw=0;
-            let pPYw=0, pPNw=0, pCYw=0, pCNw=0;
-            let lPYw=0, lPNw=0, lCYw=0, lCNw=0;
-            let dPYw=0, dPNw=0, dCYw=0, dCNw=0;
-
-            let rowsTahfidhWord = '';
-            hRowsW.forEach((hw, hIdxW) => {
-              tJw+=hw.jml; tZw+=hw.masihZiadah; tBw+=hw.santriBoyong; tKw+=hw.santriKhatam; tKmw+=hw.santriKhotimin;
-              pPYw+=hw.passPojokPrev; pPNw+=hw.failPojokPrev; pCYw+=hw.passPojok; pCNw+=hw.failPojok;
-              lPYw+=hw.passLembagaPrev; lPNw+=hw.failLembagaPrev; lCYw+=hw.passLembaga; lCNw+=hw.failLembaga;
-              dPYw+=hw.passDeresanPrev; dPNw+=hw.failDeresanPrev; dCYw+=hw.passDeresan; dCNw+=hw.failDeresan;
-
-              rowsTahfidhWord += `
-                <tr style="text-align: center;">
-                  <td style="border: 1px solid #000000; padding: 2px;">${hIdxW + 1}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; text-align: left; font-weight: bold;">${hw.nama}</td>
-                  <td style="border: 1px solid #000000; padding: 2px;">${hw.kamar}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-size: 6pt;">${hw.kls}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold;">${hw.jml}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; color: #047857;">${hw.masihZiadah}</td>
-                  <td style="border: 1px solid #000000; padding: 2px;">${hw.santriBoyong}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #1d4ed8;">${hw.santriKhatam}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #6d28d9;">${hw.santriKhotimin}</td>
-
-                  <td style="border: 1px solid #000000; padding: 2px; color: #047857;">${hw.passPojokPrev}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; color: #b91c1c;">${hw.failPojokPrev}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #047857;">${hw.passPojok}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #b91c1c;">${hw.failPojok}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-size: 6pt;">${formatIPWord(hw.ipPojok)}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold;">${hw.pctPojok}%</td>
-
-                  <td style="border: 1px solid #000000; padding: 2px; color: #1d4ed8;">${hw.passLembagaPrev}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; color: #b91c1c;">${hw.failLembagaPrev}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #1d4ed8;">${hw.passLembaga}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #b91c1c;">${hw.failLembaga}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-size: 6pt;">${formatIPWord(hw.ipLembaga)}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold;">${hw.pctLembaga}%</td>
-
-                  <td style="border: 1px solid #000000; padding: 2px; color: #0f766e;">${hw.passDeresanPrev}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; color: #b91c1c;">${hw.failDeresanPrev}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #0f766e;">${hw.passDeresan}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold; color: #b91c1c;">${hw.failDeresan}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-size: 6pt;">${formatIPWord(hw.ipDeresan)}</td>
-                  <td style="border: 1px solid #000000; padding: 2px; font-weight: bold;">${hw.pctDeresan}%</td>
-                </tr>
-              `;
-            });
-
-            const ipPW = pCYw - pPYw; const pctPW = tJw > 0 ? Math.round((pCYw / tJw) * 100) : 0;
-            const ipLW = lCYw - lPYw; const pctLW = tJw > 0 ? Math.round((lCYw / tJw) * 100) : 0;
-            const ipDW = dCYw - dPYw; const pctDW = tJw > 0 ? Math.round((dCYw / tJw) * 100) : 0;
-
-            wordDivisionsContent += `
-              <!-- (Bagian header kop surat biarkan seperti sebelumnya) -->
-              <div style="page-break-before: always; mso-break-type: section-break;"></div>
-              <!-- Judul Laporan -->
-              <div style="text-align: center; margin-bottom: 8pt; margin-top: 15pt;">
-                <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0;">REKAPITULASI KETAHFIDHAN SANTRI  PER HALAQOH</p>
-                <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">Unit Pengelola: Pondok Tahfidh &bull; Periode: ${bInfo.lengkap}</p>
-              </div>
-
-              <table width="100%" border="1" cellpadding="2" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 6.5pt;">
-                <thead>
-                  <tr style="background-color: #f8cbad; text-align: center; font-weight: bold;">
-                    <th rowspan="3" style="border: 1px solid #000000; width: 3%;">NO</th>
-                    <th rowspan="3" style="border: 1px solid #000000; width: 14%;">HALAQOH USTADZ</th>
-                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">KMR</th>
-                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">KLS</th>
-                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">JML</th>
-                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">ZIADAH</th>
-                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">BYNG</th>
-                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">KHTM</th>
-                    <th rowspan="3" style="border: 1px solid #000000; width: 4%;">KHT MIN</th>
-                    <th colspan="6" style="border: 1px solid #000000; background-color: #e2efda;">TARGET POJOKAN</th>
-                    <th colspan="6" style="border: 1px solid #000000; background-color: #fff2cc;">TARGET LEMBAGA</th>
-                    <th colspan="6" style="border: 1px solid #000000; background-color: #bdd7ee;">TARGET DERESAN</th>
-                  </tr>
-                  <tr style="text-align: center; font-weight: bold;">
-                    <th colspan="2" style="border: 1px solid #000000; background-color: #e2efda;">${prevLblW}</th>
-                    <th colspan="2" style="border: 1px solid #000000; background-color: #e2efda;">${currLblW}</th>
-                    <th rowspan="2" style="border: 1px solid #000000; background-color: #e2efda;">IP</th>
-                    <th rowspan="2" style="border: 1px solid #000000; background-color: #e2efda;">%</th>
-                    
-                    <th colspan="2" style="border: 1px solid #000000; background-color: #fff2cc;">${prevLblW}</th>
-                    <th colspan="2" style="border: 1px solid #000000; background-color: #fff2cc;">${currLblW}</th>
-                    <th rowspan="2" style="border: 1px solid #000000; background-color: #fff2cc;">IP</th>
-                    <th rowspan="2" style="border: 1px solid #000000; background-color: #fff2cc;">%</th>
-                    
-                    <th colspan="2" style="border: 1px solid #000000; background-color: #bdd7ee;">${prevLblW}</th>
-                    <th colspan="2" style="border: 1px solid #000000; background-color: #bdd7ee;">${currLblW}</th>
-                    <th rowspan="2" style="border: 1px solid #000000; background-color: #bdd7ee;">IP</th>
-                    <th rowspan="2" style="border: 1px solid #000000; background-color: #bdd7ee;">%</th>
-                  </tr>
-                  <tr style="text-align: center; font-weight: bold;">
-                    <th style="border: 1px solid #000000; background-color: #e2efda;">Y</th><th style="border: 1px solid #000000; background-color: #e2efda; color: #991b1b;">N</th>
-                    <th style="border: 1px solid #000000; background-color: #e2efda;">Y</th><th style="border: 1px solid #000000; background-color: #e2efda; color: #991b1b;">N</th>
-
-                    <th style="border: 1px solid #000000; background-color: #fff2cc;">Y</th><th style="border: 1px solid #000000; background-color: #fff2cc; color: #991b1b;">N</th>
-                    <th style="border: 1px solid #000000; background-color: #fff2cc;">Y</th><th style="border: 1px solid #000000; background-color: #fff2cc; color: #991b1b;">N</th>
-
-                    <th style="border: 1px solid #000000; background-color: #bdd7ee;">Y</th><th style="border: 1px solid #000000; background-color: #bdd7ee; color: #991b1b;">N</th>
-                    <th style="border: 1px solid #000000; background-color: #bdd7ee;">Y</th><th style="border: 1px solid #000000; background-color: #bdd7ee; color: #991b1b;">N</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${rowsTahfidhWord}
-                </tbody>
-                <tfoot>
-                  <tr style="background-color: #ffedd5; font-weight: bold; text-align: center;">
-                    <td colspan="4" style="border: 1px solid #000000; padding: 3px;">TOTAL / RATA-RATA SANTRI </td>
-                    <td style="border: 1px solid #000000; padding: 3px;">${tJw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px;">${tZw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px;">${tBw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px;">${tKw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px;">${tKmw}</td>
-                    
-                    <td style="border: 1px solid #000000; padding: 3px; background-color: #d1fae5;">${pPYw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px; background-color: #ffe4e6; color: #991b1b;">${pPNw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px; background-color: #a7f3d0;">${pCYw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px; background-color: #fecdd3; color: #991b1b;">${pCNw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px; font-size: 6pt;">${formatIPWord(ipPW)}</td>
-                    <td style="border: 1px solid #000000; padding: 3px;">${pctPW}%</td>
-                    
-                    <td style="border: 1px solid #000000; padding: 3px; background-color: #dbeafe;">${lPYw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px; background-color: #ffe4e6; color: #991b1b;">${lPNw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px; background-color: #bfdbfe;">${lCYw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px; background-color: #fecdd3; color: #991b1b;">${lCNw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px; font-size: 6pt;">${formatIPWord(ipLW)}</td>
-                    <td style="border: 1px solid #000000; padding: 3px;">${pctLW}%</td>
-                    
-                    <td style="border: 1px solid #000000; padding: 3px; background-color: #ccfbf1;">${dPYw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px; background-color: #ffe4e6; color: #991b1b;">${dPNw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px; background-color: #99f6e4;">${dCYw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px; background-color: #fecdd3; color: #991b1b;">${dCNw}</td>
-                    <td style="border: 1px solid #000000; padding: 3px; font-size: 6pt;">${formatIPWord(ipDW)}</td>
-                    <td style="border: 1px solid #000000; padding: 3px;">${pctDW}%</td>
-                  </tr>
-                </tfoot>
-              </table>
-              <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
-            `;
-          }
-
-          // Lembar Statistik Tabungan Santri di Word (.doc)
-          const tabunganW = getTabunganReportData();
-          let rowsTabunganWord = '';
-          tabunganW.rowsPerKelas.forEach(rkW => {
-            const pctSaldoW = tabunganW.totalSaldoAll > 0 
-              ? ((rkW.totalTabungan / tabunganW.totalSaldoAll) * 100).toFixed(1) 
-              : '0.0';
-            const rataRataW = rkW.jmlSiswa > 0 
-              ? Math.round(rkW.totalTabungan / rkW.jmlSiswa) 
-              : 0;
-
-            rowsTabunganWord += `
-              <tr>
-                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 6%; font-weight: bold;">
-                  ${rkW.no}
-                </td>
-                <td style="border: 1px solid #000000; padding: 4px; width: 22%; font-weight: bold;">
-                  Kelas ${rkW.kelas}
-                </td>
-                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 16%;">
-                  ${rkW.jmlSiswa} Santri
-                </td>
-                <td style="border: 1px solid #000000; padding: 4px; text-align: right; width: 24%; color: #047857; background-color: #ecfdf5; font-weight: bold;">
-                  ${formatRupiah(rkW.totalTabungan)}
-                </td>
-                <td style="border: 1px solid #000000; padding: 4px; text-align: right; width: 20%;">
-                  ${formatRupiah(rataRataW)}
-                </td>
-                <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 12%; font-weight: bold; background-color: #eff6ff; color: #1d4ed8;">
-                  ${pctSaldoW}%
-                </td>
-              </tr>
-            `;
-          });
-
-          wordDivisionsContent += `
-            <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
-              <span style="mso-special-character: page-break;">&nbsp;</span>
-            </p>
-            <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
-            <div style="page-break-before: always; mso-break-type: section-break;"></div>
-
-            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
-              <tr>
-                <td width="55" valign="middle" align="left" style="width: 55px;">
-                  <img 
-                    src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
-                    alt="Logo" 
-                    width="44" 
-                    height="44" 
-                    style="width: 44px; height: 44px; border: 0;"
-                  />
-                </td>
-                <td align="center" valign="middle">
-                  <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
-                    YAYASAN ASEM BUNGKUK PATI
-                  </p>
-                  <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
-                    PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-                  </p>
-                  <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
-                    Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-                  </p>
-                </td>
-              </tr>
-            </table>
-
-            <div style="text-align: center; margin-bottom: 8pt;">
-              <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
-                LAPORAN STATISTIK &amp; REKAPITULASI TABUNGAN SANTRI
-              </p>
-              <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
-                Unit Pengelola: Sarpras &amp; Bendahara (Pengelola Tabungan Santri) &bull; Periode: ${bInfo.lengkap}
-              </p>
-            </div>
-
-            <!-- TABEL RINGKASAN METRIK TABUNGAN DI WORD -->
-            <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8.5pt; text-align: center; margin-bottom: 8pt;">
-              <thead>
-                <tr style="font-weight: bold;">
-                  <th style="border: 1px solid #000000; width: 28%; background-color: #ecfdf5; color: #047857;">TOTAL SALDO SELURUH SANTRI</th>
-                  <th style="border: 1px solid #000000; width: 24%; background-color: #fffbeb; color: #b45309;">TABUNGAN KELAS VII</th>
-                  <th style="border: 1px solid #000000; width: 24%; background-color: #eff6ff; color: #1d4ed8;">TABUNGAN KELAS VIII</th>
-                  <th style="border: 1px solid #000000; width: 24%; background-color: #fef2f2; color: #b91c1c;">TABUNGAN KELAS IX</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="font-weight: bold;">
-                  <td style="border: 1px solid #000000; padding: 5px; color: #047857;">${formatRupiah(tabunganW.totalSaldoAll)}</td>
-                  <td style="border: 1px solid #000000; padding: 5px; color: #b45309;">${formatRupiah(tabunganW.totalKls7)}</td>
-                  <td style="border: 1px solid #000000; padding: 5px; color: #1d4ed8;">${formatRupiah(tabunganW.totalKls8)}</td>
-                  <td style="border: 1px solid #000000; padding: 5px; color: #b91c1c;">${formatRupiah(tabunganW.totalKls9)}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt;">
-              <thead>
-                <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold; font-size: 7.5pt;">
-                  <th style="border: 1px solid #000000; padding: 4px; width: 6%;">NO</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 22%;">KELAS</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 16%;">JUMLAH SANTRI</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 24%; background-color: #ecfdf5; color: #047857;">TOTAL TABUNGAN</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 20%;">RATA-RATA</th>
-                  <th style="border: 1px solid #000000; padding: 4px; width: 12%; background-color: #eff6ff;">KONTRIBUSI</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rowsTabunganWord}
-              </tbody>
-              <tfoot>
-                <tr style="background-color: #e2e8f0; font-weight: bold; font-size: 8pt;">
-                  <td colspan="2" style="border: 1px solid #000000; padding: 4px; text-align: center;">TOTAL SALDO</td>
-                  <td style="border: 1px solid #000000; padding: 4px; text-align: center;">${tabunganW.totalSiswaMenabung} Santri</td>
-                  <td style="border: 1px solid #000000; padding: 4px; text-align: right; color: #047857;">${formatRupiah(tabunganW.totalSaldoAll)}</td>
-                  <td style="border: 1px solid #000000; padding: 4px; text-align: right;">${formatRupiah(Math.round(tabunganW.totalSaldoAll / (tabunganW.totalSiswaMenabung || 1)))}</td>
-                  <td style="border: 1px solid #000000; padding: 4px; text-align: center;">100.0%</td>
-                </tr>
-              </tfoot>
-            </table>
-
-            <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
-          `;
-        }
-
-        const wordDocumentHTML = `
-          <html xmlns:v='urn:schemas-microsoft-com:vml'
-                xmlns:o='urn:schemas-microsoft-com:office:office'
-                xmlns:w='urn:schemas-microsoft-com:office:word'
-                xmlns='http://www.w3.org/TR/REC-html40'>
-          <head>
-            <meta charset='utf-8'>
-            <title>Laporan Bulanan IKU, Ledger, Tahfidh & Tabungan</title>
-            <!--[if gte mso 9]>
-            <xml>
-              <w:WordDocument>
-                <w:View>Print</w:View>
-                <w:Zoom>100</w:Zoom>
-                <w:DoNotOptimizeForBrowser/>
-              </w:WordDocument>
-            </xml>
-            <![endif]-->
-            <style>
-              @page {
-                size: 841.95pt 595.35pt;
-                mso-page-orientation: landscape;
-                margin: 56.7pt 56.7pt 56.7pt 70.87pt;
-              }
-              @page WordSection1 {
-                size: 841.95pt 595.35pt;
-                mso-page-orientation: landscape;
-                margin: 56.7pt 56.7pt 56.7pt 70.87pt;
-                mso-header-margin: 28.35pt;
-                mso-footer-margin: 28.35pt;
-                mso-paper-source: 0;
-              }
-              div.WordSection1 {
-                page: WordSection1;
-              }
-              body {
-                font-family: 'Times New Roman', Times, serif;
-                font-size: 9.5pt;
-                line-height: 1.15;
-                color: #000000;
-              }
-              table {
-                border-collapse: collapse;
-                mso-table-lspace: 0pt;
-                mso-table-rspace: 0pt;
-              }
-              tr {
-                page-break-inside: avoid;
-              }
-            </style>
-          </head>
-          <body>
-          <div class="WordSection1">
-
-            <!-- HALAMAN 1: COVER RESMI -->
-            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border: none;">
-              <tr>
-                <td align="center" style="text-align: center; padding-top: 0pt;">
-                  <p style="font-size: 17pt; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 1.5px; line-height: 1.2;">
-                    LAPORAN BULANAN<br>
-                    YANBU'UL QUR'AN BOARDING SCHOOL 1 PATI 
-                  </p>
-                  <div style="border-bottom: 2pt solid #000000; display: inline-block; padding-bottom: 2px; margin-top: 6pt;">
-                    <p style="font-size: 13.5pt; font-weight: bold; margin: 0; color: #1e3a8a; text-transform: uppercase; letter-spacing: 2px;">
-                      PERIODE ${bInfo.bulan.toUpperCase()} ${bInfo.tahun}
-                    </p>
-                  </div>
-                  <p style="font-size: 10.5pt; font-weight: bold; margin: 6pt 0 0 0;">
-                    Disampaikan dalam Rapat Bulanan<br>Yayasan Asem Bungkuk Pati
-                  </p>
-                  <p style="font-size: 9pt; font-style: italic; margin: 3pt 0 0 0; color: #333333;">
-                    Pati, ${dateFormatted}
-                  </p>
-                </td>
-              </tr>
-
-              <tr>
-                <td align="center" valign="middle" style="text-align: center; padding: 8pt 0;">
-                  <img 
-                    src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png" 
-                    alt="Logo Yanbu'ul Qur'an" 
-                    width="170" 
-                    height="170" 
-                    style="width: 170px; height: 170px; border: 0;"
-                  /><br>
-                  
-                  <p style="margin: 0; font-size: 10pt; line-height: 14pt;">&nbsp;<br>&nbsp;</p>
-
-                  <p style="font-size: 12.5pt; font-weight: bold; margin: 0;">
-                    Tahun ${bInfo.tahun}
-                  </p>
-                </td>
-              </tr>
-
-              <tr>
-                <td align="center" valign="bottom" style="text-align: center; padding-bottom: 0pt;">
-                  <img 
-                    src="https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/tulisanarabyanbu.png" 
-                    alt="Tulisan Arab Yanbu'" 
-                    width="260" 
-                    height="36" 
-                    style="width: 260px; height: 36px; border: 0;"
-                  /><br>
-                  <p style="font-size: 11.5pt; font-weight: bold; margin: 4pt 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
-                    YANBU'UL QUR'AN BOARDING SCHOOL 1 PATI
-                  </p>
-                  <p style="font-size: 9.5pt; font-weight: bold; margin: 1px 0 0 0;">
-                    (Pondok Tahfidh - SMPQT - SMAQT)
-                  </p>
-                  <p style="font-size: 8pt; margin: 1px 0 0 0; color: #444444;">
-                    Jalan Raya Pati Tayu Km. 06 Dukuh Ngulaan, Desa Sukoharjo, Kec. Wedarijaksa, Kabupaten Pati 59152
-                  </p>
-                  <p style="font-size: 7.5pt; color: #777777; margin: 3pt 0 0 0;">1</p>
-                </td>
-              </tr>
-            </table>
-
-            <!-- HALAMAN 2: LEMBAR PENGESAHAN -->
             <br clear="all" style="page-break-before: always; mso-break-type: page-break;" />
-            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border: none;">
-              <tr>
-                <td align="center" style="text-align: center; padding-top: 4pt; padding-bottom: 10pt;">
-                  <p style="font-size: 13pt; font-weight: bold; text-decoration: underline; text-transform: uppercase; letter-spacing: 2px; margin: 0;">
-                    HALAMAN PENGESAHAN
-                  </p>
-                </td>
-              </tr>
-              <tr>
-                <td style="text-align: justify; font-size: 10pt; line-height: 1.4; padding: 0 40pt;">
-                  <p style="text-indent: 30pt; margin: 0;">
-                    Laporan Kegiatan Bulanan Yanbu'ul Qur'an Boarding School 1 Pati , periode <b>${bInfo.lengkap}</b> Semester Gasal Tahun Ajaran 2026/2027 sebagai bahan evaluasi pelaksanaan Kegiatan Belajar Mengajar (KBM), Capaian Tahfidh Al-Qur'an, dan Akuntabilitas Keuangan Tabungan Santri di Pondok Tahdidh Yanbu'ul Qur'an 1 Pati Putra Unit SMP, Sukoharjo Kecamatan Wedarijaksa Kabupaten Pati telah disetujui oleh Tim untuk diajukan ke Ketua Yayasan Asem Bungkuk Sukoharjo Wedarijaksa Pati.
-                  </p>
-                </td>
-              </tr>
-              <tr>
-                <td align="right" style="text-align: right; font-size: 9.5pt; padding: 10pt 40pt 4pt 0;">
-                  Pati, ${dateFormatted}
-                </td>
-              </tr>
-              <tr>
-                <td style="padding: 6pt 40pt 0 40pt;">
-                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border: none;">
-                    <tr>
-                      <td width="50%" align="center" valign="top" style="text-align: center; vertical-align: top; width: 50%;">
-                        <p style="font-weight: bold; margin: 0; font-size: 10pt;">Kepala Sekolah,</p>
-                        <p style="margin: 0; font-size: 9.5pt; line-height: 16pt;">&nbsp;<br>&nbsp;</p>
-                        <p style="font-weight: bold; text-decoration: underline; margin: 0; font-size: 10pt;">M. Ahsanul Umam, S.Pd.I.</p>
-                        <p style="font-size: 8pt; color: #444444; margin: 1px 0 0 0;">NIY. 19931029.2017.0022</p>
-                      </td>
-                      <td width="50%" align="center" valign="top" style="text-align: center; vertical-align: top; width: 50%;">
-                        <p style="font-weight: bold; margin: 0; font-size: 10pt;">Kepala Pondok,</p>
-                        <p style="margin: 0; font-size: 9.5pt; line-height: 16pt;">&nbsp;<br>&nbsp;</p>
-                        <p style="font-weight: bold; text-decoration: underline; margin: 0; font-size: 10pt;">Usth. Minnatul Ulya Febriyani</p>
-                        <p style="font-size: 8pt; color: #444444; margin: 1px 0 0 0;">NIY. 20001029.2025.001</p>
-                      </td>
+            <div style="text-align: center; margin-bottom: 6pt;">
+                <p style="font-size: 10.5pt; font-weight: bold; margin: 0;">LAPORAN CAPAIAN INDIKATOR KINERJA UTAMA (IKU)</p>
+                <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">Unit Kerja: Divisi ${div.name} (${div.code}) &bull; Periode: ${bInfo.lengkap}</p>
+            </div>
+            <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt;">
+                <thead>
+                    <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold;">
+                        <th style="border: 1px solid #000000; padding: 4px;">NO</th>
+                        <th style="border: 1px solid #000000; padding: 4px;">INDIKATOR (IKU)</th>
+                        <th style="border: 1px solid #000000; padding: 4px;">TARGET</th>
+                        <th style="border: 1px solid #000000; padding: 4px; background-color: #e0e7ff;">REALISASI</th>
+                        <th style="border: 1px solid #000000; padding: 4px; background-color: #ecfdf5;">YAYASAN</th>
+                        <th style="border: 1px solid #000000; padding: 4px;">KEGIATAN</th>
+                        <th style="border: 1px solid #000000; padding: 4px;">WAKTU</th>
+                        <th style="border: 1px solid #000000; padding: 4px;">CATATAN EVALUASI &amp; TINDAK LANJUT</th>
                     </tr>
-                  </table>
-
-                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-none; margin-top: 10pt;">
-                    <tr>
-                      <td align="center" valign="top" style="text-align: center; vertical-align: top;">
-                        <p style="font-weight: bold; margin: 0; font-size: 10pt;">
-                          Mengetahui,<br>Ketua Yayasan Asem Bungkuk
-                        </p>
-                        <p style="margin: 0; font-size: 9.5pt; line-height: 16pt;">&nbsp;<br>&nbsp;</p>
-                        <p style="font-weight: bold; text-decoration: underline; margin: 0; font-size: 10pt;">H. Ibrahim Wagiman</p>
-                        <p style="font-size: 8pt; color: #444444; margin: 1px 0 0 0;">NIY. 19720722.2016.0001</p>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-              <tr>
-                <td align="center" style="text-align: center; padding-top: 10pt;">
-                  <p style="font-size: 7.5pt; color: #777777; margin: 0;">2</p>
-                </td>
-              </tr>
+                </thead>
+                <tbody>${tableRowsWord}</tbody>
             </table>
-
-            <!-- HALAMAN 3+: TABEL DIVISI, PRESENSI, NILAI, TAHFIDH & TABUNGAN -->
-            ${wordDivisionsContent}
-
-          </div>
-          </body>
-          </html>
-        `;
-
-        // --- HALAMAN REKAPITULASI PELANGGARAN SANTRI (KHUSUS EXPORT DOCX WORD) ---
-    const rekapPelanggaranWord = getRekapPelanggaranData();
-    if (rekapPelanggaranWord.length > 0) {
-      let rowsPelanggaranWord = '';
-      rekapPelanggaranWord.forEach((p, idx) => {
-        // Warna font khusus untuk SP di Word
-        let colorSP = '#333333';
-        if (p.sp === 'Dikeluarkan') colorSP = '#b91c1c';
-        else if (p.sp && p.sp !== 'Tanpa SP') colorSP = '#b45309';
-
-        rowsPelanggaranWord += `
-          <tr>
-            <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 8%; font-size: 8pt;">${p.tanggal || '-'}</td>
-            <td style="border: 1px solid #000000; padding: 4px; font-weight: bold; width: 17%; font-size: 8pt; text-transform: uppercase;">${p.nama || '-'}</td>
-            <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 6%; font-size: 8pt;">${p.jenjang || '-'}</td>
-            <td style="border: 1px solid #000000; padding: 4px; text-align: center; font-weight: bold; width: 5%; font-size: 8pt;">${p.kelas || '-'}</td>
-            <td style="border: 1px solid #000000; padding: 4px; width: 14%; font-size: 8pt;">${p.halaqoh || '-'}</td>
-            <td style="border: 1px solid #000000; padding: 4px; width: 16%; font-size: 8pt; font-weight: bold;">${p.pelanggaran || '-'}</td>
-            <td style="border: 1px solid #000000; padding: 4px; width: 22%; font-size: 8pt; line-height: 1.3;">${p.sanksi || '-'}</td>
-            <td style="border: 1px solid #000000; padding: 4px; text-align: center; width: 12%; font-size: 8pt; font-weight: bold; color: ${colorSP};">${p.sp || 'Tanpa SP'}</td>
-          </tr>
-        `;
-      });
-
-      wordDivisionsContent += `
-        <p class="MsoNormal" style="page-break-before: always; mso-break-type: page-break; margin: 0; padding: 0; line-height: 0; font-size: 1pt;">
-          <span style="mso-special-character: page-break;">&nbsp;</span>
-        </p>
-        <br clear="all" style="page-break-before: always; mso-break-type: page-break; mso-special-character: line-break;" />
-        <div style="page-break-before: always; mso-break-type: section-break;"></div>
-        
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-bottom: 2.5pt double #000000; padding-bottom: 4pt; margin-bottom: 6pt;">
-          <tr>
-            <td width="55" valign="middle" align="left" style="width: 55px;">
-              <img src="${logoBase64 || 'https://raw.githubusercontent.com/smpqtyq1lilbanat-jpg/smpqtyq1lilbanat/refs/heads/main/logo.png'}" alt="Logo" width="44" height="44" style="width: 44px; height: 44px; border: 0;" />
-            </td>
-            <td align="center" valign="middle">
-              <p style="font-size: 8pt; font-weight: bold; letter-spacing: 1.5px; margin: 0; color: #555555; text-transform: uppercase;">
-                YAYASAN ASEM BUNGKUK PATI
-              </p>
-              <p style="font-size: 11pt; font-weight: bold; margin: 1px 0 0 0; text-transform: uppercase;">
-                PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP
-              </p>
-              <p style="font-size: 7.5pt; margin: 1px 0 0 0; color: #444444;">
-                Jl. Raya Pati-Tayu Km. 06, Sukoharjo, Wedarijaksa, Pati, Jawa Tengah | Email: info@smpqtyq1pati.sch.id
-              </p>
-            </td>
-          </tr>
-        </table>
-
-        <div style="text-align: center; margin-bottom: 8pt;">
-          <p style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px;">
-            LAPORAN DATA PELANGGARAN SANTRI (KEDISIPLINAN)
-          </p>
-          <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">
-            Unit Kerja: Kesiswaan &amp; Kedisiplinan &bull; Periode: ${bInfo.lengkap}
-          </p>
-        </div>
-
-        <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt;">
-          <thead>
-            <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold; font-size: 7.5pt;">
-              <th style="border: 1px solid #000000; padding: 4px; width: 8%;">TANGGAL</th>
-              <th style="border: 1px solid #000000; padding: 4px; width: 17%;">NAMA SANTRI</th>
-              <th style="border: 1px solid #000000; padding: 4px; width: 6%;">JENJANG</th>
-              <th style="border: 1px solid #000000; padding: 4px; width: 5%;">KELAS</th>
-              <th style="border: 1px solid #000000; padding: 4px; width: 14%;">HALAQOH</th>
-              <th style="border: 1px solid #000000; padding: 4px; width: 16%;">PELANGGARAN</th>
-              <th style="border: 1px solid #000000; padding: 4px; width: 22%;">SANKSI</th>
-              <th style="border: 1px solid #000000; padding: 4px; width: 12%;">STATUS SP</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsPelanggaranWord}
-          </tbody>
-        </table>
-        <p style="text-align: center; font-size: 7.5pt; color: #777777; margin-top: 12pt;">${pageCounterWord++}</p>
-      `;
-    }
-        const blob = new Blob(['\ufeff', wordDocumentHTML], {
-          type: 'application/msword'
+            <p style="text-align: center; font-size: 7.5pt; color: #777; margin-top: 12pt;">${pageCounterWord++}</p>`;
         });
 
-        const url = URL.createObjectURL(blob);
-        const fileLink = document.createElement("a");
-        document.body.appendChild(fileLink);
-        fileLink.href = url;
-        fileLink.download = filename;
-        fileLink.click();
-        document.body.removeChild(fileLink);
-        showNotification('File Word (DOCX/DOC) berhasil disiapkan dan diunduh!');
-      } catch (err) {
-        console.error('Kendala saat mengekspor dokumen Word:', err);
-        showNotification('Terjadi kendala saat membuat file Word: ' + err.message, true);
-      }
-    }
+        // --- 2. TABEL LEGER NILAI ---
+        if (valDiv === 'all') {
+            const rekapNilaiWord = getRekapNilaiPerRombel();
+            if (rekapNilaiWord.length > 0) {
+                let rowsNilaiWord = '';
+                rekapNilaiWord.forEach((rnW, idxN) => {
+                    rowsNilaiWord += `
+                    <tr>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center; font-weight: bold;">${idxN + 1}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; font-weight: bold;">${rnW.nama_guru}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; color: #1e3a8a;">${rnW.nama_mapel}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center; font-weight: bold;">${rnW.kelas}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center;">${rnW.kkm}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center;">${rnW.jml_siswa}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center; font-weight: bold;">${rnW.rata_rata}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center; color: #b91c1c;">${rnW.pct_below_kkm}%</td>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center; color: #047857;">${rnW.pct_above_kkm}%</td>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center; font-weight: bold; color: ${rnW.is_tuntas ? '#065f46' : '#991b1b'};">${rnW.is_tuntas ? 'Tuntas Baik' : '< 80% Tuntas'}</td>
+                    </tr>`;
+                });
+                
+                wordDivisionsContent += `
+                <br clear="all" style="page-break-before: always; mso-break-type: page-break;" />
+                <div style="text-align: center; margin-bottom: 8pt;">
+                    <p style="font-size: 10.5pt; font-weight: bold; margin: 0;">LAPORAN REKAPITULASI KETUNTASAN BELAJAR SISWA (LEGER NILAI)</p>
+                    <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">Unit Pengelola: Kurikulum &amp; Akademik &bull; Periode: ${bInfo.lengkap}</p>
+                </div>
+                <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 7.5pt;">
+                    <thead>
+                        <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold; font-size: 7pt;">
+                            <th style="border: 1px solid #000000; padding: 4px; width: 4%;">NO</th>
+                            <th style="border: 1px solid #000000; padding: 4px; width: 22%; text-align: left;">NAMA GURU</th>
+                            <th style="border: 1px solid #000000; padding: 4px; width: 20%; text-align: left;">MATA PELAJARAN</th>
+                            <th style="border: 1px solid #000000; padding: 4px; width: 7%;">KELAS</th>
+                            <th style="border: 1px solid #000000; padding: 4px; width: 6%;">KKM</th>
+                            <th style="border: 1px solid #000000; padding: 4px; width: 7%;">JML SISWA</th>
+                            <th style="border: 1px solid #000000; padding: 4px; width: 8%;">RATA-RATA</th>
+                            <th style="border: 1px solid #000000; padding: 4px; width: 8%;">&lt; KKM (%)</th>
+                            <th style="border: 1px solid #000000; padding: 4px; width: 8%;">≥ KKM (%)</th>
+                            <th style="border: 1px solid #000000; padding: 4px; width: 10%;">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsNilaiWord}</tbody>
+                </table>
+                <p style="text-align: center; font-size: 7.5pt; color: #777; margin-top: 12pt;">${pageCounterWord++}</p>`;
+            }
 
-    window.onload = initData;
+            // --- 3. TABEL KEBERSIHAN ---
+            const rekapKebersihanWord = getRekapKebersihanData();
+            if (rekapKebersihanWord.length > 0) {
+                let rowsKebersihanWord = '';
+                rekapKebersihanWord.forEach((k, idx) => {
+                    let riwayatHTML = '';
+                    if(k.riwayatKasus && k.riwayatKasus.length > 0) {
+                        riwayatHTML = `<ul style="margin-top: 0; margin-bottom: 0; padding-left: 15px;">`;
+                        k.riwayatKasus.forEach(r => {
+                            const formatTanggal = r.tanggal.split('-').reverse().join('/');
+                            riwayatHTML += `<li><b>[${formatTanggal}]</b> ${r.keterangan}</li>`;
+                        });
+                        riwayatHTML += `</ul>`;
+                    } else {
+                        riwayatHTML = `<i>Bersih</i>`;
+                    }
+                    rowsKebersihanWord += `
+                    <tr>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center; font-weight: bold;">${idx + 1}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center; font-weight: bold;">${k.nama_kamar}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; font-weight: bold;">${k.wali_halaqoh || '-'}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center; color: ${k.totalKasus > 0 ? '#b91c1c' : '#047857'}; font-weight: bold;">${k.totalKasus} Kali</td>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center; color: ${k.persentase < 70 ? '#b91c1c' : '#047857'}; font-weight: bold;">${k.persentase.toFixed(1)}%</td>
+                        <td style="border: 1px solid #000000; padding: 4px; font-size: 8pt;">${riwayatHTML}</td>
+                    </tr>`;
+                });
+                wordDivisionsContent += `
+                <br clear="all" style="page-break-before: always; mso-break-type: page-break;" />
+                <div style="text-align: center; margin-bottom: 8pt;">
+                    <p style="font-size: 10.5pt; font-weight: bold; margin: 0;">LAPORAN MONITORING KETIDAKBERSIHAN KAMAR SANTRI</p>
+                    <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">Unit Kerja: Waka Kebersihan &bull; Periode: ${bInfo.lengkap}</p>
+                </div>
+                <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt;">
+                    <thead>
+                        <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold;">
+                            <th style="border: 1px solid #000000; padding: 4px;">NO</th>
+                            <th style="border: 1px solid #000000; padding: 4px;">NAMA KAMAR</th>
+                            <th style="border: 1px solid #000000; padding: 4px;">WALI HALAQOH</th>
+                            <th style="border: 1px solid #000000; padding: 4px;">TIDAK BERSIH</th>
+                            <th style="border: 1px solid #000000; padding: 4px;">% KEBERSIHAN</th>
+                            <th style="border: 1px solid #000000; padding: 4px; text-align: left;">KETERANGAN / CATATAN KETIDAKBERSIHAN</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsKebersihanWord}</tbody>
+                </table>
+                <p style="text-align: center; font-size: 7.5pt; color: #777; margin-top: 12pt;">${pageCounterWord++}</p>`;
+            }
+
+            // --- 4. TABEL PELANGGARAN SANTRI ---
+            const rekapPelanggaranWord = getRekapPelanggaranData();
+            if (rekapPelanggaranWord.length > 0) {
+                let rowsPelanggaranWord = '';
+                rekapPelanggaranWord.forEach((p) => {
+                    let spColor = '#475569';
+                    if (p.sp === 'Dikeluarkan') spColor = '#be123c';
+                    else if (p.sp && p.sp !== 'Tanpa SP') spColor = '#b45309';
+
+                    rowsPelanggaranWord += `
+                    <tr>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center;">${p.tanggal || '-'}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; font-weight: bold; text-transform: uppercase;">${p.nama || '-'}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center;">${p.jenjang || '-'}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center; font-weight: bold;">${p.kelas || '-'}</td>
+                        <td style="border: 1px solid #000000; padding: 4px;">${p.halaqoh || '-'}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; font-weight: bold;">${p.pelanggaran || '-'}</td>
+                        <td style="border: 1px solid #000000; padding: 4px;">${p.sanksi || '-'}</td>
+                        <td style="border: 1px solid #000000; padding: 4px; text-align: center; font-weight: bold; color: ${spColor};">${p.sp || 'Tanpa SP'}</td>
+                    </tr>`;
+                });
+                wordDivisionsContent += `
+                <br clear="all" style="page-break-before: always; mso-break-type: page-break;" />
+                <div style="text-align: center; margin-bottom: 8pt;">
+                    <p style="font-size: 10.5pt; font-weight: bold; margin: 0;">LAPORAN DATA PELANGGARAN SANTRI (KEDISIPLINAN)</p>
+                    <p style="font-size: 8.5pt; font-weight: bold; margin: 1px 0 0 0; color: #1e3a8a;">Unit Kerja: Keamanan &bull; Periode: ${bInfo.lengkap}</p>
+                </div>
+                <table width="100%" border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #000000; font-size: 8pt;">
+                    <thead>
+                        <tr style="background-color: #f1f5f9; text-align: center; font-weight: bold;">
+                            <th style="border: 1px solid #000000; padding: 4px;">TANGGAL</th>
+                            <th style="border: 1px solid #000000; padding: 4px; text-align: left;">NAMA SANTRI</th>
+                            <th style="border: 1px solid #000000; padding: 4px;">JENJANG</th>
+                            <th style="border: 1px solid #000000; padding: 4px;">KELAS</th>
+                            <th style="border: 1px solid #000000; padding: 4px; text-align: left;">HALAQOH</th>
+                            <th style="border: 1px solid #000000; padding: 4px; text-align: left;">PELANGGARAN</th>
+                            <th style="border: 1px solid #000000; padding: 4px; text-align: left;">SANKSI</th>
+                            <th style="border: 1px solid #000000; padding: 4px;">STATUS SP</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsPelanggaranWord}</tbody>
+                </table>
+                <p style="text-align: center; font-size: 7.5pt; color: #777; margin-top: 12pt;">${pageCounterWord++}</p>`;
+            }
+        }
+
+        const header = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                @page WordSection1 { size: 297mm 210mm; margin: 10mm 15mm 10mm 15mm; mso-page-orientation: landscape; }
+                div.WordSection1 { page: WordSection1; }
+                body { font-family: 'Times New Roman', serif; color: #000; }
+            </style>
+        </head>
+        <body>
+            <div class="WordSection1">
+                <!-- Cover -->
+                <div style="text-align: center; margin-top: 20pt;">
+                    <p style="font-size: 22pt; font-weight: bold; margin-bottom: 4pt;">LAPORAN BULANAN<br>PONDOK TAHFIDH YANBU'UL QUR'AN 1 PATI PUTRA UNIT SMP</p>
+                    <p style="font-size: 16pt; font-weight: bold; color: #1e3a8a; text-decoration: underline; margin-bottom: 2pt;">PERIODE ${bInfo.bulan.toUpperCase()} ${bInfo.tahun}</p>
+                    <p style="font-size: 12pt; margin-bottom: 30pt;">Disampaikan dalam Rapat Bulanan<br>Yayasan Asem Bungkuk Pati</p>
+                    <p style="font-size: 14pt; font-weight: bold;">Tahun ${bInfo.tahun}</p>
+                </div>
+                ${wordDivisionsContent}
+            </div>
+        </body>
+        </html>`;
+
+        const blob = new Blob(['\ufeff', header], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Laporan_Bulanan_${unitFileTag}_${selectedBulan}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        setTimeout(() => { showNotification("File Word berhasil diunduh!"); }, 1500);
+    }
   </script>
 </body>
 </html>
