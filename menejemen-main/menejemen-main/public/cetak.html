@@ -11,9 +11,6 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-  <!-- Library html2pdf.js untuk Export PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  
   <!-- Custom Landscape & Print Styling -->
   <style>
     @page {
@@ -314,7 +311,7 @@
       <!-- Loading State Placeholder -->
       <div class="page-break a4-landscape-page page-sheet p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-300 flex flex-col justify-between relative">
         <div class="p-8 text-center text-slate-400 italic">
-          <i class="fas fa-spinner fa-spin mr-2"></i>Memuat seluruh data nilai, presensi, tahfidh, dan tabungan santri dari server Supabase...
+          <i class="fas fa-spinner fa-spin mr-2"></i>Memuat seluruh data dari server Supabase...
         </div>
       </div>
     </div>
@@ -2754,50 +2751,13 @@ function getRekapPelanggaranData() {
       renderTableData(val);
     }
 
-    async function downloadPDF() {
-    // Beri tahu user karena proses puluhan halaman memakan waktu
-    showNotification("Mengekspor puluhan halaman PDF... Mohon tunggu dan jangan tutup halaman ini.", false);
-
-    const bInfo = getNamaBulanTahun(selectedBulan);
-    const valDiv = document.getElementById('selectDivisi').value;
-    let unitTag = 'Semua_Divisi';
-    if (valDiv !== 'all') {
-        const divTarget = divisionsData.find(d => Number(d.id) === Number(valDiv));
-        if (divTarget) unitTag = divTarget.name.replace(/\s+/g, '_');
-    }
-
-    const opt = {
-        margin:       0, 
-        filename:     `Laporan_${unitTag}_${bInfo.bulanDigit}-${bInfo.tahun}.pdf`,
-        image:        { type: 'jpeg', quality: 0.95 },
-        html2canvas:  { scale: 1.5, useCORS: true }, // Scale diturunkan sedikit agar tidak membebani RAM
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
-    };
-
-    // Ambil semua halaman satu per satu
-    const pages = document.querySelectorAll('#printableDocument .page-sheet');
-    if (pages.length === 0) {
-        showNotification("Tidak ada data untuk diekspor!", true);
-        return;
-    }
-
-    // Proses halaman pertama
-    let worker = html2pdf().set(opt).from(pages[0]).toPdf();
-
-    // Lakukan looping (pengulangan) untuk halaman kedua sampai akhir
-    for (let i = 1; i < pages.length; i++) {
-        worker = worker.get('pdf').then(pdf => {
-            pdf.addPage();
-        }).from(pages[i]).toContainer().toCanvas().toPdf();
-    }
-
-    // Simpan PDF setelah seluruh halaman selesai digabungkan
-    worker.save().then(() => {
-        showNotification("File PDF berhasil diunduh secara penuh!");
-    }).catch(err => {
-        console.error("Gagal membuat PDF:", err);
-        showNotification("Terjadi kesalahan saat memproses halaman PDF.", true);
-    });
+    function downloadPDF() {
+    showNotification("Memproses PDF... Pastikan Anda mengubah 'Tujuan' (Destination) menjadi 'Simpan sebagai PDF' (Save as PDF).", false);
+    
+    // Memberikan jeda 1.5 detik agar user membaca notifikasi sebelum jendela PDF terbuka
+    setTimeout(() => {
+        window.print();
+    }, 1500);
 }
     
     function downloadDOCX() {
