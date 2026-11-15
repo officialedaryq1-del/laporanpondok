@@ -11,6 +11,9 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
+  <!-- Library html2pdf.js untuk Export PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
   <!-- Custom Landscape & Print Styling -->
   <style>
     @page {
@@ -182,6 +185,11 @@
         <span>Unduh DOCX (Landscape A4)</span>
       </button>
 
+      <!-- Tombol Unduh PDF -->
+      <button onclick="downloadPDF()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md shadow-rose-600/20 transition flex items-center gap-1.5 cursor-pointer">
+        <i class="fas fa-file-pdf"></i> <span>Unduh PDF</span>
+      </button>
+      
       <!-- Tombol Cetak / Print -->
       <button onclick="window.print()" class="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5 cursor-pointer">
         <i class="fas fa-print"></i>
@@ -2746,6 +2754,36 @@ function getRekapPelanggaranData() {
       renderTableData(val);
     }
 
+    function downloadPDF() {
+    showNotification("Sedang memproses dokumen PDF, harap tunggu sebentar...", false);
+
+    const element = document.getElementById('printableDocument');
+    const bInfo = getNamaBulanTahun(selectedBulan);
+    const valDiv = document.getElementById('selectDivisi').value;
+    
+    let unitTag = 'Semua_Divisi';
+    if (valDiv !== 'all') {
+        const divTarget = divisionsData.find(d => Number(d.id) === Number(valDiv));
+        if (divTarget) unitTag = divTarget.name.replace(/\s+/g, '_');
+    }
+
+    const opt = {
+        margin:       [0, 0, 0, 0], 
+        filename:     `Laporan_${unitTag}_${bInfo.bulanDigit}-${bInfo.tahun}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, windowWidth: 1200 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        pagebreak:    { mode: ['css', 'legacy'] }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        showNotification("File PDF berhasil diunduh!");
+    }).catch(err => {
+        console.error("Gagal membuat PDF:", err);
+        showNotification("Terjadi kesalahan saat membuat PDF.", true);
+    });
+}
+    
     function downloadDOCX() {
       try {
         const bInfo = getNamaBulanTahun(selectedBulan);
