@@ -7396,6 +7396,9 @@ const rekapSantriData = useMemo(() => {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </div>
+          )}
                       
                       {/* Jika data guru kosong */}
                       {presensiAsatidzLedger.length === 0 && (
