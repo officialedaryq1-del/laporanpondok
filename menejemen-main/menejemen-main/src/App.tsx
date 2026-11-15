@@ -7365,46 +7365,37 @@ const rekapSantriData = useMemo(() => {
                             if (dayOfWeek === 0) slots = ['Magrib', 'Isya'];
     
                             return slots.map((slot, idx) => {
-                            const st = row.dailyStatus[d]?.[slot] || '-';
-                            let colorClass = "text-slate-200 bg-transparent"; // Strip default
-                            if (st === 'H') colorClass = "bg-emerald-100 text-emerald-700 font-bold shadow-xs";
-                            else if (st === 'A') colorClass = "bg-rose-100 text-rose-700 font-bold shadow-xs";
-                            else if (st === 'I') colorClass = "bg-amber-100 text-amber-700 font-bold shadow-xs";
-                            else if (st === 'P') colorClass = "bg-purple-100 text-purple-700 font-bold shadow-xs";
-                            else if (st === 'T') colorClass = "bg-orange-100 text-orange-700 font-bold shadow-xs";
-                          
-                            // === UBAH BAGIAN RETURN TD INI ===
-                            return (
-                              <td 
-                                key={`${d}-${slot}-${idx}`} 
-                                onClick={() => setEditingPresensiCell({
-                                  guru_id: String(row.id),
-                                  nama_guru: row.nama,
-                                  tanggal: `${year}-${month}-${String(d).padStart(2, '0')}`,
-                                  waktu_sholat: slot as any,
-                                  status: st
-                                })}
-                                title={`Klik untuk ubah presensi ${slot}`}
-                                className={`py-1 px-0.5 border-r border-slate-100 cursor-pointer hover:bg-blue-100/50 transition-colors ${dayOfWeek === 0 ? 'bg-rose-50/30 hover:bg-rose-100/50' : ''}`}
-                              >
-                                <div className={`w-4 h-4 mx-auto rounded flex items-center justify-center text-[8px] transition-transform hover:scale-110 ${colorClass}`}>
-                                  {st}
-                                </div>
-                              </td>
-                            );
-                            // ==================================
-                          });
+                              const st = row.dailyStatus[d]?.[slot] || '-';
+                              let colorClass = "text-slate-200 bg-transparent"; // Strip default
+                              if (st === 'H') colorClass = "bg-emerald-100 text-emerald-700 font-bold shadow-xs";
+                              else if (st === 'A') colorClass = "bg-rose-100 text-rose-700 font-bold shadow-xs";
+                              else if (st === 'I') colorClass = "bg-amber-100 text-amber-700 font-bold shadow-xs";
+                              else if (st === 'P') colorClass = "bg-purple-100 text-purple-700 font-bold shadow-xs";
+                              else if (st === 'T') colorClass = "bg-orange-100 text-orange-700 font-bold shadow-xs";
+                            
+                              return (
+                                <td
+                                  key={`${d}-${slot}-${idx}`}
+                                  onClick={() => setEditingPresensiCell({ guru_id: String(row.id), nama_guru: row.nama, tanggal: `${year}-${month}-${String(d).padStart(2, '0')}`, waktu_sholat: slot as any, status: st })}
+                                  className={`py-1 px-1 border-r border-b border-slate-100 cursor-pointer min-w-[20px] ${colorClass}`}
+                                >
+                                  {st !== '-' ? st : ''}
+                                </td>
+                              );
+                            });
                           })}
-    
-                          {/* Sel Rekap Total */}
-                          <td className="py-1.5 px-2 border-r border-slate-100 text-emerald-600 font-bold text-xs">{row.h}</td>
-                          <td className="py-1.5 px-2 border-r border-slate-100 text-rose-600 font-bold text-xs">{row.a}</td>
-                          <td className="py-1.5 px-2 border-r border-slate-100 text-amber-600 font-bold text-xs">{row.i}</td>
-                          <td className="py-1.5 px-2 border-r border-slate-100 text-purple-600 font-bold text-xs">{row.p}</td>
-                          <td className="py-1.5 px-2 border-r border-slate-100 text-orange-600 font-bold text-xs">{row.t}</td>
-                          <td className="py-1.5 px-3 text-blue-600 font-black text-xs">{row.pct}%</td>
+
+                          <td className="py-1 px-2 border-r border-slate-100 bg-emerald-50 text-emerald-700 font-bold shadow-[inset_1px_0_0_0_#f1f5f9]">{row.h}</td>
+                          <td className="py-1 px-2 border-r border-slate-100 bg-rose-50 text-rose-700 font-bold">{row.a}</td>
+                          <td className="py-1 px-2 border-r border-slate-100 bg-amber-50 text-amber-700 font-bold">{row.i}</td>
+                          <td className="py-1 px-2 border-r border-slate-100 bg-purple-50 text-purple-700 font-bold">{row.p}</td>
+                          <td className="py-1 px-2 border-r border-slate-100 bg-orange-50 text-orange-700 font-bold">{row.t}</td>
+                          <td className="py-1 px-3 font-bold bg-blue-50 text-blue-700">{row.pct}%</td>
                         </tr>
                       ))}
+                    </tbody>
+                  </table>
+                </div>
                       
                       {/* Jika data guru kosong */}
                       {presensiAsatidzLedger.length === 0 && (
