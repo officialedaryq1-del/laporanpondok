@@ -7307,12 +7307,11 @@ const rekapSantriData = useMemo(() => {
                 </div>
               </div>
     
-              <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                <div className="overflow-x-auto pb-4 custom-scrollbar">
-                  <table className="w-full text-left border-collapse min-w-max">
-                    <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 text-[10px] uppercase font-bold text-center">
-                      {/* Baris Header ke-1: Tanggal & Total */}
-                      <tr>
+              <div className="overflow-auto max-h-[75vh] relative w-full custom-scrollbar border border-slate-200 rounded-xl">
+                <table className="w-full text-left text-xs min-w-max">
+                    <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] sticky top-0 z-30 shadow-sm">
+                        <tr>
+                            
                         <th rowSpan={2} className="py-3 px-3 sticky left-0 top-0 bg-slate-50 z-20 border-r border-b border-slate-200 align-middle">No</th>
                         <th rowSpan={2} className="py-3 px-4 sticky left-[42px] sm:left-[45px] top-0 bg-slate-50 z-20 border-r border-b border-slate-200 text-left min-w-[200px] align-middle">Nama Guru</th>
                         
