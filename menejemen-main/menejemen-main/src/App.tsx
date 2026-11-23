@@ -6585,8 +6585,8 @@ const rekapSantriData = useMemo(() => {
 
              {/* === KONTEN 4: INPUT FORM PERIZINAN === */}
               {perizinanSubTab === 'input' && (
-                <div className="px-4 sm:px-6 w-full pb-10">
-                   <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 max-w-3xl">
+               <div className="w-full pb-10">
+                 <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 w-full">
                       <div className="mb-6 border-b border-slate-100 pb-4">
                         <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">FORMULIR PERIZINAN</div>
                         <h3 className="text-lg font-black text-slate-800">Input Izin Santri</h3>
