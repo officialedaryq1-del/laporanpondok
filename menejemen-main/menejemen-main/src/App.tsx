@@ -6859,8 +6859,8 @@ const rekapSantriData = useMemo(() => {
           {/* ========================================================= */}
           {/* MENU DASHBOARD UTAMA (JANGAN DIHAPUS)                       */}
           {/* ========================================================= */}
-          {navTab === 'dashboard' && (
-            <div className="w-full px-2 sm:px-6 w-full space-y-4 sm:space-y-6 px-1 sm:px-0 overflow-x-hidden sm:overflow-visible">
+         {navTab === 'dashboard' && (
+            <div className="w-full space-y-4 sm:space-y-6 px-2 sm:px-6 overflow-x-hidden sm:overflow-visible">
               
               {/* Header Dashboard Responsif */}
               <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full max-w-[100vw] sm:max-w-none">
