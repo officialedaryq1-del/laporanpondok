@@ -3301,7 +3301,7 @@ const rekapSantriData = useMemo(() => {
         </div>
           {}
          {navTab === 'ceklis' && (
-            <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6 px-1 sm:px-0">
+            <div className=" w-full space-y-4 sm:space-y-6 px-1 sm:px-0">
               
               {/* Header & Filter Ringkas 1 Baris (Responsif Mobile) */}
               <div className="bg-white rounded-2xl sm:rounded-3xl p-4 border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full max-w-[100vw] sm:max-w-none">
@@ -4399,7 +4399,7 @@ const rekapSantriData = useMemo(() => {
           {}
          {/* TAB: MONITORING KEBERSIHAN NATIVE */}
           {navTab === 'monitoring_kebersihan' && (
-            <div className="max-w-7xl mx-auto w-full space-y-4">
+            <div className="w-full px-2 sm:px-6 w-full space-y-4">
               
               {/* Header E-Kebersihan & Tab Navigasi Lengkap */}
               <div className="bg-emerald-700 rounded-3xl p-4 sm:p-6 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -5332,7 +5332,7 @@ const rekapSantriData = useMemo(() => {
           {/* BATAS MENU KEBERSIHAN BERAKHIR - MULAI MENU DASHBOARD       */}
           {/* ========================================================= */}
          {navTab === 'pelanggaran' && (
-            <div className="max-w-7xl mx-auto w-full space-y-4">
+            <div className="w-full px-2 sm:px-6 w-full space-y-4">
               {/* Header Aplikasi Pelanggaran */}
               <div className="bg-emerald-900 rounded-3xl p-4 sm:p-6 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center space-x-3">
@@ -6319,7 +6319,7 @@ const rekapSantriData = useMemo(() => {
           {/* MENU SISTEM PERIZINAN SANTRI                              */}
           {/* ========================================================= */}
           {navTab === 'perizinan' && (
-            <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6 px-1 sm:px-0 overflow-x-hidden sm:overflow-visible">
+            <div className="w-full px-2 sm:px-6 w-full space-y-4 sm:space-y-6 px-1 sm:px-0 overflow-x-hidden sm:overflow-visible">
               
               {/* --- HEADER KHUSUS PERIZINAN (Responsif) --- */}
               <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-start justify-between gap-4 w-full max-w-[100vw] sm:max-w-none">
@@ -6860,7 +6860,7 @@ const rekapSantriData = useMemo(() => {
           {/* MENU DASHBOARD UTAMA (JANGAN DIHAPUS)                       */}
           {/* ========================================================= */}
           {navTab === 'dashboard' && (
-            <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6 px-1 sm:px-0 overflow-x-hidden sm:overflow-visible">
+            <div className="w-full px-2 sm:px-6 w-full space-y-4 sm:space-y-6 px-1 sm:px-0 overflow-x-hidden sm:overflow-visible">
               
               {/* Header Dashboard Responsif */}
               <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full max-w-[100vw] sm:max-w-none">
@@ -7071,7 +7071,7 @@ const rekapSantriData = useMemo(() => {
             )}
 
           {navTab === 'laporan' && (
-            <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6 px-1 sm:px-0">
+            <div className="w-full px-2 sm:px-6 w-full space-y-4 sm:space-y-6 px-1 sm:px-0">
               
               {/* Header Banner - Disesuaikan agar responsif di HP */}
               <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-white shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -7249,7 +7249,7 @@ const rekapSantriData = useMemo(() => {
       const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
     
       return (
-        <div className="space-y-4 sm:space-y-6 max-w-[100vw] sm:max-w-7xl mx-auto overflow-hidden">
+        <div className="space-y-4 sm:space-y-6 max-w-[100vw] sm:w-full px-2 sm:px-6 overflow-hidden">
           
           {/* Header & Tab Sub-Menu */}
           <div className="bg-[#0f172a] p-4 sm:p-5 rounded-3xl shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -7563,7 +7563,7 @@ const rekapSantriData = useMemo(() => {
       
           {}
           {navTab === 'pengaturan' && (
-            <div className="max-w-7xl mx-auto w-full space-y-6">
+            <div className="w-full px-2 sm:px-6 w-full space-y-6">
               
               <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
