@@ -73,13 +73,12 @@ button:focus-visible {
   }
 
   /* 2. Reset Layout Body dan Root (Hapus Margin & Padding) */
-  html, body, #root {
-    display: block !important;
-    height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: white !important;
-  }
+ html, body, #root {
+  width: 100%;
+  max-width: 100% !important;
+  margin: 0;
+  padding: 0;
+}
 
   /* 3. Tarik area utama (main) ke paling atas */
   main {
