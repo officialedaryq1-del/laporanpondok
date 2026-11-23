@@ -3025,7 +3025,7 @@ const rekapSantriData = useMemo(() => {
   };
   
   return (
-    <div className="h-screen w-full flex overflow-hidden bg-slate-50 font-sans text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
+    <div className="h-screen w-screen flex overflow-hidden bg-slate-50 font-sans text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
       
       {/* Toast Notification */}
       {toastMessage && (
