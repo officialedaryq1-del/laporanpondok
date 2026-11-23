@@ -118,3 +118,20 @@ button:focus-visible {
     box-shadow: none !important;
   }
 }
+
+/* Paksa ikon kalender/tanggal selalu berwarna hitam (Light Mode) */
+:root {
+  color-scheme: light !important;
+}
+
+input[type="date"],
+input[type="month"] {
+  color-scheme: light !important;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+  filter: none !important;
+  opacity: 0.85;
+  cursor: pointer;
+}
