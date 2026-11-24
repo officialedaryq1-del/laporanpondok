@@ -1643,7 +1643,6 @@ const [spList, setSpList] = useState<any[]>([]); // Menyimpan opsi SP dinamis
       return a.id - b.id; // Jika tipenya sama, urutkan berdasarkan urutan pembuatan (ID)
     });
   }, [sections, selectedTemplateId, sectionTypeMap]);
-```[cite: 11]
 
   const getSectionItems = (sectionId: number) => {
     return items.filter(it => Number(it.section_id) === Number(sectionId) && it.is_active !== false);
